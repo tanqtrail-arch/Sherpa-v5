@@ -245,14 +245,76 @@ main{padding:80px 16px 100px;max-width:900px;margin:0 auto}
 <!-- CHILD -->
 <div id="screen-home" class="screen active">
 <div class="daily-mission"><div style="font-size:10px;font-weight:700;opacity:.8">🎯 今日のミッション</div><div style="font-size:16px;font-weight:700;margin:4px 0">スライドを2つ見よう！</div><div style="font-size:12px;opacity:.9">達成で +30 ALT</div><div class="mission-bar"><div class="mission-fill" id="missionFill" style="width:50%"></div></div></div>
+
+<!-- 本棚風カリキュラムビュー -->
+<div class="section-title">📚 学びの本棚<span class="free-tag">タップしてカリキュラムへ</span></div>
+<div id="bookshelfView" style="background:linear-gradient(180deg,#8B4513 0%,#A0522D 100%);border-radius:16px;padding:12px;margin-bottom:16px;box-shadow:inset 0 -4px 8px rgba(0,0,0,.3)"></div>
+
+<div class="section-title">👨‍👩‍👧 ファミリーミッション<span style="background:linear-gradient(135deg,#ec4899,#f472b6);color:#fff;font-size:9px;padding:2px 8px;border-radius:10px;margin-left:6px">家族で挑戦</span></div>
+<div id="familyMissions" style="margin-bottom:16px"></div>
+
 <div class="section-title">🎗️ スポンサーミッション<span style="background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#fff;font-size:9px;padding:2px 8px;border-radius:10px;margin-left:6px">特別報酬</span></div>
 <div class="slides-grid" id="sponsorMissions" style="margin-bottom:16px"></div>
-<div class="section-title">📚 探究スライド<span class="free-tag">全機能無料</span></div>
-<div style="margin-bottom:8px"><div style="font-size:10px;color:rgba(255,255,255,.7);margin-bottom:4px">🎓 学年</div><div class="cat-filter" id="gradeFilter"></div></div>
-<div style="margin-bottom:12px"><div style="font-size:10px;color:rgba(255,255,255,.7);margin-bottom:4px">📂 カテゴリ</div><div class="cat-filter" id="catFilter"></div></div>
-<div class="slides-grid" id="slidesGrid"></div>
 </div>
-<div id="screen-viewer" class="screen"><div class="card"><div class="card-header"><span id="viewerTitle">タイトル</span><button class="sbtn" onclick="closeViewer()">✕</button></div><div style="position:relative;padding-top:56.25%;background:var(--cloud)" id="viewerFrame"></div><div class="card-body" style="display:flex;justify-content:space-between;align-items:center"><span id="viewerCat" style="font-size:11px;color:var(--rock)">カテゴリ</span><button class="btn btn-primary btn-sm" onclick="completeSlide()">✅ 完了 +10 ALT</button></div></div>
+<!-- カリキュラム画面 -->
+<div id="screen-curriculum" class="screen">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+<button onclick="showScreen('home')" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:36px;height:36px;border-radius:50%;font-size:16px;cursor:pointer">←</button>
+<div id="curriculumHeader" style="flex:1">
+<div style="font-size:18px;font-weight:900;color:#fff" id="curriculumTitle">🔬 科学</div>
+<div style="font-size:11px;color:rgba(255,255,255,.7)" id="curriculumProgress">進捗: 3/10完了</div>
+</div>
+</div>
+<div class="card" style="margin-bottom:12px"><div class="card-body" style="padding:16px">
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+<div id="curriculumIcon" style="width:60px;height:60px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:32px">🔬</div>
+<div style="flex:1">
+<div style="font-size:14px;font-weight:700;color:var(--summit)" id="curriculumName">科学</div>
+<div style="font-size:11px;color:var(--rock)" id="curriculumDesc">身の回りの不思議を科学で解明しよう</div>
+</div>
+</div>
+<div style="background:var(--cloud);border-radius:8px;height:8px;overflow:hidden;margin-bottom:8px">
+<div id="curriculumProgressBar" style="height:100%;background:linear-gradient(90deg,#22c55e,#4ade80);width:30%;transition:width .3s"></div>
+</div>
+<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--rock)">
+<span id="curriculumDone">3件完了</span>
+<span id="curriculumTotal">全10件</span>
+</div>
+</div></div>
+<div class="section-title" style="color:#fff">📖 このカテゴリのスライド</div>
+<div id="curriculumSlides" class="slides-grid"></div>
+</div>
+<!-- 本棚画面 -->
+<div id="screen-bookshelf" class="screen">
+<div class="section-title" style="color:#fff">📚 学びの本棚<span class="free-tag">タップして中を見よう</span></div>
+
+<!-- 大カテゴリ本棚 -->
+<div id="bookshelfMain" style="margin-bottom:20px"></div>
+
+<!-- 中カテゴリ表示エリア -->
+<div id="bookshelfMid" style="display:none;margin-bottom:20px">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+<button onclick="closeBookshelfMid()" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:14px;cursor:pointer">←</button>
+<div id="bookshelfMidTitle" style="font-size:16px;font-weight:700;color:#fff">🔬 科学</div>
+</div>
+<div id="bookshelfMidContent"></div>
+</div>
+
+<!-- 小カテゴリ（スライド一覧）表示エリア -->
+<div id="bookshelfSmall" style="display:none">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+<button onclick="closeBookshelfSmall()" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:14px;cursor:pointer">←</button>
+<div id="bookshelfSmallTitle" style="font-size:16px;font-weight:700;color:#fff">物理学</div>
+</div>
+<div id="bookshelfSmallContent"></div>
+</div>
+</div>
+<div id="screen-viewer" class="screen"><div class="card"><div class="card-header" style="display:flex;justify-content:space-between;align-items:center"><span id="viewerTitle" style="flex:1">タイトル</span><button onclick="closeViewer()" style="background:#ef4444;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer">✕ 閉じる</button></div><div style="position:relative;padding-top:56.25%;background:var(--cloud)" id="viewerFrame"></div><div class="card-body" id="viewerActions" style="display:flex;justify-content:space-between;align-items:center"><span id="viewerCat" style="font-size:11px;color:var(--rock)">カテゴリ</span><button class="btn btn-primary btn-sm" onclick="completeSlide()">✅ 完了 +10 ALT</button></div></div>
+<!-- 関連動画エリア -->
+<div id="relatedVideos" style="margin-top:12px">
+<div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:8px">🎬 関連動画</div>
+<div id="relatedVideoList" style="display:flex;gap:10px;overflow-x:auto;padding-bottom:8px"></div>
+</div>
 <!-- AIチャットボタン -->
 <button id="viewerChatBtn" onclick="toggleViewerChat()" style="position:fixed;bottom:80px;right:16px;width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#a78bfa);color:#fff;border:none;font-size:20px;box-shadow:0 4px 15px rgba(139,92,246,.4);cursor:pointer;z-index:100">💬</button>
 <!-- AIチャットボックス -->
@@ -347,6 +409,14 @@ main{padding:80px 16px 100px;max-width:900px;margin:0 auto}
 <div class="card"><div class="card-header">🏔️ 登頂バッジ<span id="climbBadgeCount" style="font-size:11px;color:var(--rock);font-weight:400;margin-left:8px">0/20</span></div><div class="card-body"><div id="climbBadges" style="display:flex;flex-wrap:wrap;gap:6px"></div><div id="noClimbBadge" style="text-align:center;color:var(--rock);font-size:12px;padding:20px">まだ登頂していません<br>ALTを貯めて山に挑戦しよう！</div></div></div>
 <div class="card"><div class="card-header">📜 登頂証明書<span id="certCount" style="font-size:11px;color:var(--rock);font-weight:400;margin-left:8px">0枚</span></div><div class="card-body"><div id="certList"></div><div id="noCert" style="text-align:center;color:var(--rock);font-size:12px;padding:20px">まだ証明書がありません<br>山に登頂すると証明書が発行されます！</div></div></div>
 <div class="card"><div class="card-header">📢 友達を招待しよう！<span class="free-tag">+100 ALT</span></div><div class="card-body"><div style="text-align:center;margin-bottom:12px"><div style="font-size:12px;color:var(--rock);margin-bottom:8px">あなたの紹介コード</div><div style="display:flex;align-items:center;justify-content:center;gap:8px"><div id="myRefCode" style="font-size:24px;font-weight:900;color:var(--summit);letter-spacing:2px;background:var(--cloud);padding:12px 20px;border-radius:12px">TANNKYU01</div><button onclick="copyRefCode()" style="width:44px;height:44px;background:linear-gradient(135deg,var(--sunrise),var(--sunset));border:none;border-radius:12px;color:#fff;font-size:18px;cursor:pointer">📋</button></div></div><div style="background:linear-gradient(135deg,rgba(45,134,89,.1),rgba(45,134,89,.05));border-radius:12px;padding:12px;margin-bottom:12px"><div style="font-size:11px;color:var(--shadow);margin-bottom:8px;font-weight:600">🎁 紹介ボーナス</div><div style="display:flex;justify-content:space-around"><div style="text-align:center"><div style="font-size:10px;color:var(--rock)">👤 あなた</div><div style="font-size:16px;font-weight:900;color:var(--meadow)">+100 ALT</div></div><div style="text-align:center"><div style="font-size:10px;color:var(--rock)">👥 友達</div><div style="font-size:16px;font-weight:900;color:var(--meadow)">+50 ALT</div></div></div></div><div style="background:var(--cloud);border-radius:10px;padding:12px;text-align:center"><div style="font-size:11px;color:var(--rock);margin-bottom:4px">📊 これまでの紹介</div><div style="display:flex;justify-content:center;gap:16px"><div><span style="font-size:20px;font-weight:900;color:var(--summit)" id="refCount">3</span><span style="font-size:11px;color:var(--rock)"> 人</span></div><div><span style="font-size:20px;font-weight:900;color:var(--sunrise)" id="refAlt">+300</span><span style="font-size:11px;color:var(--rock)"> ALT</span></div></div></div></div></div>
+<div class="card" style="margin-bottom:12px"><div class="card-header">👨‍👩‍👧 保護者と連携</div><div class="card-body">
+<div id="familyLinkStatus"></div>
+<div id="familyLinkForm" style="display:none">
+<div style="background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:10px;padding:12px;margin-bottom:12px"><div style="font-size:11px;color:#92400e">💡 保護者から受け取った<strong>ファミリーコード</strong>を入力すると、保護者があなたの学習状況を見守れるようになります</div></div>
+<div class="form-group"><label class="form-label">🔑 ファミリーコード</label><input type="text" class="form-input" id="familyCodeInput" placeholder="例：FAM001" style="text-transform:uppercase"></div>
+<button class="btn btn-primary" onclick="linkFamily()">🔗 連携する</button>
+</div>
+</div></div>
 <div class="card"><div class="card-header">📝 プロフィール設定</div><div class="card-body"><div class="form-group"><label class="form-label">📛 ニックネーム</label><input type="text" class="form-input" id="editName" value="探究者さん"></div><div class="form-group"><label class="form-label">📍 地域</label><select class="form-select" id="editRegion"><option value="北海道">北海道</option><option value="東北">東北</option><option value="関東" selected>関東</option><option value="中部">中部</option><option value="近畿">近畿</option><option value="中国">中国</option><option value="四国">四国</option><option value="九州・沖縄">九州・沖縄</option></select></div><div class="form-group"><label class="form-label">🎓 学年</label><select class="form-select" id="editGrade"><option value="lower">🌱 低学年（小1〜小2）</option><option value="middle" selected>⭐ 中学年（小3〜小4）</option><option value="upper">🚀 高学年（小5〜中学）</option></select></div><button class="btn btn-primary" onclick="saveProfile()">💾 保存</button></div></div></div>
 <!-- PARENT -->
 <div id="screen-parent-dash" class="screen">
@@ -362,6 +432,18 @@ main{padding:80px 16px 100px;max-width:900px;margin:0 auto}
 </div>
 <div id="screen-parent-family" class="screen">
 <div class="section-title" style="color:#fff">👨‍👩‍👧 ファミリー</div>
+<div class="card" style="margin-bottom:12px"><div class="card-header">🔑 ファミリーコード</div><div class="card-body">
+<div style="background:linear-gradient(135deg,#dbeafe,#eff6ff);border-radius:12px;padding:16px;text-align:center;margin-bottom:12px">
+<div style="font-size:11px;color:#1e40af;margin-bottom:8px">お子さまにこのコードを伝えてください</div>
+<div style="font-size:28px;font-weight:900;color:#1e40af;letter-spacing:4px;background:#fff;padding:12px 20px;border-radius:10px;display:inline-block" id="parentFamilyCode">FAM001</div>
+<button onclick="copyFamilyCode()" style="margin-left:8px;background:#3b82f6;color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer">📋 コピー</button>
+</div>
+<div style="font-size:10px;color:var(--rock);text-align:center">お子さまがマイページでこのコードを入力すると連携できます</div>
+</div></div>
+<div class="card" style="margin-bottom:12px"><div class="card-header">👶 連携中のお子さま <span id="linkedChildCount" style="font-size:11px;color:var(--rock);font-weight:400">0人</span></div><div class="card-body">
+<div id="linkedChildrenList"></div>
+<div id="noLinkedChildren" style="text-align:center;color:var(--rock);font-size:12px;padding:20px">まだお子さまが連携されていません<br>ファミリーコードを伝えて連携しましょう</div>
+</div></div>
 <div class="card" style="margin-bottom:12px"><div class="card-header">📝 ファミリーミッション<button class="sbtn" onclick="openAddFMModal()" style="background:var(--parent);color:#fff;margin-left:auto">➕ 追加</button></div><div class="card-body"><div style="font-size:11px;color:var(--rock);margin-bottom:10px">1日5個まで、達成で各+20 ALT</div><div id="fmEditList"></div></div></div>
 <div class="card"><div class="card-header"><span style="display:flex;align-items:center;gap:6px">🏔️ <strong>Sherpa</strong> 学習相談AI</span><span class="ai-badge" style="margin-left:8px">Premium</span></div><div class="card-body"><div style="background:linear-gradient(135deg,rgba(59,130,246,.1),rgba(139,92,246,.1));border-radius:12px;padding:12px;margin-bottom:12px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="width:36px;height:36px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px">🏔️</div><div><div style="font-size:12px;font-weight:700;color:var(--summit)">Sherpa</div><div style="font-size:10px;color:var(--rock)">お子さま専属の学習アドバイザー</div></div></div><div style="font-size:11px;color:var(--shadow);line-height:1.6;padding:8px;background:rgba(255,255,255,.6);border-radius:8px" id="sherpaChildStatus"></div></div><div id="sherpaChatMessages" style="max-height:220px;overflow-y:auto;margin-bottom:12px;padding:4px"></div><div style="display:flex;gap:8px"><input type="text" class="form-input" id="sherpaChatInput" placeholder="Sherpaに学習の相談をする..." style="flex:1" onkeypress="if(event.key==='Enter')sendSherpaChat()"><button class="btn" style="background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;width:auto;padding:0 16px" onclick="sendSherpaChat()">🏔️</button></div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px"><button class="sbtn" onclick="askSherpa('今週のおすすめスライドは？')" style="font-size:10px;background:rgba(59,130,246,.1)">📚 おすすめ</button><button class="sbtn" onclick="askSherpa('モチベーションを上げるには？')" style="font-size:10px;background:rgba(59,130,246,.1)">💡 やる気UP</button><button class="sbtn" onclick="askSherpa('苦手を克服するには？')" style="font-size:10px;background:rgba(59,130,246,.1)">🎯 苦手克服</button><button class="sbtn" onclick="askSherpa('次の目標を提案して')" style="font-size:10px;background:rgba(59,130,246,.1)">🏔️ 次の目標</button></div></div></div>
 </div>
@@ -414,7 +496,7 @@ main{padding:80px 16px 100px;max-width:900px;margin:0 auto}
 <!-- ADMIN -->
 <div id="screen-admin-home" class="screen">
 <div class="welcome-banner admin"><h2>⚙️ 管理者モード</h2><p>システム全体を管理</p></div>
-<div class="admin-tabs"><div class="admin-tab active" onclick="showAdminPanel('stats',this)">📊 統計</div><div class="admin-tab" onclick="showAdminPanel('reports',this)">📄 レポート</div><div class="admin-tab" onclick="showAdminPanel('slides',this)">📚 スライド</div><div class="admin-tab" onclick="showAdminPanel('users',this)">👥 ユーザー</div><div class="admin-tab" onclick="showAdminPanel('sponsors',this)">🎗️ スポンサー</div><div class="admin-tab" onclick="showAdminPanel('master',this)">👑 マスター</div></div>
+<div class="admin-tabs"><div class="admin-tab active" onclick="showAdminPanel('stats',this)">📊 統計</div><div class="admin-tab" onclick="showAdminPanel('requests',this)">📝 リクエスト</div><div class="admin-tab" onclick="showAdminPanel('videos',this)">🎬 動画</div><div class="admin-tab" onclick="showAdminPanel('reports',this)">📄 レポート</div><div class="admin-tab" onclick="showAdminPanel('slides',this)">📚 スライド</div><div class="admin-tab" onclick="showAdminPanel('users',this)">👥 ユーザー</div><div class="admin-tab" onclick="showAdminPanel('sponsors',this)">🎗️ スポンサー</div><div class="admin-tab" onclick="showAdminPanel('master',this)">👑 マスター</div><div class="admin-tab" onclick="showAdminPanel('settings',this)">⚙️ 設定</div></div>
 <div id="admin-stats" class="panel active">
 <div class="stats-grid" style="margin-bottom:12px">
 <div class="stat-card"><div class="stat-card-value" id="adminTotalUsers">1,234</div><div class="stat-card-label">総ユーザー</div><div class="stat-card-change">↑ +12%</div></div>
@@ -427,7 +509,69 @@ main{padding:80px 16px 100px;max-width:900px;margin:0 auto}
 <div class="card" style="margin-bottom:12px"><div class="card-header">📊 カテゴリ別人気度</div><div class="card-body" id="adminCatPopularity"></div></div>
 <div class="card"><div class="card-header">🎓 学年分布</div><div class="card-body" id="adminGradeDistribution"></div></div>
 </div>
+<div id="admin-requests" class="panel">
+<div class="stats-grid" style="margin-bottom:12px">
+<div class="stat-card"><div class="stat-card-value" id="requestTotal">0</div><div class="stat-card-label">総リクエスト</div></div>
+<div class="stat-card"><div class="stat-card-value" id="requestPending">0</div><div class="stat-card-label">未対応</div></div>
+<div class="stat-card"><div class="stat-card-value" id="requestInProgress">0</div><div class="stat-card-label">作成中</div></div>
+<div class="stat-card"><div class="stat-card-value" id="requestCompleted">0</div><div class="stat-card-label">完了</div></div>
+</div>
+<div class="card" style="margin-bottom:12px"><div class="card-header">📝 スライド作成リクエスト一覧</div><div class="card-body">
+<div style="display:flex;gap:6px;margin-bottom:12px;overflow-x:auto">
+<div class="cat-chip active" onclick="filterRequests('all',this)">すべて</div>
+<div class="cat-chip" onclick="filterRequests('pending',this)">⏳ 未対応</div>
+<div class="cat-chip" onclick="filterRequests('progress',this)">🔨 作成中</div>
+<div class="cat-chip" onclick="filterRequests('done',this)">✅ 完了</div>
+</div>
+<div id="requestList" style="max-height:400px;overflow-y:auto"></div>
+</div></div>
+<div class="card"><div class="card-header">📊 人気リクエストTOP10</div><div class="card-body">
+<div id="popularRequestList"></div>
+</div></div>
+</div>
+<div id="admin-videos" class="panel">
+<div class="stats-grid" style="margin-bottom:12px">
+<div class="stat-card"><div class="stat-card-value" id="videoTotal">0</div><div class="stat-card-label">総動画数</div></div>
+<div class="stat-card"><div class="stat-card-value" id="videoSlides">0</div><div class="stat-card-label">動画付きスライド</div></div>
+<div class="stat-card"><div class="stat-card-value" id="videoNoSlides">0</div><div class="stat-card-label">動画なし</div></div>
+</div>
+<div class="card" style="margin-bottom:12px"><div class="card-header">🎬 関連動画を登録</div><div class="card-body">
+<div style="margin-bottom:12px">
+<label style="font-size:11px;font-weight:600;display:block;margin-bottom:4px">📚 スライドを選択</label>
+<select id="videoSlideSelect" style="width:100%;padding:10px;border:1px solid var(--cloud);border-radius:8px;font-size:12px" onchange="loadSlideVideos()">
+<option value="">-- スライドを選択 --</option>
+</select>
+</div>
+<div id="currentVideoList" style="margin-bottom:12px"></div>
+<div style="background:var(--cloud);border-radius:12px;padding:12px;margin-bottom:12px">
+<div style="font-size:11px;font-weight:600;margin-bottom:8px">➕ 新しい動画を追加</div>
+<input type="text" id="videoTitle" placeholder="動画タイトル（例: ピラミッドの解説動画）" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;margin-bottom:8px;font-size:12px">
+<input type="text" id="videoUrl" placeholder="YouTube URL（例: https://youtu.be/xxxxx）" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;margin-bottom:8px;font-size:12px">
+<div style="display:flex;gap:8px;margin-bottom:8px">
+<input type="text" id="videoThumb" placeholder="絵文字（例: 📺）" value="📺" style="width:60px;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:12px;text-align:center">
+<input type="text" id="videoDuration" placeholder="時間（例: 5:30）" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:12px">
+</div>
+<button class="btn btn-primary btn-sm" onclick="addVideo()" style="width:100%">➕ 動画を追加</button>
+</div>
+</div></div>
+<div class="card"><div class="card-header">📋 動画登録済みスライド一覧</div><div class="card-body">
+<div id="videoRegisteredList" style="max-height:300px;overflow-y:auto"></div>
+</div></div>
+</div>
 <div id="admin-reports" class="panel">
+<div class="card" style="margin-bottom:12px"><div class="card-header">❓ Q&A利用レポート</div><div class="card-body">
+<div class="stats-grid" style="margin-bottom:12px">
+<div class="stat-card"><div class="stat-card-value" id="qaLogTotal">0</div><div class="stat-card-label">総質問数</div></div>
+<div class="stat-card"><div class="stat-card-value" id="qaLogToday">0</div><div class="stat-card-label">今日</div></div>
+<div class="stat-card"><div class="stat-card-value" id="qaLogWeek">0</div><div class="stat-card-label">今週</div></div>
+<div class="stat-card"><div class="stat-card-value" id="qaLogUsers">0</div><div class="stat-card-label">利用者数</div></div>
+</div>
+<div style="font-size:11px;font-weight:600;margin-bottom:8px">📊 人気の質問TOP5</div>
+<div id="qaPopularList" style="margin-bottom:12px"></div>
+<div style="font-size:11px;font-weight:600;margin-bottom:8px">🕐 最近の質問</div>
+<div id="qaRecentList" style="max-height:200px;overflow-y:auto"></div>
+<button class="btn btn-sm" style="margin-top:12px" onclick="exportQAReport()">📥 CSVでダウンロード</button>
+</div></div>
 <div class="card" style="margin-bottom:12px;background:linear-gradient(135deg,#dbeafe,#eff6ff)"><div class="card-body"><div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:14px;font-weight:700;color:#1e40af">📅 2026年1月 月次レポート</div><div style="font-size:11px;color:#3b82f6;margin-top:4px">作成日: 1月1日 ・ 送信予定: 1月7日</div></div><div style="display:flex;gap:6px"><span style="background:#22c55e;color:#fff;padding:4px 10px;border-radius:12px;font-size:10px;font-weight:600">✓ 作成済</span><span style="background:#f59e0b;color:#fff;padding:4px 10px;border-radius:12px;font-size:10px;font-weight:600">⏳ 送信待</span></div></div></div></div>
 <div class="stats-grid" style="margin-bottom:12px">
 <div class="stat-card"><div class="stat-card-value">45</div><div class="stat-card-label">🍎 塾・先生</div><div style="font-size:9px;color:var(--rock)">送信対象</div></div>
@@ -448,7 +592,11 @@ main{padding:80px 16px 100px;max-width:900px;margin:0 auto}
 <div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-primary" onclick="generateAllReports()">📄 全レポート作成</button><button class="btn" style="background:#22c55e;color:#fff" onclick="sendAllReports()">📤 確認済を送信</button></div>
 </div></div>
 </div>
-<div id="admin-slides" class="panel"><div class="card"><div class="card-header">➕ 新規スライド</div><div class="card-body"><div class="form-group"><label class="form-label">タイトル</label><input type="text" class="form-input" id="addTitle" placeholder="なぜ空は青いの？"></div><div class="form-group"><label class="form-label">カテゴリ</label><select class="form-select" id="addCat"><option value="science">🔬 科学</option><option value="sdgs">🌍 SDGs</option><option value="nature">🦋 自然</option><option value="tech">🤖 テクノロジー</option><option value="biography">📖 伝記</option><option value="geopolitics">🗺️ 地政学</option><option value="energy">⚡ エネルギー</option></select></div><div class="form-group"><label class="form-label">対象学年</label><select class="form-select" id="addGrade"><option value="lower">🌱 低学年（小1〜小2）</option><option value="middle">⭐ 中学年（小3〜小4）</option><option value="upper">🚀 高学年（小5〜中学）</option></select></div><div class="form-group"><label class="form-label">🔗 埋め込み（Gamma等）</label><input type="text" class="form-input" id="addEmbedUrl" placeholder="URLまたはiframeタグを貼り付け"><div style="font-size:9px;color:var(--rock);margin-top:4px">💡 Gammaの埋め込みコード（iframe）をそのまま貼り付けOK</div></div><div class="form-group"><label class="form-label">絵文字</label><div class="emoji-grid" id="emojiPicker"></div></div><button class="btn btn-primary" onclick="addSlide()">➕ 追加</button></div></div>
+<div id="admin-slides" class="panel"><div class="card"><div class="card-header">➕ 新規スライド</div><div class="card-body"><div class="form-group"><label class="form-label">📝 タイトル</label><input type="text" class="form-input" id="addTitle" placeholder="ピラミッドのひみつ"></div><div class="form-group"><label class="form-label">📂 カテゴリ</label><select class="form-select" id="addCat"><option value="worldhistory">🌐 世界史</option><option value="japanhistory">🏯 日本史</option><option value="japanculture">🎎 日本文化</option><option value="energy">⚡ エネルギー</option><option value="geopolitics">🗺️ 地政学</option><option value="tech">🤖 テクノロジー</option><option value="space">🚀 宇宙科学</option><option value="astronomy">🔭 天文学</option><option value="nature">🌿 自然</option><option value="biography">📖 伝記</option><option value="scientist">👨‍🔬 科学者</option></select></div><div class="form-group"><label class="form-label">🎓 対象学年</label><select class="form-select" id="addGrade"><option value="lower">🌱 低学年（小1〜小2）</option><option value="middle">⭐ 中学年（小3〜小4）</option><option value="upper">🚀 高学年（小5〜中学）</option></select></div><div class="form-group"><label class="form-label">🔗 埋め込み（Googleスライド等）</label><input type="text" class="form-input" id="addEmbedUrl" placeholder="URLまたはiframeタグを貼り付け"><div style="font-size:9px;color:var(--rock);margin-top:4px">💡 Googleスライド・Gamma等の埋め込みコードをそのまま貼り付けOK</div></div>
+<div class="form-group"><label class="form-label">❓ よくある質問（Q&A）</label>
+<div style="background:linear-gradient(135deg,#f3e8ff,#ede9fe);border-radius:10px;padding:10px;margin-bottom:8px"><div style="font-size:10px;color:#7c3aed;margin-bottom:6px">💡 子どもがよく聞く質問と回答を登録しておくと、チャットで自動回答します</div><div id="qaInputList"></div><button type="button" class="btn" style="width:100%;background:#8b5cf6;color:#fff;margin-top:8px" onclick="addQAInput()">＋ よくある質問を追加</button></div>
+<div style="font-size:9px;color:var(--rock)">📊 登録したQ&Aは利用状況をレポートで確認できます</div></div>
+<div class="form-group"><label class="form-label">😀 絵文字</label><div class="emoji-grid" id="emojiPicker"></div></div><button class="btn btn-primary" style="width:100%" onclick="addSlide()">➕ スライドを追加</button></div></div>
 <div class="card"><div class="card-header">📋 スライド一覧（<span id="adminSlideCount">0</span>件）</div><div class="card-body">
 <div style="margin-bottom:12px"><div style="font-size:10px;color:var(--rock);margin-bottom:4px">🏷️ カテゴリ絞り込み</div><div class="cat-filter" id="adminSlideCatFilter"></div></div>
 <div style="margin-bottom:12px"><div style="font-size:10px;color:var(--rock);margin-bottom:4px">🎓 学年絞り込み</div><div class="cat-filter" id="adminSlideGradeFilter"></div></div>
@@ -488,6 +636,17 @@ main{padding:80px 16px 100px;max-width:900px;margin:0 auto}
 <div id="admin-master" class="panel">
 <div class="card"><div class="card-header">👑 マスターいいね</div><div class="card-body"><div style="background:linear-gradient(135deg,#ec4899,#f43f5e);border-radius:12px;padding:12px;margin-bottom:12px;color:#fff"><div style="font-size:12px;margin-bottom:4px">マスターいいねを送ると子どもに <strong>+100 ALT</strong></div><div style="font-size:11px;opacity:.8">特別な作品を表彰しましょう</div></div><div class="gallery-grid" id="adminGalleryGrid"></div></div></div>
 </div>
+<div id="admin-settings" class="panel">
+<div class="card"><div class="card-header">🔑 AI設定（Claude API）</div><div class="card-body">
+<div style="background:linear-gradient(135deg,#dbeafe,#bfdbfe);border-radius:12px;padding:12px;margin-bottom:12px"><div style="font-size:12px;font-weight:700;color:#1e40af;margin-bottom:4px">🤖 シェルパAI</div><div style="font-size:10px;color:#1e40af">スライド閲覧中に子どもの質問に答えるAIです</div></div>
+<div class="form-group"><label class="form-label">🔑 Claude APIキー</label><input type="password" class="form-input" id="claudeApiKey" placeholder="sk-ant-..."><div style="font-size:9px;color:var(--rock);margin-top:4px">Anthropic Consoleから取得: <a href="https://console.anthropic.com/" target="_blank" style="color:var(--summit)">console.anthropic.com</a></div></div>
+<div style="display:flex;gap:8px"><button class="btn btn-primary" onclick="saveApiKey()">💾 保存</button><button class="btn" onclick="testApiKey()">🧪 テスト</button></div>
+<div id="apiKeyStatus" style="margin-top:12px"></div>
+</div></div>
+<div class="card" style="margin-top:12px"><div class="card-header">📊 AI利用状況</div><div class="card-body">
+<div class="stats-grid"><div class="stat-card"><div class="stat-card-value" id="aiCallCount">0</div><div class="stat-card-label">今月の質問数</div></div><div class="stat-card"><div class="stat-card-value" id="aiCost">¥0</div><div class="stat-card-label">推定コスト</div></div></div>
+</div></div>
+</div>
 <!-- SPONSOR MODE -->
 <div id="screen-sponsor-dash" class="screen">
 <div class="welcome-banner" style="background:linear-gradient(135deg,#f59e0b,#fbbf24)"><h2>🎗️ スポンサーダッシュボード</h2><p>子どもたちの探究を応援</p></div>
@@ -525,7 +684,83 @@ main{padding:80px 16px 100px;max-width:900px;margin:0 auto}
 <div class="modal-overlay" id="successModal"><div class="modal-box"><div class="modal-header success" id="successHeader"><h3>🎉</h3></div><div class="modal-body"><div class="modal-emoji" id="successEmoji">✨</div><div class="modal-title" id="successTitle">完了！</div><div class="modal-sub" id="successSub">よく頑張ったね！</div><div class="modal-reward" id="successReward">+10 ALT</div><button class="btn btn-primary" onclick="closeSuccess()">やったー！</button></div></div></div>
 <div class="toast" id="toast"></div>
 <script>
-const CATS={all:{n:'全部',e:'✨'},science:{n:'科学',e:'🔬'},sdgs:{n:'SDGs',e:'🌍'},nature:{n:'自然',e:'🦋'},tech:{n:'テクノロジー',e:'🤖'},biography:{n:'伝記',e:'📖'},geopolitics:{n:'地政学',e:'🗺️'},energy:{n:'エネルギー',e:'⚡'},sponsor:{n:'スポンサー',e:'🎗️'}};
+const CATS={all:{n:'全部',e:'✨'},worldhistory:{n:'世界史',e:'🌐'},japanhistory:{n:'日本史',e:'🏯'},japanculture:{n:'日本文化',e:'🎎'},energy:{n:'エネルギー',e:'⚡'},geopolitics:{n:'地政学',e:'🗺️'},tech:{n:'テクノロジー',e:'🤖'},space:{n:'宇宙科学',e:'🚀'},astronomy:{n:'天文学',e:'🔭'},nature:{n:'自然',e:'🌿'},biography:{n:'伝記',e:'📖'},scientist:{n:'科学者',e:'👨‍🔬'}};
+const BOOKSHELF_DATA=[
+{id:'worldhistory',n:'世界史',e:'🌐',color:'linear-gradient(180deg,#6366f1,#4f46e5)',mid:[
+{id:'ancient',n:'古代文明のなぞ',e:'🏛️',small:['ピラミッドのひみつ','ミイラと永遠の命','スフィンクスのなぞ','ヒエログリフを読もう','メソポタミアの発明','バビロンの空中庭園','万里の長城のひみつ','兵馬俑の8000人','インダスの計画都市']},
+{id:'greece',n:'ギリシャ・ローマの世界',e:'🏺',small:['オリンピックの始まり','民主主義の誕生','ローマ帝国のすごさ','コロッセオの真実','ポンペイが消えた日']},
+{id:'medieval',n:'中世の世界',e:'🏰',small:['騎士になるには？','城のひみつ','モンゴル帝国の強さ','シルクロード物語','元寇と神風']},
+{id:'voyage',n:'大航海時代',e:'⛵',small:['コロンブスの大航海','マゼランの世界一周','香辛料は宝物','新大陸との出会い']},
+{id:'revolution',n:'革命の時代',e:'🏭',small:['フランス革命の始まり','蒸気機関が変えた世界','鉄道の誕生','工場で働く子どもたち']},
+{id:'modern',n:'現代の世界',e:'🌍',small:['二つの世界大戦','冷戦とベルリンの壁','グローバル化する世界']}
+]},
+{id:'japanhistory',n:'日本史',e:'🏯',color:'linear-gradient(180deg,#dc2626,#b91c1c)',mid:[
+{id:'ancient_jp',n:'古代日本のなぞ',e:'🗿',small:['縄文人の暮らし','弥生時代の変化','邪馬台国はどこ？','古墳のなぞ','埴輪が語ること']},
+{id:'asuka',n:'飛鳥・奈良・平安',e:'🛕',small:['聖徳太子の改革','遣唐使の冒険','奈良の大仏','源氏物語の世界','平安貴族の生活']},
+{id:'samurai',n:'武士の時代',e:'⚔️',small:['武士の誕生','源平の戦い','鎌倉幕府の始まり','元寇を防いだ人々','金閣と銀閣']},
+{id:'sengoku',n:'戦国時代',e:'🏴',small:['戦国武将の戦略','信長の革新','秀吉の天下統一','忍者のひみつ','鉄砲が変えた戦']},
+{id:'edo',n:'江戸時代',e:'🏮',small:['家康の天下取り','参勤交代のふしぎ','鎖国の本当の姿','浮世絵の世界','江戸のエコ生活','寺子屋と教育']},
+{id:'kindai',n:'近代日本',e:'🚂',small:['黒船がやってきた','明治維新の変革','文明開化の時代','鉄道の開通']},
+{id:'war_peace',n:'戦争と平和',e:'🕊️',small:['戦争への道','戦争中の暮らし','終戦と平和','焼け野原からの復興','東京オリンピック1964']}
+]},
+{id:'japanculture',n:'日本文化',e:'🎎',color:'linear-gradient(180deg,#e11d48,#be123c)',mid:[
+{id:'budo',n:'武道のこころ',e:'🥋',small:['剣道の精神','柔道の教え','空手の道','弓道の美','相撲の伝統']},
+{id:'washoku',n:'和食の世界',e:'🍱',small:['出汁のひみつ','お寿司の歴史','和菓子の美','発酵食品の力','和食の基本']},
+{id:'geido',n:'日本の芸道',e:'🍵',small:['茶道のこころ','華道の美','書道の世界','俳句を作ろう','短歌の楽しみ']},
+{id:'dentou',n:'伝統芸能',e:'🎭',small:['歌舞伎の魅力','能と狂言','文楽の世界','落語の世界','雅楽の響き']},
+{id:'matsuri',n:'年中行事と祭り',e:'🎆',small:['日本三大祭り','お正月の意味','七五三と成長','お盆と先祖','ひな祭りと端午の節句','地元の祭り']},
+{id:'monozukuri',n:'日本のものづくり',e:'🎨',small:['和紙のすごさ','陶芸の美','漆器の技','陶磁器の産地','日本刀の技術','伝統工芸の今']},
+{id:'koromo',n:'日本の衣と住',e:'👘',small:['着物の美しさ','畳と和室','日本建築','日本の家','日本庭園の見方','お城の構造','神社とお寺']},
+{id:'modern_jp',n:'現代の日本文化',e:'🎮',small:['アニメの世界','漫画の歴史','ゲーム大国日本','J-POPの魅力','クールジャパン']}
+]},
+{id:'energy',n:'エネルギー',e:'⚡',color:'linear-gradient(180deg,#f97316,#ea580c)',mid:[
+{id:'energy_what',n:'エネルギーの基本',e:'💡',small:['エネルギーの正体','エネルギーの種類','省エネの工夫','CO2と地球温暖化','石油のできかた','石炭の歴史','天然ガス','原子力発電のしくみ']},
+{id:'renewable',n:'再生可能・未来のエネルギー',e:'☀️',small:['太陽光発電のしくみ','風力発電の進化','水力発電のすごさ','地熱発電','水素エネルギー','核融合の夢','蓄電池の進化']}
+]},
+{id:'geopolitics',n:'地政学',e:'🗺️',color:'linear-gradient(180deg,#0891b2,#0e7490)',mid:[
+{id:'basic',n:'地政学と日本',e:'📚',small:['地理が歴史を動かす','海の国と陸の国','大事な海の道','国連のしくみ','日本は島国','日本の周りの国々','シーレーンって何？','日米関係']},
+{id:'world_region',n:'世界の国と地域',e:'🌍',small:['アメリカの強さの理由','ヨーロッパの協力','中東の複雑さ','地球温暖化と国際協力','難民問題','米中の関係']}
+]},
+{id:'tech',n:'テクノロジー',e:'🤖',color:'linear-gradient(180deg,#8b5cf6,#7c3aed)',mid:[
+{id:'ai_secret',n:'AIのひみつ',e:'🧠',small:['AIって何ができる？','ChatGPTのすごさ','機械が学ぶしくみ','AIが絵を描く']},
+{id:'robot',n:'ロボットの世界',e:'🦾',small:['暮らしの中のロボット','自動運転の未来','ロボットの歴史','工場で働くロボット','人を助けるロボット']},
+{id:'life_science',n:'生命の科学',e:'🧬',small:['DNAって何？','iPS細胞のすごさ','遺伝子を調べる','ゲノム編集の可能性']},
+{id:'digital',n:'デジタルと未来技術',e:'💻',small:['インターネットの始まり','サイバーセキュリティ','メタバース','VRとAR','コンピュータの誕生','スマートフォンの歴史','クラウドとは','量子コンピュータ','3Dプリンター','脳とコンピュータ']}
+]},
+{id:'space',n:'宇宙科学',e:'🚀',color:'linear-gradient(180deg,#1e40af,#1e3a8a)',mid:[
+{id:'rocket',n:'ロケットと月・火星',e:'🚀',small:['ロケットが飛ぶ理由','ロケットの種類','日本のロケット','アポロ計画の偉業','月面基地計画','火星探査の最前線','アルテミス計画']},
+{id:'satellite',n:'人工衛星のはたらき',e:'🛰️',small:['GPS衛星のしくみ','気象衛星ひまわり','通信衛星','地球観測衛星']},
+{id:'solar_explore',n:'太陽系の冒険',e:'🪐',small:['はやぶさの冒険','ボイジャーの旅','太陽系の果て','木星と土星の衛星','宇宙ゴミ問題','宇宙ビジネス']},
+{id:'astronaut',n:'宇宙で暮らす',e:'👨‍🚀',small:['日本人宇宙飛行士','宇宙ステーション','宇宙での生活','宇宙食のひみつ']}
+]},
+{id:'astronomy',n:'天文学',e:'🔭',color:'linear-gradient(180deg,#4338ca,#3730a3)',mid:[
+{id:'solar_system',n:'太陽系を知ろう',e:'☀️',small:['太陽のすごさ','地球型惑星','巨大ガス惑星','水星と金星','木星と土星','天王星と海王星','冥王星の降格']},
+{id:'moon_mystery',n:'月のふしぎ',e:'🌕',small:['月の満ち欠け','月の誕生','潮の満ち引き','日食と月食']},
+{id:'star_life',n:'星の一生',e:'⭐',small:['星はどうやって生まれる？','ブラックホール','超新星爆発','星の色と温度']},
+{id:'observe',n:'宇宙を観察しよう',e:'🔭',small:['望遠鏡の歴史','宇宙人はいる？','天の川銀河','宇宙の大きさ','宇宙の未来','ハッブル望遠鏡','オーロラのしくみ','夜空を見上げよう','彗星と小惑星']}
+]},
+{id:'nature',n:'自然',e:'🌿',color:'linear-gradient(180deg,#16a34a,#15803d)',mid:[
+{id:'earth_system',n:'地球のしくみ',e:'🌏',small:['地震のメカニズム','火山の噴火','動く大陸','地球の内部','津波の科学','南極と北極','海流のはたらき','火山の恵み']},
+{id:'weather',n:'天気と気候',e:'🌤️',small:['台風の構造','天気の変化','四季のある日本','異常気象','雪と氷の科学']},
+{id:'ecology',n:'生態系を学ぼう',e:'🌲',small:['食物連鎖','森林の役割','海の世界','サンゴ礁の危機','草原と砂漠']},
+{id:'environment',n:'環境問題を考える',e:'🌱',small:['地球温暖化','プラスチックごみ','森林破壊','大気汚染と水質汚染','地球の水']},
+{id:'protect',n:'生き物を守る',e:'🐾',small:['絶滅危惧種','生物多様性って何？','外来種の問題','国立公園の役割','特定外来生物']},
+{id:'japan_nature',n:'日本の自然',e:'🗾',small:['富士山','四季の生き物','日本のジオパーク','川の役割','身近な鳥を観察しよう','昆虫の不思議']},
+{id:'future',n:'未来のために',e:'🌍',small:['3R活動','省エネの工夫','自然と共に生きる','未来を変える行動','食品ロスを減らそう','持続可能な社会へ']}
+]},
+{id:'biography',n:'伝記',e:'📖',color:'linear-gradient(180deg,#ca8a04,#a16207)',mid:[
+{id:'inventors',n:'発明家・起業家',e:'💡',small:['エジソンの1000回','イーロン・マスク','スティーブ・ジョブズ','ライト兄弟の挑戦','本田宗一郎','渋沢栄一の精神']},
+{id:'changers',n:'社会を変えた人・冒険家',e:'✊',small:['マララの勇気','杉原千畝の決断','ナイチンゲール','坂本龍馬の夢','ヘレン・ケラーの奇跡','アンネの日記','植村直己の冒険','コロンブス以前のアメリカ','マルコ・ポーロの旅']},
+{id:'leaders',n:'リーダーたち',e:'👑',small:['ガンジーの非暴力','リンカーンの信念','マンデラの27年','キング牧師の夢','アレキサンダー大王','クレオパトラの知恵','ナポレオンの野望','チャーチルの言葉']},
+{id:'artists',n:'芸術家・クリエイター',e:'🎨',small:['手塚治虫の革命','宮崎駿の世界','ゴッホの情熱','レオナルド・ダ・ヴィンチ']}
+]},
+{id:'scientist',n:'科学者',e:'👨‍🔬',color:'linear-gradient(180deg,#0d9488,#0f766e)',mid:[
+{id:'physics',n:'物理学の巨人',e:'⚛️',small:['ニュートンとリンゴ','アインシュタインの頭の中','ホーキングの宇宙','ガリレオの望遠鏡','ファラデーの電気','ガウスの数学']},
+{id:'chemistry_bio',n:'化学・生物学の開拓者',e:'🧪',small:['キュリー夫人の発見','ダーウィンの進化論','パスツールと細菌','レイチェル・カーソン','DNAを解明した人々','メンデルの法則','ラボアジエと化学革命','アルフレッド・ノーベル']},
+{id:'japan_scientist',n:'日本の科学者',e:'🇯🇵',small:['湯川秀樹','北里柴三郎','野口英世','牧野富太郎','山中伸弥のiPS細胞','小柴昌俊とニュートリノ','利根川進と免疫']},
+{id:'medicine',n:'医学を変えた人',e:'💉',small:['フレミングとペニシリン','ジェンナーと種痘','コッホと感染症','テスラの発明']}
+]}
+];
 const GRADES={all:{n:'全学年',e:'👥'},lower:{n:'低学年',e:'🌱',sub:'小1〜小2'},middle:{n:'中学年',e:'⭐',sub:'小3〜小4'},upper:{n:'高学年',e:'🚀',sub:'小5〜小6'},junior:{n:'中学生',e:'🎓',sub:'中1〜中3'}};
 const GRADE_DETAIL={e1:{n:'小学1年',short:'小1',group:'lower'},e2:{n:'小学2年',short:'小2',group:'lower'},e3:{n:'小学3年',short:'小3',group:'middle'},e4:{n:'小学4年',short:'小4',group:'middle'},e5:{n:'小学5年',short:'小5',group:'upper'},e6:{n:'小学6年',short:'小6',group:'upper'},j1:{n:'中学1年',short:'中1',group:'junior'},j2:{n:'中学2年',short:'中2',group:'junior'},j3:{n:'中学3年',short:'中3',group:'junior'}};
 const REGIONS=['北海道','東北','関東','中部','近畿','中国','四国','九州・沖縄'];
@@ -599,15 +834,21 @@ const REACTIONS=['🏔️','💡','👏','❤️'];
 const MAX_LIKES=10;
 const MOUNTAINS={japan:{name:'🗾 日本編',unlocked:true,mountains:[{n:'高尾山',h:599,loc:'東京',e:'🗻',climbed:false},{n:'筑波山',h:877,loc:'茨城',e:'⛰️',climbed:false},{n:'六甲山',h:931,loc:'兵庫',e:'🗻',climbed:false},{n:'金剛山',h:1125,loc:'大阪',e:'⛰️',climbed:false},{n:'伊吹山',h:1377,loc:'滋賀',e:'🏔️',climbed:false},{n:'大山',h:1729,loc:'鳥取',e:'🗻',climbed:false},{n:'雲取山',h:2017,loc:'東京',e:'⛰️',climbed:false},{n:'八ヶ岳',h:2899,loc:'長野',e:'🏔️',climbed:false},{n:'槍ヶ岳',h:3180,loc:'長野',e:'🗻',climbed:false},{n:'奥穂高岳',h:3190,loc:'長野',e:'⛰️',climbed:false},{n:'北岳',h:3193,loc:'山梨',e:'🏔️',climbed:false},{n:'富士山',h:3776,loc:'静岡',e:'🗻',climbed:false}]},world:{name:'🌍 世界編',unlocked:false,mountains:[{n:'キナバル山',h:4095,loc:'マレーシア',e:'🏔️',climbed:false},{n:'モンブラン',h:4808,loc:'フランス',e:'🗻',climbed:false},{n:'キリマンジャロ',h:5895,loc:'タンザニア',e:'⛰️',climbed:false},{n:'デナリ',h:6190,loc:'アメリカ',e:'🏔️',climbed:false},{n:'アコンカグア',h:6961,loc:'アルゼンチン',e:'🗻',climbed:false},{n:'K2',h:8611,loc:'パキスタン',e:'⛰️',climbed:false},{n:'カンチェンジュンガ',h:8586,loc:'ネパール',e:'🏔️',climbed:false},{n:'エベレスト',h:8849,loc:'ネパール',e:'🗻',climbed:false}]}};
 const CHILDREN=[
-{id:1,name:'けんたくん',avatar:'け',alt:1250,streak:7,slides:12,climbed:['高尾山','筑波山','六甲山'],certs:[
+{id:1,name:'けんたくん',avatar:'け',alt:1250,streak:7,slides:12,climbed:['高尾山','筑波山','六甲山'],parentId:1,familyCode:'FAM001',certs:[
 {mountain:'高尾山',height:599,loc:'東京',emoji:'🗻',certNo:1234,date:'2026-01-10'},
 {mountain:'筑波山',height:877,loc:'茨城',emoji:'⛰️',certNo:2345,date:'2026-01-15'},
 {mountain:'六甲山',height:931,loc:'兵庫',emoji:'🗻',certNo:3456,date:'2026-01-20'}
 ]},
-{id:2,name:'みさきちゃん',avatar:'み',alt:890,streak:4,slides:8,climbed:['高尾山'],certs:[
+{id:2,name:'みさきちゃん',avatar:'み',alt:890,streak:4,slides:8,climbed:['高尾山'],parentId:1,familyCode:'FAM001',certs:[
 {mountain:'高尾山',height:599,loc:'東京',emoji:'🗻',certNo:4567,date:'2026-01-18'}
-]}
+]},
+{id:3,name:'ゆうとくん',avatar:'ゆ',alt:450,streak:2,slides:5,climbed:[],parentId:2,familyCode:'FAM002',certs:[]}
 ];
+const FAMILIES=[
+{id:1,code:'FAM001',parentName:'田中さん',parentEmail:'tanaka@example.com',children:[1,2],createdAt:'2026-01-01'},
+{id:2,code:'FAM002',parentName:'山田さん',parentEmail:'yamada@example.com',children:[3],createdAt:'2026-01-05'}
+];
+let currentFamily=JSON.parse(localStorage.getItem('sherupa_family'))||null;
 let curChild=0;
 let climbedMountains=JSON.parse(localStorage.getItem('sherupa_climbed'))||[];
 let climbCerts=JSON.parse(localStorage.getItem('sherupa_certs'))||[];
@@ -691,27 +932,635 @@ const ADMIN_PW='admin';
 let mode='child',cat='all',grade='all',alt=1250,works=3,doneToday=1,selEmoji='🔬',curSlide=null,fmDone=0,authTarget='',curClass=0,likesLeft=10,curSponsor=0;
 let rankingType='alt',rankingGrade='all',rankingPeriod='all';
 let adminSlideCat='all',adminSlideGrade='all';
-let userProfile=JSON.parse(localStorage.getItem('sherupa_profile'))||{name:'探究者さん',region:'関東',grade:'middle'};
+let userProfile=JSON.parse(localStorage.getItem('sherupa_profile'))||{name:'探究者さん',region:'関東',grade:'middle',familyCode:null,childId:null};
 let fm=JSON.parse(localStorage.getItem('sherupa_fm'))||[{t:'一緒に夕焼けを見よう',alt:20,status:'active'},{t:'今日学んだことを話そう',alt:20,status:'active'},{t:'図鑑で調べ物をしよう',alt:30,status:'pending'}];
 let parentChatHistory=[];
 let classes=JSON.parse(localStorage.getItem('sherupa_classes'))||[...DEFAULT_CLASSES];
 let students=[...DEFAULT_STUDENTS];
 let tasks=[...DEFAULT_TASKS];
-let slides=JSON.parse(localStorage.getItem('sherupa_s'))||[{id:1,t:'なぜ空は青いの？',e:'🔬',c:'science',g:'lower',done:0},{id:2,t:'SDGsってなに？',e:'🌍',c:'sdgs',g:'middle',done:0},{id:3,t:'昆虫の不思議',e:'🦋',c:'nature',g:'lower',done:1},{id:4,t:'AIと未来',e:'🤖',c:'tech',g:'upper',done:0},{id:5,t:'エジソンの発明人生',e:'📖',c:'biography',g:'middle',done:0},{id:6,t:'世界の国々と資源',e:'🗺️',c:'geopolitics',g:'upper',done:0},{id:7,t:'太陽光と風力発電',e:'⚡',c:'energy',g:'middle',done:0},{id:8,t:'花のつくりを観察しよう',e:'🌸',c:'nature',g:'lower',done:0},{id:9,t:'プログラミングの基本',e:'💻',c:'tech',g:'middle',done:0},{id:10,t:'気候変動と私たち',e:'🌡️',c:'sdgs',g:'upper',done:0},{id:11,t:'織田信長の生涯',e:'⚔️',c:'biography',g:'upper',done:0},{id:12,t:'電気のしくみ',e:'💡',c:'energy',g:'lower',done:0}];
+const INITIAL_SLIDES=[
+{id:1,t:'ピラミッドのひみつ',e:'🏛️',c:'worldhistory',g:'upper',done:0,sub:'どうやって巨大な石を積み上げた？',mid:'ancient',qa:[{q:'ピラミッドは何のために作られたの？',a:'王様（ファラオ）のお墓として作られました'},{q:'石の重さはどれくらい？',a:'1つの石が約2.5トン、象1頭分の重さです'},{q:'何人で作ったの？',a:'約2万〜3万人が20年以上かけて作りました'},{q:'どうやって石を運んだの？',a:'木のソリや斜面（スロープ）を使ったと考えられています'},{q:'中には何があるの？',a:'王の部屋、女王の部屋、大回廊などがあります'}]},
+{id:2,t:'ミイラと永遠の命',e:'🏛️',c:'worldhistory',g:'upper',done:0,sub:'なぜエジプト人は体を残したかった？',mid:'ancient',qa:[{q:'なぜミイラを作ったの？',a:'死後の世界で体が必要だと信じていたからです'},{q:'どうやって作るの？',a:'内臓を取り出し、塩で乾燥させ、布で巻きます'},{q:'何日かかるの？',a:'約70日間かかりました'},{q:'動物のミイラもあるの？',a:'猫、犬、ワニなど神聖な動物のミイラも作られました'},{q:'一番有名なミイラは？',a:'ツタンカーメン王のミイラです'}]},
+{id:3,t:'スフィンクスのなぞ',e:'🏛️',c:'worldhistory',g:'upper',done:0,sub:'ライオンの体に人間の顔、その意味は？',mid:'ancient',qa:[{q:'スフィンクスって何？',a:'ライオンの体と人間の顔を持つ巨大な石像です'},{q:'どれくらい大きいの？',a:'長さ73m、高さ20m、奈良の大仏より大きいです'},{q:'顔は誰？',a:'カフラー王の顔だと言われています'},{q:'なぜ鼻がないの？',a:'風化や人為的な破壊など、諸説あります'},{q:'何のために作られたの？',a:'ピラミッドを守る番人だと考えられています'}]},
+{id:4,t:'ロケットが飛ぶ理由',e:'🚀',c:'space',g:'upper',done:0,sub:'作用反作用の法則',mid:'rocket',qa:[{q:'なぜ宇宙で飛べるの？',a:'ガスを後ろに噴射すると、反対方向に進むからです'},{q:'空気がなくても飛べるの？',a:'空気を使わないので宇宙でも飛べます'},{q:'どれくらい速いの？',a:'秒速約7.9km、時速約28,000kmで飛びます'},{q:'燃料は何を使うの？',a:'液体水素と液体酸素、または固体燃料を使います'},{q:'なぜ段々になってるの？',a:'軽くなって効率よく飛ぶためです'}]},
+{id:5,t:'剣道の精神',e:'🥋',c:'japanculture',g:'upper',done:0,sub:'礼に始まり礼に終わる',mid:'budo',qa:[{q:'剣道はいつ始まったの？',a:'江戸時代に竹刀と防具を使う稽古が始まりました'},{q:'なぜ「礼」が大切なの？',a:'相手を敬い、自分を律する心を育てるためです'},{q:'竹刀は何でできてるの？',a:'竹を4つに割って組み合わせて作ります'},{q:'「面」「胴」「小手」って何？',a:'打つことができる場所（有効打突部位）です'},{q:'試合で勝つには？',a:'3本勝負で先に2本取った方が勝ちです'}]},
+{id:6,t:'ニュートンとリンゴ',e:'⚛️',c:'scientist',g:'upper',done:0,sub:'万有引力の発見',mid:'physics',qa:[{q:'リンゴの話は本当？',a:'本人が語った話として伝わっていますが、諸説あります'},{q:'万有引力って何？',a:'すべての物が引き合う力のことです'},{q:'なぜリンゴは落ちるのに月は落ちないの？',a:'月は地球の周りを回り続けているからです'},{q:'ニュートンは他に何を発見した？',a:'光の分解（プリズム）、運動の3法則など'},{q:'何歳でこの発見をしたの？',a:'23〜24歳頃、ペスト流行で大学が休みの時でした'}]},
+{id:7,t:'地震のメカニズム',e:'🌏',c:'nature',g:'upper',done:0,sub:'なぜ揺れる？',mid:'earth_system',qa:[{q:'地震はなぜ起きるの？',a:'地下のプレート（岩盤）がずれて揺れが起きます'},{q:'日本はなぜ地震が多いの？',a:'4つのプレートがぶつかる場所にあるからです'},{q:'震度とマグニチュードの違いは？',a:'震度は揺れの強さ、マグニチュードは地震の規模です'},{q:'地震は予知できるの？',a:'現在の技術では正確な予知は難しいです'},{q:'地震が来たらどうすればいい？',a:'まず身を守り、揺れが収まってから避難します'}]},
+{id:8,t:'エジソンの1000回',e:'💡',c:'biography',g:'upper',done:0,sub:'失敗を恐れない発明王',mid:'inventors',qa:[{q:'エジソンは何を発明したの？',a:'電球、蓄音機、映画など1000以上の発明をしました'},{q:'「1000回の失敗」って本当？',a:'電球のフィラメント開発で何千回も実験しました'},{q:'電球の前は何で明かりを取っていたの？',a:'ロウソクやガス灯を使っていました'},{q:'学校は好きだったの？',a:'小学校を3ヶ月で退学し、お母さんに教わりました'},{q:'有名な言葉は？',a:'「天才は1%のひらめきと99%の努力」です'}]},
+{id:9,t:'信長の革新',e:'🏴',c:'japanhistory',g:'upper',done:0,sub:'常識を壊した男',mid:'sengoku',qa:[{q:'信長はなぜ「革新的」と言われるの？',a:'古いしきたりを壊し、新しいことに挑戦したからです'},{q:'どんな新しいことをしたの？',a:'鉄砲の大量使用、楽市楽座、能力主義の登用など'},{q:'長篠の戦いで何をしたの？',a:'鉄砲3000丁を使い、武田騎馬隊を破りました'},{q:'なぜ「うつけ」と呼ばれたの？',a:'若い頃、変わった服装や行動をしていたからです'},{q:'最期はどうなったの？',a:'本能寺の変で家臣の明智光秀に討たれました'}]},
+{id:10,t:'AIって何ができる？',e:'🧠',c:'tech',g:'upper',done:0,sub:'人工知能の正体',mid:'ai_secret',qa:[{q:'AIって何の略？',a:'Artificial Intelligence（人工知能）の略です'},{q:'AIは何ができるの？',a:'画像認識、会話、ゲーム、翻訳などができます'},{q:'AIは人間より賢いの？',a:'得意分野では人間を超えますが、万能ではありません'},{q:'AIはどうやって学ぶの？',a:'大量のデータからパターンを見つけて学習します'},{q:'AIに仕事を奪われる？',a:'一部の仕事は変わりますが、新しい仕事も生まれます'}]},
+{id:11,t:'太陽のすごさ',e:'☀️',c:'astronomy',g:'upper',done:0,sub:'地球を照らす恒星',mid:'solar_system',qa:[{q:'太陽はどれくらい大きいの？',a:'地球の約109倍、地球が100万個入る大きさです'},{q:'太陽はなぜ燃えているの？',a:'核融合という反応でエネルギーを出しています'},{q:'太陽の温度は？',a:'表面は約6000℃、中心部は約1500万℃です'},{q:'太陽までどれくらい遠い？',a:'約1億5000万km、光の速さで8分19秒です'},{q:'太陽はいつまであるの？',a:'あと約50億年は輝き続けると言われています'}]},
+{id:12,t:'出汁のひみつ',e:'🍱',c:'japanculture',g:'upper',done:0,sub:'うま味は日本の発見',mid:'washoku',qa:[{q:'出汁って何からできてるの？',a:'昆布、かつお節、煮干し、しいたけなどからとります'},{q:'うま味って何？',a:'甘味・塩味・酸味・苦味に続く第5の味覚です'},{q:'誰がうま味を発見したの？',a:'1908年に日本の池田菊苗博士が発見しました'},{q:'うま味の成分は何？',a:'グルタミン酸（昆布）、イノシン酸（かつお）などです'},{q:'なぜ和食は世界遺産になったの？',a:'栄養バランス、季節感、美しさが評価されました'}]},
+{id:13,t:'太陽光発電のしくみ',e:'☀️',c:'energy',g:'upper',done:0,sub:'光を電気に変える',mid:'renewable',qa:[{q:'どうやって電気を作るの？',a:'太陽電池に光が当たると電子が動いて電気が生まれます'},{q:'曇りの日も発電できる？',a:'晴れの日より少ないですが、発電できます'},{q:'夜はどうするの？',a:'蓄電池に貯めるか、電力会社の電気を使います'},{q:'どれくらい長持ちする？',a:'太陽光パネルは20〜30年使えます'},{q:'日本での普及率は？',a:'全発電量の約9%を占めています（2023年時点）'}]},
+{id:14,t:'コロンブスの大航海',e:'⛵',c:'worldhistory',g:'upper',done:0,sub:'西へ進んで東を目指した冒険',mid:'voyage',qa:[{q:'コロンブスはどこを目指した？',a:'インド（アジア）を目指して西へ航海しました'},{q:'実際にたどり着いたのは？',a:'カリブ海の島々（現在のバハマ諸島）でした'},{q:'なぜ「アメリカ」という名前？',a:'後の探検家アメリゴ・ヴェスプッチの名前からです'},{q:'航海は何日かかった？',a:'スペインを出発して約2ヶ月でした'},{q:'先住民はどうなった？',a:'病気や支配により多くの命が失われました'}]},
+{id:15,t:'マララの勇気',e:'✊',c:'biography',g:'upper',done:0,sub:'教育のために声を上げた少女',mid:'changers',qa:[{q:'マララは何をした人？',a:'女の子が学校に通う権利のために声を上げました'},{q:'なぜ撃たれたの？',a:'タリバンが女子教育に反対し、彼女を襲撃しました'},{q:'何歳でノーベル賞を受賞？',a:'17歳で史上最年少のノーベル平和賞受賞者になりました'},{q:'どこの国の人？',a:'パキスタン出身です'},{q:'今は何をしているの？',a:'マララ基金を作り、世界中の女子教育を支援しています'}]},
+{id:16,t:'邪馬台国はどこ？',e:'🗿',c:'japanhistory',g:'upper',done:0,sub:'卑弥呼が治めた国を探せ',mid:'ancient_jp',qa:[{q:'邪馬台国って何？',a:'約1800年前に日本にあった国です'},{q:'卑弥呼はどんな人？',a:'邪馬台国の女王で、占いの力があったと言われています'},{q:'どこにあったの？',a:'九州説と近畿説があり、今も議論されています'},{q:'どうやってわかったの？',a:'中国の歴史書「魏志倭人伝」に記録されていました'},{q:'金印って何？',a:'中国の皇帝から贈られた「漢委奴国王」の金印です'}]},
+{id:17,t:'地球温暖化',e:'🌱',c:'nature',g:'upper',done:0,sub:'気温が上がるとどうなる？',mid:'environment',qa:[{q:'なぜ温暖化が起きるの？',a:'CO2などの温室効果ガスが増えて熱がこもるからです'},{q:'どれくらい気温が上がった？',a:'100年で約1.1℃上昇しました'},{q:'温暖化で何が起きる？',a:'海面上昇、異常気象、生態系の変化などが起きます'},{q:'私たちにできることは？',a:'省エネ、リサイクル、移動手段の工夫などです'},{q:'パリ協定って何？',a:'気温上昇を1.5℃に抑える世界の約束です'}]},
+{id:18,t:'ダーウィンの進化論',e:'🧪',c:'scientist',g:'upper',done:0,sub:'生き物は変化する',mid:'chemistry_bio',qa:[{q:'進化論って何？',a:'生き物は長い時間をかけて変化するという考えです'},{q:'どうやって発見したの？',a:'ビーグル号で世界を旅し、動物の違いを観察しました'},{q:'ガラパゴス諸島で何を見た？',a:'島ごとにクチバシの形が違うフィンチという鳥です'},{q:'「自然選択」って何？',a:'環境に合った生き物が生き残りやすいことです'},{q:'なぜ当時は批判されたの？',a:'聖書の教えと違うと考えられたからです'}]},
+{id:19,t:'アポロ計画の偉業',e:'🌙',c:'space',g:'upper',done:0,sub:'人類が月に立った日',mid:'rocket',qa:[{q:'最初に月に立ったのは誰？',a:'ニール・アームストロング船長です（1969年）'},{q:'有名な言葉は？',a:'「一人の人間にとっては小さな一歩、人類にとっては大きな飛躍」'},{q:'何人が月に行ったの？',a:'アポロ計画で合計12人が月面を歩きました'},{q:'月までどれくらいかかる？',a:'約3日間で到着します'},{q:'なぜ最近は月に行かないの？',a:'コストがかかるためですが、今アルテミス計画が進行中です'}]},
+{id:20,t:'暮らしの中のロボット',e:'🦾',c:'tech',g:'upper',done:0,sub:'お掃除ロボットの進化',mid:'robot',qa:[{q:'お掃除ロボットはどう動くの？',a:'センサーで障害物を感知し、部屋を自動で掃除します'},{q:'最初のお掃除ロボットは？',a:'2002年にアメリカで発売された「ルンバ」です'},{q:'どうやって部屋を覚えるの？',a:'カメラやセンサーで地図を作成して記憶します'},{q:'他にどんな生活ロボットがある？',a:'窓拭き、芝刈り、見守りロボットなどがあります'},{q:'未来のロボットは何ができる？',a:'料理や介護、会話相手など、もっと身近になります'}]},
+{id:21,t:'歌舞伎の魅力',e:'🎭',c:'japanculture',g:'upper',done:0,sub:'見得を切る役者たち',mid:'dentou',qa:[{q:'歌舞伎はいつ始まったの？',a:'約400年前、江戸時代の初めに始まりました'},{q:'「見得」って何？',a:'役者が決めポーズをして目を寄せる演技です'},{q:'なぜ男性だけが演じるの？',a:'江戸時代に女性の出演が禁止されたからです'},{q:'顔を白く塗るのはなぜ？',a:'昔は暗い舞台で表情を見やすくするためでした'},{q:'有名な演目は？',a:'「勧進帳」「助六」「忠臣蔵」などがあります'}]},
+{id:22,t:'オリンピックの始まり',e:'🏺',c:'worldhistory',g:'upper',done:0,sub:'神々にささげたスポーツの祭典',mid:'greece',qa:[{q:'最初のオリンピックはいつ？',a:'約2800年前の古代ギリシャで始まりました'},{q:'なぜ始まったの？',a:'ゼウス神をたたえるためのお祭りでした'},{q:'どんな競技があった？',a:'短距離走、レスリング、戦車競走などがありました'},{q:'近代オリンピックは誰が始めた？',a:'フランスのクーベルタン男爵が1896年に復活させました'},{q:'オリンピック休戦って何？',a:'大会中は戦争をやめるという約束でした'}]},
+{id:23,t:'日本は島国',e:'🗾',c:'geopolitics',g:'upper',done:0,sub:'海に囲まれた良さと課題',mid:'basic',qa:[{q:'日本の島はいくつある？',a:'約14,000の島があります'},{q:'島国の良いところは？',a:'海に守られて外国から攻められにくかったことです'},{q:'島国の大変なところは？',a:'資源が少なく、輸入に頼る必要があることです'},{q:'日本の排他的経済水域は？',a:'世界で6番目に広い海の権利を持っています'},{q:'同じ島国はどこがある？',a:'イギリス、ニュージーランド、フィリピンなどです'}]},
+{id:24,t:'ブラックホール',e:'⭐',c:'astronomy',g:'upper',done:0,sub:'光も逃げられない穴',mid:'star_life',qa:[{q:'ブラックホールって何？',a:'重力がとても強く、光さえも逃げられない天体です'},{q:'どうやってできるの？',a:'大きな星が爆発した後、中心部がつぶれてできます'},{q:'中に入るとどうなる？',a:'強い重力で引き伸ばされてしまいます'},{q:'見えないのにどうやって見つける？',a:'周りの物質が吸い込まれる時の光を観測します'},{q:'地球は吸い込まれない？',a:'一番近いブラックホールでも1000光年以上離れているので安全です'}]},
+{id:25,t:'ガンジーの非暴力',e:'👑',c:'biography',g:'upper',done:0,sub:'戦わずに勝つ方法',mid:'leaders',qa:[{q:'ガンジーは何をした人？',a:'非暴力でインドをイギリスから独立させた指導者です'},{q:'非暴力って何？',a:'武器を使わず、平和的な方法で抵抗することです'},{q:'塩の行進って何？',a:'イギリスの塩の独占に抗議して380km歩いた運動です'},{q:'なぜ質素な服を着ていたの？',a:'インドの手紡ぎ布を着て自立を示しました'},{q:'最期はどうなった？',a:'独立後、宗教対立に反対して暗殺されました'}]},
+{id:26,t:'江戸のエコ生活',e:'🏮',c:'japanhistory',g:'upper',done:0,sub:'世界一のリサイクル都市',mid:'edo',qa:[{q:'江戸時代のリサイクルって？',a:'ほぼすべての物を修理・再利用していました'},{q:'どんな職業があった？',a:'傘の修理屋、鍋の修理屋、古着屋などがありました'},{q:'人の排泄物も利用した？',a:'肥料として農家に売られ、野菜作りに使われました'},{q:'なぜそんなにリサイクルした？',a:'資源が限られた島国で、物を大切にする文化でした'},{q:'現代に活かせることは？',a:'3R（リデュース・リユース・リサイクル）の考え方です'}]},
+{id:27,t:'石油のできかた',e:'🛢️',c:'energy',g:'upper',done:0,sub:'大昔の生き物が燃料に',mid:'energy_what',qa:[{q:'石油は何からできたの？',a:'大昔の海のプランクトンなどの生き物からできました'},{q:'何年かかってできた？',a:'数百万年〜数億年かかっています'},{q:'石油は何に使われる？',a:'ガソリン、プラスチック、薬、服など様々なものに'},{q:'石油はあと何年もつ？',a:'今のペースだと約50年分と言われています'},{q:'石油が取れる国は？',a:'サウジアラビア、ロシア、アメリカなどが多いです'}]},
+{id:28,t:'キュリー夫人の発見',e:'🧪',c:'scientist',g:'upper',done:0,sub:'放射能を見つけた女性科学者',mid:'chemistry_bio',qa:[{q:'キュリー夫人は何を発見した？',a:'放射能と、新しい元素ラジウム・ポロニウムを発見しました'},{q:'ノーベル賞は何回もらった？',a:'物理学賞と化学賞の2回、女性初の受賞者です'},{q:'なぜ「夫人」と呼ばれる？',a:'夫のピエール・キュリーと一緒に研究したからです'},{q:'どんな苦労があった？',a:'女性だからと大学入学を断られ、差別と戦いました'},{q:'最期はどうなった？',a:'放射線を浴び続けた影響で病気になり亡くなりました'}]},
+{id:29,t:'食物連鎖',e:'🌲',c:'nature',g:'upper',done:0,sub:'食べる・食べられる',mid:'ecology',qa:[{q:'食物連鎖って何？',a:'生き物が「食べる・食べられる」でつながっていること'},{q:'一番下にいるのは？',a:'植物やプランクトン（生産者）です'},{q:'一番上にいるのは？',a:'ライオンやサメなどの大型肉食動物です'},{q:'途中の生き物がいなくなると？',a:'連鎖が崩れて、他の生き物にも影響が出ます'},{q:'分解者って何？',a:'死んだ生き物を分解する菌類やバクテリアです'}]},
+{id:30,t:'DNAって何？',e:'🧬',c:'tech',g:'upper',done:0,sub:'生命の設計図',mid:'life_science',qa:[{q:'DNAって何の略？',a:'デオキシリボ核酸（Deoxyribonucleic Acid）の略です'},{q:'どこにあるの？',a:'体のほぼすべての細胞の中にあります'},{q:'何の役割があるの？',a:'体の作り方が書かれた「設計図」です'},{q:'親子で似ているのはなぜ？',a:'親のDNAが子どもに受け継がれるからです'},{q:'DNAの形は？',a:'二重らせん（はしごをねじったような形）です'}]},
+{id:31,t:'GPS衛星のしくみ',e:'🛰️',c:'space',g:'upper',done:0,sub:'なぜ位置がわかる？',mid:'satellite',qa:[{q:'GPSって何の略？',a:'Global Positioning System（全地球測位システム）です'},{q:'衛星は何個ある？',a:'約30個の衛星が地球の周りを回っています'},{q:'どうやって位置がわかる？',a:'複数の衛星からの電波の時間差で計算します'},{q:'誰が作ったの？',a:'アメリカの軍が作り、今は民間でも使えます'},{q:'日本独自のシステムは？',a:'「みちびき」という衛星で精度を上げています'}]},
+{id:32,t:'茶道のこころ',e:'🍵',c:'japanculture',g:'upper',done:0,sub:'一期一会の精神',mid:'geido',qa:[{q:'茶道を大成したのは誰？',a:'千利休という人です（約450年前）'},{q:'「一期一会」って何？',a:'一生に一度の出会いを大切にする心です'},{q:'なぜ入り口が小さいの？',a:'身分の差なく、頭を下げて入るためです'},{q:'お茶を点てる順番がある？',a:'細かい作法があり、心を整える意味があります'},{q:'今でも習う人はいる？',a:'世界中で約500万人が茶道を学んでいます'}]},
+{id:33,t:'蒸気機関が変えた世界',e:'🏭',c:'worldhistory',g:'upper',done:0,sub:'人の力から機械の力へ',mid:'revolution',qa:[{q:'蒸気機関を改良したのは誰？',a:'イギリスのジェームズ・ワットです'},{q:'蒸気機関の仕組みは？',a:'水を沸かして蒸気を作り、その力で動かします'},{q:'何に使われた？',a:'工場の機械、蒸気機関車、船などに使われました'},{q:'産業革命って何？',a:'機械化で社会が大きく変わった時代です'},{q:'良くなかったことは？',a:'工場での長時間労働や子どもの労働が問題に'}]},
+{id:34,t:'手塚治虫の革命',e:'🎨',c:'biography',g:'upper',done:0,sub:'漫画の神様',mid:'artists',qa:[{q:'なぜ「漫画の神様」？',a:'ストーリー漫画という新しい形を作ったからです'},{q:'代表作は？',a:'鉄腕アトム、ブラック・ジャック、火の鳥など'},{q:'何作品描いた？',a:'約700作品、15万ページ以上を描きました'},{q:'アニメも作った？',a:'日本初のテレビアニメ「鉄腕アトム」を制作しました'},{q:'漫画家になる前は？',a:'医師免許を持っていました'}]},
+{id:35,t:'奈良の大仏',e:'🛕',c:'japanhistory',g:'upper',done:0,sub:'なぜこんなに大きく作った？',mid:'asuka',qa:[{q:'大仏の大きさは？',a:'高さ約15m、顔だけで5m以上あります'},{q:'いつ、誰が作らせた？',a:'約1300年前、聖武天皇が作らせました'},{q:'なぜ作ったの？',a:'疫病や災害から国を守りたいと願って作りました'},{q:'何人で作った？',a:'延べ260万人以上が参加しました'},{q:'今も当時のまま？',a:'火災で2回焼け、現在は江戸時代に再建されたものです'}]},
+{id:36,t:'月の満ち欠け',e:'🌕',c:'astronomy',g:'upper',done:0,sub:'なぜ形が変わる？',mid:'moon_mystery',qa:[{q:'なぜ月の形が変わる？',a:'太陽に照らされる部分が変わって見えるからです'},{q:'何日で一周する？',a:'約29.5日で新月から新月になります'},{q:'満月のとき月はどこ？',a:'地球から見て太陽の反対側にあります'},{q:'月はいつも同じ面を向けてる？',a:'はい、自転と公転の周期が同じだからです'},{q:'「月の模様」は何？',a:'溶岩が固まった平らな部分（海）の模様です'}]},
+{id:37,t:'台風の構造',e:'🌤️',c:'nature',g:'upper',done:0,sub:'目の中は静か',mid:'weather',qa:[{q:'台風はどこで生まれる？',a:'熱帯の暖かい海で発生します'},{q:'台風の「目」って何？',a:'中心部の風が弱く晴れている部分です'},{q:'なぜ目は静かなの？',a:'空気が下降していて風が吹かないからです'},{q:'台風とハリケーンの違いは？',a:'発生する場所が違うだけで、同じ現象です'},{q:'台風の名前は誰が決める？',a:'アジア各国で決めた140個の名前を順番に使います'}]},
+{id:38,t:'アインシュタインの頭の中',e:'⚛️',c:'scientist',g:'upper',done:0,sub:'相対性理論って何？',mid:'physics',qa:[{q:'相対性理論って何？',a:'時間や空間が絶対ではなく、変化するという理論です'},{q:'E=mc²って何？',a:'エネルギーと質量は同じものという意味の式です'},{q:'ノーベル賞は何でもらった？',a:'光電効果の研究で（相対性理論ではなく）'},{q:'子どもの頃はどんな人？',a:'言葉を話すのが遅く、学校では問題児扱いでした'},{q:'趣味は？',a:'バイオリンを弾くのが好きでした'}]},
+{id:39,t:'水素エネルギー',e:'🔮',c:'energy',g:'upper',done:0,sub:'燃やしても水しか出ない',mid:'renewable',qa:[{q:'水素エネルギーって何？',a:'水素を燃やして電気や熱を作ることです'},{q:'なぜ環境にいい？',a:'燃やしても出るのは水だけで、CO2が出ません'},{q:'水素はどこから取る？',a:'水を電気分解したり、天然ガスから作ります'},{q:'水素自動車はある？',a:'トヨタの「ミライ」などが販売されています'},{q:'課題は何？',a:'水素を作るコストと、ステーションの少なさです'}]},
+{id:40,t:'地球温暖化と国際協力',e:'🌐',c:'geopolitics',g:'upper',done:0,sub:'国を超えた課題',mid:'world_region',qa:[{q:'なぜ国際協力が必要？',a:'CO2は国境を超えて地球全体に影響するからです'},{q:'パリ協定って何？',a:'2015年に結ばれた温暖化対策の国際約束です'},{q:'目標は？',a:'気温上昇を産業革命前から1.5℃以内に抑えること'},{q:'日本の目標は？',a:'2050年にCO2排出を実質ゼロにする目標です'},{q:'COP（コップ）って何？',a:'気候変動対策を話し合う国際会議です'}]},
+{id:41,t:'秀吉の天下統一',e:'🏴',c:'japanhistory',g:'upper',done:0,sub:'農民から天下人へ',mid:'sengoku',qa:[{q:'秀吉はどんな身分だった？',a:'農民の子として生まれました'},{q:'どうやって出世した？',a:'信長に認められ、才能で上り詰めました'},{q:'天下統一はいつ？',a:'1590年、小田原の北条氏を倒して達成しました'},{q:'どんな政策をした？',a:'太閤検地、刀狩り、身分の固定化など'},{q:'失敗したことは？',a:'朝鮮出兵は成功せず、多くの犠牲を出しました'}]},
+{id:42,t:'ChatGPTのすごさ',e:'🧠',c:'tech',g:'upper',done:0,sub:'会話できるAI',mid:'ai_secret',qa:[{q:'ChatGPTって何？',a:'人間のように会話できるAIです'},{q:'誰が作った？',a:'アメリカのOpenAIという会社が作りました'},{q:'どうやって答えを作る？',a:'大量の文章を学習し、次に来る言葉を予測します'},{q:'何でも正しく答える？',a:'間違えることもあるので、確認が必要です'},{q:'どんなことに使える？',a:'質問への回答、文章作成、アイデア出しなど'}]},
+{id:43,t:'万里の長城のひみつ',e:'🏛️',c:'worldhistory',g:'upper',done:0,sub:'なぜこんなに長い壁を作った？',mid:'ancient',qa:[{q:'どれくらい長いの？',a:'全長約2万km以上、地球半周分です'},{q:'なぜ作ったの？',a:'北方の遊牧民の侵入を防ぐためです'},{q:'いつ頃作られた？',a:'約2200年前から明の時代まで作り続けられました'},{q:'宇宙から見える？',a:'肉眼では見えないというのが正しいです'},{q:'世界遺産になった？',a:'1987年に世界文化遺産に登録されました'}]},
+{id:44,t:'イーロン・マスク',e:'💡',c:'biography',g:'upper',done:0,sub:'火星を目指す実業家',mid:'inventors',qa:[{q:'どんな会社を作った？',a:'テスラ（電気自動車）、SpaceX（宇宙開発）など'},{q:'SpaceXのすごいところは？',a:'ロケットを再利用してコストを下げました'},{q:'なぜ火星を目指す？',a:'人類が地球以外でも生きられるようにするためです'},{q:'子どもの頃は？',a:'いじめられっ子で、本と独学で学びました'},{q:'モットーは？',a:'「不可能と思われることに挑戦する」'}]},
+{id:45,t:'日本三大祭り',e:'🎆',c:'japanculture',g:'upper',done:0,sub:'祇園・天神・神田',mid:'matsuri',qa:[{q:'日本三大祭りとは？',a:'祇園祭（京都）、天神祭（大阪）、神田祭（東京）です'},{q:'祇園祭の特徴は？',a:'豪華な山鉾（やまほこ）が街を巡行します'},{q:'天神祭の特徴は？',a:'船渡御（ふなとぎょ）という船の行列があります'},{q:'なぜ祭りをするの？',a:'神様に感謝し、災いを払うためです'},{q:'祭りに参加するには？',a:'地域によってはお手伝いやボランティアで参加できます'}]},
+{id:46,t:'はやぶさの冒険',e:'🪐',c:'space',g:'upper',done:0,sub:'小惑星からサンプルを',mid:'solar_explore',qa:[{q:'はやぶさって何？',a:'小惑星イトカワに行って砂を持ち帰った探査機です'},{q:'どんな困難があった？',a:'エンジン故障、通信途絶など、何度も危機がありました'},{q:'持ち帰ったものは？',a:'小惑星の砂粒約1500個を持ち帰りました'},{q:'はやぶさ2は？',a:'リュウグウという小惑星から岩石を持ち帰りました'},{q:'なぜ小惑星を調べる？',a:'太陽系や生命の起源を知る手がかりがあるからです'}]},
+{id:47,t:'湯川秀樹',e:'🇯🇵',c:'scientist',g:'upper',done:0,sub:'日本人初のノーベル賞',mid:'japan_scientist',qa:[{q:'何を発見した？',a:'中間子という粒子の存在を理論で予言しました'},{q:'いつノーベル賞を受賞？',a:'1949年、日本人として初めて受賞しました'},{q:'当時の日本は？',a:'戦後の苦しい時代で、日本中が勇気づけられました'},{q:'平和活動もした？',a:'核兵器廃絶を訴える運動に参加しました'},{q:'子どもへのメッセージは？',a:'「一日生きることは、一歩進むことでありたい」'}]},
+{id:48,t:'絶滅危惧種',e:'🐾',c:'nature',g:'upper',done:0,sub:'消えそうな生き物たち',mid:'protect',qa:[{q:'絶滅危惧種って何？',a:'このままでは絶滅してしまいそうな生き物です'},{q:'日本にはどんな動物が？',a:'イリオモテヤマネコ、ツシマヤマネコ、トキなど'},{q:'なぜ絶滅しそうなの？',a:'住む場所の破壊、乱獲、外来種などが原因です'},{q:'トキは復活した？',a:'一度絶滅しましたが、中国から譲り受けて繁殖しました'},{q:'私たちにできることは？',a:'自然を大切にし、知ることから始められます'}]},
+{id:49,t:'宇宙人はいる？',e:'🔭',c:'astronomy',g:'upper',done:0,sub:'地球外生命を探す',mid:'observe',qa:[{q:'宇宙人はいると思う？',a:'まだ見つかっていませんが、可能性はあります'},{q:'どうやって探してる？',a:'電波望遠鏡で宇宙からの信号を探しています'},{q:'地球のような星はある？',a:'5000個以上の惑星が見つかっています'},{q:'火星に生命はいる？',a:'微生物がいた可能性があり、調査中です'},{q:'UFOは本物？',a:'未確認飛行物体という意味で、宇宙人とは限りません'}]},
+{id:50,t:'エネルギーの正体',e:'💡',c:'energy',g:'upper',done:0,sub:'見えない力を理解しよう',mid:'energy_what',qa:[{q:'エネルギーって何？',a:'物を動かしたり、温めたりできる能力のことです'},{q:'どんな種類がある？',a:'熱エネルギー、電気エネルギー、運動エネルギーなど'},{q:'エネルギーは消える？',a:'形は変わりますが、なくなりません（エネルギー保存の法則）'},{q:'単位は何？',a:'ジュール（J）やカロリー（cal）などで表します'},{q:'身近なエネルギーは？',a:'電気、ガス、食べ物からのエネルギーなど'}]},
+{id:51,t:'家康の天下取り',e:'🏮',c:'japanhistory',g:'upper',done:0,sub:'260年の平和を作った将軍',mid:'edo',qa:[{q:'家康はどんな人？',a:'戦国時代を終わらせ、江戸幕府を開いた将軍です'},{q:'関ヶ原の戦いって？',a:'1600年、天下分け目の戦いで西軍を破りました'},{q:'なぜ江戸を選んだ？',a:'敵から遠く、広い平野で発展の可能性があったから'},{q:'「鳴かぬなら…」の句は？',a:'「鳴くまで待とうホトトギス」忍耐強さを表します'},{q:'260年続いた秘訣は？',a:'参勤交代や鎖国など、大名を管理する仕組みを作りました'}]},
+{id:52,t:'柔道の教え',e:'🥋',c:'japanculture',g:'upper',done:0,sub:'柔よく剛を制す',mid:'budo',qa:[{q:'柔道を作ったのは誰？',a:'嘉納治五郎が1882年に創始しました'},{q:'「柔よく剛を制す」の意味は？',a:'力が弱くても技で強い相手に勝てるということ'},{q:'オリンピック競技になったのは？',a:'1964年の東京オリンピックからです'},{q:'帯の色の意味は？',a:'白から始まり、段位が上がると黒帯になります'},{q:'柔道の精神は？',a:'「精力善用」「自他共栄」が理念です'}]},
+{id:53,t:'ローマ帝国のすごさ',e:'🏺',c:'worldhistory',g:'upper',done:0,sub:'道路・水道・法律を作った国',mid:'greece',qa:[{q:'ローマ帝国はどれくらい大きかった？',a:'地中海全域を支配し、ヨーロッパからアフリカまで'},{q:'「すべての道はローマに通ず」の意味？',a:'帝国中に道路を作り、ローマにつながっていました'},{q:'水道橋は何のため？',a:'遠くの水源から都市に水を運ぶためです'},{q:'ローマ法って何？',a:'現代の法律の基礎になった法制度です'},{q:'なぜ滅んだ？',a:'異民族の侵入、経済の衰退、内部分裂などが原因'}]},
+{id:54,t:'風力発電の進化',e:'☀️',c:'energy',g:'upper',done:0,sub:'風の力で電気を作る',mid:'renewable',qa:[{q:'風力発電のしくみは？',a:'風で羽根を回し、その力で発電機を動かします'},{q:'風車の羽根の長さは？',a:'大きいものは1枚80m以上、飛行機より長いです'},{q:'洋上風力って何？',a:'海の上に風車を建てる発電方式です'},{q:'なぜ海の上？',a:'陸より風が強く安定していて、場所も広いから'},{q:'課題は何？',a:'風がない日は発電できない、鳥がぶつかる問題'}]},
+{id:55,t:'ホーキングの宇宙',e:'⚛️',c:'scientist',g:'upper',done:0,sub:'車椅子の天才',mid:'physics',qa:[{q:'ホーキング博士は何を研究した？',a:'ブラックホールや宇宙の始まりについて'},{q:'どんな病気だった？',a:'ALS（筋萎縮性側索硬化症）で体が動かせなくなりました'},{q:'どうやって話していた？',a:'コンピュータと音声合成装置を使っていました'},{q:'有名な本は？',a:'「ホーキング、宇宙を語る」世界で1000万部以上売れました'},{q:'私たちへのメッセージは？',a:'「どんな困難でも、やれることは必ずある」'}]},
+{id:56,t:'プラスチックごみ',e:'🌱',c:'nature',g:'upper',done:0,sub:'海に広がる問題',mid:'environment',qa:[{q:'海にどれくらいのプラごみがある？',a:'年間約800万トンが海に流れ出ています'},{q:'マイクロプラスチックって何？',a:'5mm以下の小さなプラスチック片です'},{q:'海の生き物への影響は？',a:'エサと間違えて食べてしまい、死ぬこともあります'},{q:'分解されるの？',a:'自然界では数百年以上かかります'},{q:'私たちにできることは？',a:'マイバッグ、マイボトルの利用、分別リサイクル'}]},
+{id:57,t:'源氏物語の世界',e:'🛕',c:'japanhistory',g:'upper',done:0,sub:'世界最古の長編小説',mid:'asuka',qa:[{q:'誰が書いた？',a:'紫式部という女性が約1000年前に書きました'},{q:'どんな話？',a:'光源氏という貴族の恋愛や人生を描いた物語です'},{q:'なぜ「世界最古の長編小説」？',a:'心理描写のある長編物語として世界初と言われます'},{q:'全部で何巻？',a:'54巻、約100万文字の大作です'},{q:'今でも読まれている？',a:'多くの言語に翻訳され、世界中で読まれています'}]},
+{id:58,t:'火星探査の最前線',e:'🌙',c:'space',g:'upper',done:0,sub:'赤い惑星のなぞに迫る',mid:'rocket',qa:[{q:'火星まで何日かかる？',a:'約7〜9ヶ月かかります'},{q:'火星に水はある？',a:'かつて水があった証拠が見つかり、氷は存在します'},{q:'今、火星にいるロボットは？',a:'NASAのパーサヴィアランスなどが活動中です'},{q:'なぜ赤いの？',a:'地表に酸化鉄（さび）が多いからです'},{q:'人は住める？',a:'空気がなく寒いですが、将来の移住計画が進んでいます'}]},
+{id:59,t:'ライト兄弟の挑戦',e:'💡',c:'biography',g:'upper',done:0,sub:'空を飛ぶ夢を叶えた',mid:'inventors',qa:[{q:'初飛行はいつ？',a:'1903年12月17日、アメリカで成功しました'},{q:'どれくらい飛んだ？',a:'最初は12秒で約37m、その日のうちに59秒飛びました'},{q:'兄弟の仕事は？',a:'自転車屋を営みながら飛行機を研究しました'},{q:'なぜ成功できた？',a:'1000回以上のグライダー実験で操縦技術を磨いたから'},{q:'その後どうなった？',a:'飛行機会社を設立し、航空産業の基礎を作りました'}]},
+{id:60,t:'星の誕生',e:'⭐',c:'astronomy',g:'upper',done:0,sub:'ガスの雲から星になる',mid:'star_life',qa:[{q:'星は何からできる？',a:'宇宙に漂うガスやちりの雲（星雲）からできます'},{q:'どうやって星になる？',a:'ガスが集まり、重力で圧縮されて熱くなります'},{q:'どれくらい時間がかかる？',a:'数百万年〜数千万年かかります'},{q:'星雲はどこで見られる？',a:'オリオン座のオリオン大星雲が有名です'},{q:'今も星は生まれている？',a:'はい、宇宙では今も新しい星が誕生しています'}]},
+{id:61,t:'落語の世界',e:'🎭',c:'japanculture',g:'upper',done:0,sub:'一人で何役も演じる話芸',mid:'dentou',qa:[{q:'落語って何？',a:'一人の噺家が座ったまま何役も演じるお話芸です'},{q:'使う道具は？',a:'扇子と手ぬぐいだけで様々なものを表現します'},{q:'「落ち」って何？',a:'話の最後のオチ（結末）のことです'},{q:'有名な演目は？',a:'「寿限無」「時そば」「まんじゅうこわい」など'},{q:'どこで聞ける？',a:'寄席（よせ）という専門の劇場や、ホールで聞けます'}]},
+{id:62,t:'シルクロード物語',e:'🏰',c:'worldhistory',g:'upper',done:0,sub:'東と西をつないだ交易の道',mid:'medieval',qa:[{q:'シルクロードって何？',a:'中国からローマまでを結んだ交易路の総称です'},{q:'なぜ「シルク」？',a:'中国の絹（シルク）が西へ運ばれたからです'},{q:'他に何が運ばれた？',a:'香辛料、宝石、紙、仏教などの宗教も伝わりました'},{q:'日本にも影響があった？',a:'正倉院にはシルクロード経由の宝物が残っています'},{q:'今のシルクロードは？',a:'中国の「一帯一路」構想で注目されています'}]},
+{id:63,t:'原子力発電のしくみ',e:'⚡',c:'energy',g:'upper',done:0,sub:'核分裂でお湯を沸かす',mid:'energy_what',qa:[{q:'どうやって電気を作る？',a:'ウランの核分裂の熱でお湯を沸かし、蒸気でタービンを回します'},{q:'核分裂って何？',a:'原子の核が分かれて大きなエネルギーが出ること'},{q:'良いところは？',a:'CO2を出さず、少ない燃料で大量の電気を作れます'},{q:'問題点は？',a:'事故のリスクと放射性廃棄物の処理が課題です'},{q:'日本の原発は？',a:'福島事故後、安全基準を厳しくして一部が再稼働中です'}]},
+{id:64,t:'宮崎駿の世界',e:'🎨',c:'biography',g:'upper',done:0,sub:'アニメで伝えるメッセージ',mid:'artists',qa:[{q:'代表作は？',a:'となりのトトロ、千と千尋の神隠し、もののけ姫など'},{q:'スタジオジブリって？',a:'宮崎駿らが設立したアニメーション制作会社です'},{q:'アカデミー賞を取った？',a:'「千と千尋の神隠し」で長編アニメ賞を受賞しました'},{q:'作品のテーマは？',a:'自然と人間、戦争と平和、生きる力などを描いています'},{q:'何度も引退宣言？',a:'引退を宣言しても、また新作を作り続けています'}]},
+{id:65,t:'縄文人の暮らし',e:'🗿',c:'japanhistory',g:'upper',done:0,sub:'1万年続いた時代のひみつ',mid:'ancient_jp',qa:[{q:'縄文時代はどれくらい長い？',a:'約1万年以上続きました（紀元前1万3000年〜紀元前400年頃）'},{q:'縄文土器の特徴は？',a:'縄の模様がついた、世界最古級の土器です'},{q:'何を食べていた？',a:'木の実、魚、貝、イノシシなどを狩猟採集していました'},{q:'どんな家に住んでいた？',a:'竪穴住居という地面を掘った家に住んでいました'},{q:'三内丸山遺跡って？',a:'青森にある大規模な縄文集落の遺跡です'}]},
+{id:66,t:'自動運転の未来',e:'🦾',c:'tech',g:'upper',done:0,sub:'運転しない車',mid:'robot',qa:[{q:'自動運転のレベルは？',a:'レベル0〜5まであり、5は完全自動運転です'},{q:'どうやって動く？',a:'カメラ、レーダー、AIが周囲を認識して判断します'},{q:'今はどこまでできる？',a:'高速道路での自動運転などレベル3が実用化されています'},{q:'事故が起きたら誰の責任？',a:'法律の整備が進められている最中です'},{q:'いつ完全自動運転になる？',a:'2030年代以降と予測されています'}]},
+{id:67,t:'天の川銀河',e:'🔭',c:'astronomy',g:'upper',done:0,sub:'私たちの住む星の大集団',mid:'observe',qa:[{q:'天の川銀河って何？',a:'太陽系がある銀河で、約2000億個の星があります'},{q:'どんな形？',a:'渦巻き型で、直径は約10万光年です'},{q:'太陽はどこにある？',a:'中心から約2万6000光年離れた場所にあります'},{q:'天の川として見えるのはなぜ？',a:'銀河を内側から見ているので帯状に見えます'},{q:'隣の銀河は？',a:'アンドロメダ銀河で、約250万光年先にあります'}]},
+{id:68,t:'和紙のすごさ',e:'🎎',c:'japanculture',g:'upper',done:0,sub:'1000年もつ紙',mid:'monozukuri',qa:[{q:'和紙は何からできる？',a:'コウゾ、ミツマタ、ガンピなどの植物の繊維です'},{q:'なぜ1000年もつ？',a:'繊維が長く、強くて劣化しにくいからです'},{q:'どうやって作る？',a:'繊維を水に溶かし、すのこで漉いて乾かします'},{q:'何に使われる？',a:'書道、障子、ランプシェード、修復作業など'},{q:'世界遺産になった？',a:'和紙の技術は2014年にユネスコ無形文化遺産に登録'}]},
+{id:69,t:'森林の役割',e:'🌲',c:'nature',g:'upper',done:0,sub:'地球の肺',mid:'ecology',qa:[{q:'なぜ「地球の肺」？',a:'CO2を吸収し、酸素を出すからです'},{q:'森林は地球の何％？',a:'陸地の約30%を森林が覆っています'},{q:'他にどんな役割がある？',a:'水を蓄える、土砂崩れを防ぐ、生き物の住処になる'},{q:'熱帯雨林が大切な理由は？',a:'生物多様性の宝庫で、CO2吸収量も多いから'},{q:'森林が減るとどうなる？',a:'温暖化加速、生き物の絶滅、洪水の増加など'}]},
+{id:70,t:'北里柴三郎',e:'🇯🇵',c:'scientist',g:'upper',done:0,sub:'感染症と戦った医学者',mid:'japan_scientist',qa:[{q:'何を発見した？',a:'破傷風菌の純粋培養と血清療法を開発しました'},{q:'血清療法って何？',a:'病気に打ち勝った血液から作る治療法です'},{q:'ペスト菌も発見？',a:'香港でペスト菌を発見しました（同時発見者あり）'},{q:'なぜお札になった？',a:'日本の医学の発展に大きく貢献したからです'},{q:'有名な言葉は？',a:'「医者の使命は病気を予防することにある」'}]},
+{id:71,t:'俳句を作ろう',e:'🍵',c:'japanculture',g:'upper',done:0,sub:'17音で世界を描く',mid:'geido',qa:[{q:'俳句のルールは？',a:'5・7・5の17音で、季語を入れます'},{q:'季語って何？',a:'季節を表す言葉（桜→春、蝉→夏など）'},{q:'松尾芭蕉の有名な句は？',a:'「古池や 蛙飛び込む 水の音」'},{q:'なぜ短いのに深い？',a:'省略することで読む人の想像力を引き出すから'},{q:'海外でも人気？',a:'HAIKUとして世界中で親しまれています'}]},
+{id:72,t:'フランス革命の始まり',e:'🏭',c:'worldhistory',g:'upper',done:0,sub:'王様の時代が終わった日',mid:'revolution',qa:[{q:'いつ起きた？',a:'1789年7月14日、バスティーユ牢獄の襲撃で始まりました'},{q:'なぜ革命が起きた？',a:'国民が重い税に苦しみ、不公平な社会に怒ったから'},{q:'「自由・平等・友愛」って？',a:'革命のスローガンで、フランスの理念になりました'},{q:'王様はどうなった？',a:'ルイ16世は裁判にかけられ、処刑されました'},{q:'革命の影響は？',a:'人権宣言が出され、現代の民主主義につながりました'}]},
+{id:73,t:'日本人宇宙飛行士',e:'🚀',c:'space',g:'upper',done:0,sub:'宇宙に行った日本人たち',mid:'astronaut',qa:[{q:'最初の日本人宇宙飛行士は？',a:'1990年に宇宙へ行った秋山豊寛さん（ジャーナリスト）'},{q:'JAXAで最初は誰？',a:'1992年の毛利衛さんです'},{q:'何人が宇宙へ行った？',a:'2024年時点で12人以上が宇宙飛行を経験'},{q:'宇宙飛行士になるには？',a:'大学卒業、健康、語学力、専門知識などが必要'},{q:'最も長く宇宙にいた日本人は？',a:'野口聡一さん（通算344日以上）'}]},
+{id:74,t:'水力発電のすごさ',e:'☀️',c:'energy',g:'upper',done:0,sub:'水の流れがエネルギーに',mid:'renewable',qa:[{q:'どうやって発電する？',a:'高いところから落ちる水の力でタービンを回します'},{q:'ダムの役割は？',a:'水を貯めて、必要な時に放流して発電します'},{q:'揚水発電って何？',a:'電気が余った時に水を上に汲み上げ、貯めておく方法'},{q:'日本の水力発電は？',a:'全発電量の約8%を占めています'},{q:'環境への影響は？',a:'ダム建設で川の生態系が変わることがあります'}]},
+{id:75,t:'リンカーンの信念',e:'👑',c:'biography',g:'upper',done:0,sub:'奴隷を解放した大統領',mid:'leaders',qa:[{q:'リンカーンは何をした？',a:'アメリカの第16代大統領として奴隷解放宣言を出しました'},{q:'奴隷制度って？',a:'人を物のように売り買いする制度で、主に黒人が苦しみました'},{q:'ゲティスバーグ演説って？',a:'「人民の人民による人民のための政治」という有名な演説'},{q:'南北戦争って？',a:'奴隷制度を巡って北部と南部が戦った戦争です'},{q:'最期は？',a:'戦争終結後、劇場で暗殺されました'}]},
+{id:76,t:'海の世界',e:'🌲',c:'nature',g:'upper',done:0,sub:'深海のふしぎ',mid:'ecology',qa:[{q:'海は地球の何％？',a:'地球の表面の約71%を海が占めています'},{q:'一番深いところは？',a:'マリアナ海溝のチャレンジャー海淵で約10,920m'},{q:'深海に生き物はいる？',a:'光がなくても独自の生態系があります'},{q:'深海魚の特徴は？',a:'光る、目が大きい、体が柔らかいなど'},{q:'まだ探検されていない？',a:'海の約80%は未調査と言われています'}]},
+{id:77,t:'ガリレオの望遠鏡',e:'⚛️',c:'scientist',g:'upper',done:0,sub:'宇宙を見た最初の人',mid:'physics',qa:[{q:'ガリレオは何をした？',a:'望遠鏡で月や木星を観察し、地動説を支持しました'},{q:'望遠鏡で何を見つけた？',a:'月のクレーター、木星の衛星、金星の満ち欠けなど'},{q:'なぜ裁判にかけられた？',a:'「地球が動く」という考えが教会に反すると'},{q:'「それでも地球は動く」は本当？',a:'伝説ですが、本当に言ったかは不明です'},{q:'なぜ「近代科学の父」？',a:'実験と観察で科学を証明する方法を確立したから'}]},
+{id:78,t:'アメリカの強さの理由',e:'🗾',c:'geopolitics',g:'upper',done:0,sub:'二つの海に守られた国',mid:'world_region',qa:[{q:'アメリカの地理的な強みは？',a:'太平洋と大西洋に挟まれ、敵国から遠いこと'},{q:'なぜ超大国になった？',a:'広い国土、豊富な資源、移民による発展'},{q:'軍事力は？',a:'世界最大の軍事費を持ち、世界中に基地があります'},{q:'ドルが世界通貨なのはなぜ？',a:'第二次大戦後、世界経済の中心になったから'},{q:'課題は？',a:'国内の格差、政治の分断などが問題に'}]},
+{id:79,t:'着物の美しさ',e:'🎎',c:'japanculture',g:'upper',done:0,sub:'文様に込められた意味',mid:'koromo',qa:[{q:'着物の歴史は？',a:'奈良時代から続き、今の形は江戸時代に完成'},{q:'文様にはどんな意味がある？',a:'松竹梅は縁起物、鶴は長寿など、願いが込められています'},{q:'振袖と留袖の違いは？',a:'振袖は未婚女性、留袖は既婚女性が着ます'},{q:'帯の結び方は？',a:'お太鼓、文庫など様々な結び方があります'},{q:'今も着る機会は？',a:'成人式、結婚式、七五三、お茶会などで着ます'}]},
+{id:80,t:'忍者のひみつ',e:'🏴',c:'japanhistory',g:'upper',done:0,sub:'本当の忍者はどんな人？',mid:'sengoku',qa:[{q:'忍者は本当にいた？',a:'はい、戦国時代に実在したスパイや工作員です'},{q:'どんな仕事をした？',a:'情報収集、かく乱、暗殺、火付けなどの秘密任務'},{q:'有名な忍者の里は？',a:'伊賀（三重県）と甲賀（滋賀県）が有名です'},{q:'忍術って何？',a:'変装、薬の知識、体術など生き延びるための技術'},{q:'手裏剣は本当に使った？',a:'使いましたが、映画ほど多用はしませんでした'}]},
+{id:81,t:'iPS細胞のすごさ',e:'🧬',c:'tech',g:'upper',done:0,sub:'何にでもなれる細胞',mid:'life_science',qa:[{q:'iPS細胞って何？',a:'体のいろいろな細胞になれる「万能細胞」です'},{q:'誰が発見した？',a:'山中伸弥教授が2006年に発見しました'},{q:'何に使える？',a:'病気の治療、新薬開発、臓器を作る研究など'},{q:'ノーベル賞を取った？',a:'2012年にノーベル医学生理学賞を受賞しました'},{q:'実用化は？',a:'目の病気などで治療が始まっています'}]},
+{id:82,t:'宇宙の始まり',e:'🔭',c:'astronomy',g:'upper',done:0,sub:'ビッグバンって何？',mid:'observe',qa:[{q:'ビッグバンって何？',a:'約138億年前に起きた宇宙の始まりの大爆発です'},{q:'爆発の前は？',a:'すべてが1点に集まった超高温・超高密度の状態'},{q:'なぜわかる？',a:'宇宙が今も膨張していることが観測されているから'},{q:'宇宙マイクロ波背景放射って？',a:'ビッグバンの残り熱が今も宇宙に満ちています'},{q:'宇宙の年齢は？',a:'約138億年です'}]},
+{id:83,t:'お寿司の歴史',e:'🍱',c:'japanculture',g:'upper',done:0,sub:'江戸前から回転寿司へ',mid:'washoku',qa:[{q:'寿司の起源は？',a:'東南アジアの魚の保存食「なれずし」がルーツです'},{q:'江戸前寿司って？',a:'江戸時代に東京湾の魚で作られた握り寿司のこと'},{q:'回転寿司はいつ始まった？',a:'1958年に大阪で発明されました'},{q:'なぜワサビを使う？',a:'殺菌作用があり、生魚を安全に食べるためです'},{q:'世界での人気は？',a:'健康食として世界中で大人気になっています'}]},
+{id:84,t:'難民問題',e:'🌐',c:'geopolitics',g:'upper',done:0,sub:'故郷を離れる人々',mid:'world_region',qa:[{q:'難民って何？',a:'戦争や迫害から逃れて国を出た人々です'},{q:'世界に何人いる？',a:'約1億人以上が故郷を追われています'},{q:'どこから来る人が多い？',a:'シリア、アフガニスタン、ウクライナなど'},{q:'日本は受け入れている？',a:'他の先進国より受け入れ数が少ないのが現状です'},{q:'私たちにできることは？',a:'知ること、募金、支援団体への協力など'}]},
+{id:85,t:'火山の噴火',e:'🌏',c:'nature',g:'upper',done:0,sub:'マグマが噴き出す',mid:'earth_system',qa:[{q:'火山はなぜ噴火する？',a:'地下のマグマが圧力で地上に噴き出すからです'},{q:'日本に火山はいくつ？',a:'活火山は111あり、世界でも有数の火山国です'},{q:'噴火の種類は？',a:'溶岩が流れるタイプ、爆発するタイプなど様々'},{q:'火山の恵みは？',a:'温泉、地熱エネルギー、肥沃な土壌など'},{q:'富士山は噴火する？',a:'活火山なので、将来噴火する可能性があります'}]},
+{id:86,t:'パスツールと細菌',e:'🧪',c:'scientist',g:'upper',done:0,sub:'目に見えない敵を発見',mid:'chemistry_bio',qa:[{q:'パスツールは何を発見した？',a:'病気の原因が細菌であることを証明しました'},{q:'低温殺菌法って？',a:'牛乳などを加熱して菌を殺す方法（パスチャライズ）'},{q:'狂犬病ワクチンも作った？',a:'はい、世界初の狂犬病ワクチンを開発しました'},{q:'「自然発生説」を否定？',a:'生き物は無から生まれないことを実験で証明しました'},{q:'有名な言葉は？',a:'「科学には国境はないが、科学者には祖国がある」'}]},
+{id:87,t:'黒船がやってきた',e:'🚂',c:'japanhistory',g:'upper',done:0,sub:'日本が目覚めた日',mid:'kindai',qa:[{q:'黒船って何？',a:'1853年に来航したアメリカのペリー艦隊の蒸気船'},{q:'なぜ「黒」船？',a:'船体が黒く塗られていたからです'},{q:'何をしに来た？',a:'日本に開国と貿易を求めにきました'},{q:'日本はどうした？',a:'翌年、日米和親条約を結んで開国しました'},{q:'その後どうなった？',a:'幕府が弱体化し、明治維新につながりました'}]},
+{id:88,t:'VRとAR',e:'💻',c:'tech',g:'upper',done:0,sub:'仮想世界と現実の融合',mid:'digital',qa:[{q:'VRって何？',a:'仮想現実。ゴーグルで別の世界に入り込めます'},{q:'ARって何？',a:'拡張現実。現実世界にデジタル情報を重ねます'},{q:'どんなことに使う？',a:'ゲーム、訓練、医療、教育など様々な分野で'},{q:'ポケモンGOはどっち？',a:'AR（現実の風景にポケモンが現れる）'},{q:'未来はどうなる？',a:'仕事や学校もVR空間で行う時代が来るかも'}]},
+{id:89,t:'杉原千畝の決断',e:'✊',c:'biography',g:'upper',done:0,sub:'6000人の命を救ったビザ',mid:'changers',qa:[{q:'杉原千畝は何をした？',a:'第二次大戦中、ユダヤ人にビザを発行して命を救いました'},{q:'どこで発行した？',a:'リトアニアの日本領事館で'},{q:'何人を救った？',a:'約6000人のユダヤ人を救ったと言われています'},{q:'なぜ危険だった？',a:'政府の命令に背いてビザを出し続けたから'},{q:'どう評価されている？',a:'イスラエルから「諸国民の中の正義の人」の称号を受けました'}]},
+{id:90,t:'流れ星のひみつ',e:'🔭',c:'astronomy',g:'upper',done:0,sub:'流星群を見よう',mid:'observe',qa:[{q:'流れ星の正体は？',a:'宇宙のちりが大気に突入して光る現象です'},{q:'大きさはどれくらい？',a:'多くは砂粒〜小石程度の大きさです'},{q:'流星群って何？',a:'毎年決まった時期にたくさん見られる流れ星'},{q:'有名な流星群は？',a:'ペルセウス座流星群（8月）、しぶんぎ座流星群（1月）など'},{q:'願い事が叶う？',a:'科学的根拠はありませんが、素敵な伝統ですね'}]},
+{id:91,t:'お正月の意味',e:'🎆',c:'japanculture',g:'upper',done:0,sub:'歳神様を迎える行事',mid:'matsuri',qa:[{q:'なぜ正月を祝う？',a:'新年に歳神様を迎え、一年の幸せを願うためです'},{q:'門松は何のため？',a:'歳神様が降りてくる目印です'},{q:'おせち料理の意味は？',a:'各料理に「健康」「豊作」などの願いが込められています'},{q:'お年玉の由来は？',a:'もともとは歳神様へのお供えの餅を分けたもの'},{q:'初詣はいつから？',a:'明治時代に鉄道が発達してから広まりました'}]},
+{id:92,t:'モンゴル帝国の強さ',e:'🏰',c:'worldhistory',g:'upper',done:0,sub:'世界最大の国を作った騎馬民族',mid:'medieval',qa:[{q:'モンゴル帝国はどれくらい大きかった？',a:'歴史上最大の陸上帝国、アジアからヨーロッパまで'},{q:'チンギス・ハンって誰？',a:'モンゴル帝国を作った初代皇帝です'},{q:'なぜ強かった？',a:'馬術に優れ、機動力のある騎馬軍団だったから'},{q:'日本にも来た？',a:'元寇として2度、日本を攻めました'},{q:'シルクロードとの関係は？',a:'帝国内の安全を守り、東西交易を活発にしました'}]},
+{id:93,t:'気象衛星ひまわり',e:'🛰️',c:'space',g:'upper',done:0,sub:'宇宙から天気を見る',mid:'satellite',qa:[{q:'ひまわりは何をする衛星？',a:'宇宙から雲の動きを観測して天気予報に役立てます'},{q:'どこにある？',a:'赤道上空約35,800kmの静止軌道にあります'},{q:'なぜ「静止」軌道？',a:'地球の自転と同じ速さで回り、常に同じ場所を見られる'},{q:'何代目？',a:'現在は「ひまわり9号」が運用中です'},{q:'台風の予報に役立つ？',a:'はい、台風の位置や発達を監視しています'}]},
+{id:94,t:'CO2と地球温暖化',e:'🛢️',c:'energy',g:'upper',done:0,sub:'燃やすと出るもの',mid:'energy_what',qa:[{q:'CO2って何？',a:'二酸化炭素のこと、炭素と酸素の化合物です'},{q:'なぜ温暖化につながる？',a:'CO2が熱を閉じ込め、地球を温めるから'},{q:'どこから出る？',a:'化石燃料を燃やす時、工場、車、発電所など'},{q:'減らすには？',a:'再生可能エネルギーへの転換、省エネ、植林など'},{q:'カーボンニュートラルって？',a:'CO2の排出と吸収をプラスマイナスゼロにすること'}]},
+{id:95,t:'マンデラの27年',e:'👑',c:'biography',g:'upper',done:0,sub:'獄中から大統領へ',mid:'leaders',qa:[{q:'マンデラは何をした人？',a:'南アフリカのアパルトヘイト（人種隔離政策）と戦いました'},{q:'なぜ27年も投獄された？',a:'人種差別に反対する活動で逮捕されたから'},{q:'出獄後どうなった？',a:'初の黒人大統領になりました'},{q:'ノーベル平和賞を取った？',a:'1993年に白人大統領と共に受賞しました'},{q:'彼の教えは？',a:'「憎しみではなく許しを選ぶ」和解の精神'}]},
+{id:96,t:'動く大陸',e:'🌏',c:'nature',g:'upper',done:0,sub:'プレートテクトニクス',mid:'earth_system',qa:[{q:'大陸は動いている？',a:'はい、年間数cmずつ動いています'},{q:'プレートって何？',a:'地球の表面を覆う十数枚の岩盤のことです'},{q:'昔は大陸が一つだった？',a:'約2億年前は「パンゲア」という超大陸でした'},{q:'日本はどのプレートの上？',a:'4つのプレートがぶつかる場所にあります'},{q:'将来どうなる？',a:'何億年後かにはまた大陸がくっつくと言われています'}]},
+{id:97,t:'野口英世',e:'🇯🇵',c:'scientist',g:'upper',done:0,sub:'黄熱病に命をかけた',mid:'japan_scientist',qa:[{q:'野口英世は何を研究した？',a:'黄熱病や梅毒など感染症の研究をしました'},{q:'なぜ千円札に？',a:'世界的に活躍した日本人科学者だから'},{q:'子どもの頃のエピソードは？',a:'火傷で左手が不自由でしたが、医者を目指しました'},{q:'どこで研究した？',a:'アメリカのロックフェラー研究所で活躍しました'},{q:'最期は？',a:'黄熱病の研究中にアフリカで感染し、亡くなりました'}]},
+{id:98,t:'インターネットの始まり',e:'💻',c:'tech',g:'upper',done:0,sub:'世界をつなぐネットワーク',mid:'digital',qa:[{q:'インターネットの始まりは？',a:'1969年、アメリカ軍のARPANETが起源です'},{q:'なぜ作られた？',a:'核攻撃でも通信が途絶えないネットワークのため'},{q:'WWWって何？',a:'ワールドワイドウェブ、ウェブページの仕組みです'},{q:'いつ一般に広まった？',a:'1990年代から急速に普及しました'},{q:'今、何人が使っている？',a:'世界人口の約60%以上がインターネットを利用'}]},
+{id:99,t:'本田宗一郎',e:'💡',c:'biography',g:'upper',done:0,sub:'世界のホンダを作った男',mid:'inventors',qa:[{q:'ホンダって何を作る会社？',a:'オートバイ、自動車、飛行機なども作っています'},{q:'本田宗一郎はどんな人？',a:'町工場から世界企業を育てた創業者です'},{q:'なぜすごい？',a:'技術を大切にし、世界に挑戦し続けたから'},{q:'F1に参戦した理由は？',a:'世界一になって技術力を証明したかったから'},{q:'有名な言葉は？',a:'「失敗を恐れるな、失敗しない人間は何もしない人間だ」'}]},
+{id:100,t:'SDGsを知ろう',e:'🌱',c:'nature',g:'upper',done:0,sub:'持続可能な未来へ',mid:'environment',qa:[{q:'SDGsって何？',a:'持続可能な開発目標（Sustainable Development Goals）'},{q:'いくつ目標がある？',a:'17の目標と169のターゲットがあります'},{q:'いつまでに達成？',a:'2030年までに達成を目指しています'},{q:'誰が決めた？',a:'2015年に国連で世界のすべての国が合意しました'},{q:'私たちにできることは？',a:'節電、ゴミ削減、地産地消、学ぶことから始められます'}]},
+{id:101,t:'アニメの世界',e:'🎬',c:'japanculture',g:'upper',done:0,sub:'日本が誇る映像文化',mid:'modern_jp',qa:[{q:'日本のアニメはいつ始まった？',a:'1917年頃に最初の作品が作られました'},{q:'なぜ世界で人気？',a:'ストーリーの深さ、独特の絵柄、多様なジャンル'},{q:'ジブリ以外の有名スタジオは？',a:'東映アニメーション、京都アニメーションなど'},{q:'アニメ産業の規模は？',a:'世界市場で約2.5兆円以上の産業です'},{q:'「聖地巡礼」って何？',a:'アニメの舞台になった場所を訪れること'}]},
+{id:102,t:'漫画の歴史',e:'📚',c:'japanculture',g:'upper',done:0,sub:'手塚治虫から始まった',mid:'modern_jp',qa:[{q:'漫画のルーツは？',a:'平安時代の「鳥獣戯画」が原点と言われます'},{q:'現代漫画の父は？',a:'手塚治虫がストーリー漫画を確立しました'},{q:'少年ジャンプの三原則は？',a:'「友情・努力・勝利」がテーマです'},{q:'世界で一番売れた漫画は？',a:'「ONE PIECE」が5億部以上を記録'},{q:'デジタル漫画の普及は？',a:'スマホで読める電子コミックが急成長中'}]},
+{id:103,t:'ゲーム大国日本',e:'🎮',c:'japanculture',g:'upper',done:0,sub:'世界を夢中にさせた',mid:'modern_jp',qa:[{q:'日本のゲーム産業の始まりは？',a:'1970年代のアーケードゲームから'},{q:'任天堂の代表作は？',a:'マリオ、ゼルダ、ポケモンなど世界的ヒット'},{q:'ファミコンって何？',a:'1983年発売の家庭用ゲーム機、世界を変えました'},{q:'eスポーツって何？',a:'ゲームを競技として行うスポーツです'},{q:'ゲームの良い影響は？',a:'問題解決力、反射神経、創造性が育つことも'}]},
+{id:104,t:'J-POPの魅力',e:'🎵',c:'japanculture',g:'upper',done:0,sub:'日本の音楽が世界へ',mid:'modern_jp',qa:[{q:'J-POPはいつ生まれた？',a:'1990年代に音楽ジャンルとして確立しました'},{q:'海外で人気の日本の音楽は？',a:'アニメソング、シティポップ、ボカロ曲など'},{q:'初音ミクって何？',a:'歌を歌わせられる音声合成ソフトのキャラクター'},{q:'YOASOBIが世界でヒットした理由は？',a:'小説を音楽にする独自のスタイル'},{q:'音楽配信の変化は？',a:'CDからストリーミングへ移行しています'}]},
+{id:105,t:'クールジャパン',e:'🇯🇵',c:'japanculture',g:'upper',done:0,sub:'世界が注目する日本',mid:'modern_jp',qa:[{q:'クールジャパンって何？',a:'日本文化が海外で「かっこいい」と評価されること'},{q:'何が人気？',a:'アニメ、漫画、ゲーム、和食、ファッションなど'},{q:'政府も推進している？',a:'経済産業省がクールジャパン戦略を進めています'},{q:'インバウンドとの関係は？',a:'日本文化への興味が訪日観光客を増やしています'},{q:'課題は？',a:'海外展開の人材不足、著作権の問題など'}]},
+{id:106,t:'エネルギーの種類',e:'⚡',c:'energy',g:'upper',done:0,sub:'熱・光・電気・運動',mid:'energy_what',qa:[{q:'熱エネルギーって？',a:'物を温める力、温度として感じます'},{q:'光エネルギーって？',a:'太陽の光など、明るさや熱を伝えるエネルギー'},{q:'電気エネルギーって？',a:'電流が流れることで仕事をするエネルギー'},{q:'運動エネルギーって？',a:'動いている物が持つエネルギー'},{q:'位置エネルギーって？',a:'高いところにある物が持つエネルギー'}]},
+{id:107,t:'電気の旅',e:'🔌',c:'energy',g:'upper',done:0,sub:'発電所から家まで',mid:'energy_what',qa:[{q:'電気はどこで作られる？',a:'発電所で作られます（火力、水力、原子力など）'},{q:'どうやって届く？',a:'送電線を通って変電所を経由して届きます'},{q:'なぜ高い電圧で送る？',a:'エネルギーの損失を減らすためです'},{q:'電気は貯められる？',a:'蓄電池で貯められますが、大量貯蔵は難しいです'},{q:'停電はなぜ起きる？',a:'災害、設備故障、電力不足などが原因です'}]},
+{id:108,t:'地熱発電',e:'🌋',c:'energy',g:'upper',done:0,sub:'地球内部の熱を使う',mid:'renewable',qa:[{q:'地熱発電のしくみは？',a:'地下のマグマの熱で蒸気を作り、タービンを回します'},{q:'日本は地熱資源が多い？',a:'世界第3位の地熱資源量を持っています'},{q:'なぜ普及していない？',a:'国立公園内が多く、開発が制限されているから'},{q:'温泉との違いは？',a:'温泉より深いところの高温蒸気を使います'},{q:'良いところは？',a:'24時間安定して発電でき、CO2がほぼ出ない'}]},
+{id:109,t:'2050年の目標',e:'🎯',c:'energy',g:'upper',done:0,sub:'CO2ゼロを目指して',mid:'renewable',qa:[{q:'2050年の目標は？',a:'カーボンニュートラル（CO2排出実質ゼロ）達成'},{q:'なぜ2050年？',a:'気温上昇を1.5℃に抑えるために必要な期限'},{q:'どうやって達成する？',a:'再エネ拡大、省エネ、電気自動車普及など'},{q:'日本の取り組みは？',a:'グリーン成長戦略で14分野の計画を策定'},{q:'私たちにできることは？',a:'省エネ、再エネ選択、環境に良い商品を選ぶ'}]},
+{id:110,t:'ヒエログリフを読もう',e:'📜',c:'worldhistory',g:'upper',done:0,sub:'古代エジプトの絵文字を解読！',mid:'ancient',qa:[{q:'ヒエログリフって何？',a:'古代エジプトで使われた絵文字の文字体系です'},{q:'いくつ文字がある？',a:'約700種類以上の記号があります'},{q:'誰が解読した？',a:'フランスのシャンポリオンが1822年に解読'},{q:'ロゼッタストーンって？',a:'3つの文字で同じ内容が書かれた解読の鍵となった石'},{q:'今でも読める？',a:'研究が進み、多くの文章が読めるようになりました'}]},
+{id:111,t:'民主主義の誕生',e:'🏛️',c:'worldhistory',g:'upper',done:0,sub:'みんなで決める政治が始まった',mid:'greece',qa:[{q:'民主主義はどこで始まった？',a:'約2500年前のギリシャのアテネです'},{q:'どんな仕組み？',a:'市民が直接集まって議論し、多数決で決めました'},{q:'誰でも参加できた？',a:'成人男性の市民のみで、女性や奴隷は除外されました'},{q:'「デモクラシー」の意味は？',a:'ギリシャ語で「人民の支配」という意味'},{q:'今の民主主義との違いは？',a:'今は代表を選ぶ「間接民主制」が主流です'}]},
+{id:112,t:'騎士になるには？',e:'⚔️',c:'worldhistory',g:'upper',done:0,sub:'名誉と忠誠を誓った戦士たち',mid:'medieval',qa:[{q:'騎士って何？',a:'中世ヨーロッパで主君に仕えた戦士です'},{q:'騎士になるには？',a:'7歳で小姓、14歳で従騎士、21歳で騎士に'},{q:'騎士道って何？',a:'名誉、忠誠、弱者を守るという精神'},{q:'甲冑の重さは？',a:'フルセットで約20〜30kgもありました'},{q:'馬上試合って？',a:'騎士が槍で戦う競技で、訓練と娯楽を兼ねていました'}]},
+{id:113,t:'マゼランの世界一周',e:'🌍',c:'worldhistory',g:'upper',done:0,sub:'命がけで地球を一周した航海',mid:'voyage',qa:[{q:'マゼランはどこの人？',a:'ポルトガル人ですが、スペイン王の命令で航海'},{q:'いつ出発した？',a:'1519年に5隻の船で出発しました'},{q:'マゼラン自身は一周した？',a:'フィリピンで戦死し、一周はできませんでした'},{q:'帰還したのは何人？',a:'270人中わずか18人だけが3年後に帰還'},{q:'この航海で証明したことは？',a:'地球が丸いことと、海でつながっていること'}]},
+{id:114,t:'鉄道の誕生',e:'🚂',c:'worldhistory',g:'upper',done:0,sub:'世界をつないだ線路',mid:'revolution',qa:[{q:'最初の鉄道はいつ？',a:'1825年、イギリスで蒸気機関車が走りました'},{q:'誰が作った？',a:'ジョージ・スティーブンソンが開発しました'},{q:'何が変わった？',a:'人や物の移動が速く、大量にできるようになった'},{q:'日本の最初の鉄道は？',a:'1872年、新橋〜横浜間で開通しました'},{q:'今の最速列車は？',a:'フランスのTGVは時速574kmの記録を持ちます'}]},
+{id:115,t:'二つの世界大戦',e:'🕊️',c:'worldhistory',g:'upper',done:0,sub:'平和の大切さを学ぶ',mid:'modern',qa:[{q:'第一次世界大戦はいつ？',a:'1914〜1918年、ヨーロッパ中心に起きました'},{q:'第二次世界大戦はいつ？',a:'1939〜1945年、世界規模で起きました'},{q:'何人が亡くなった？',a:'両大戦合わせて約8000万人以上が犠牲に'},{q:'原爆が落とされた都市は？',a:'広島と長崎に投下されました'},{q:'戦争を防ぐ取り組みは？',a:'国連の設立、平和条約、軍縮努力など'}]},
+{id:116,t:'冷戦とベルリンの壁',e:'🧱',c:'worldhistory',g:'upper',done:0,sub:'街を分けた壁が壊れた日',mid:'modern',qa:[{q:'冷戦って何？',a:'アメリカとソ連が直接戦わず対立した時代'},{q:'ベルリンの壁はなぜ作られた？',a:'東ドイツから西へ逃げる人を防ぐため（1961年）'},{q:'壁の長さは？',a:'約155kmでベルリン市を分断しました'},{q:'いつ壊れた？',a:'1989年11月9日に市民が壁を壊しました'},{q:'冷戦の終結は？',a:'1991年にソ連が崩壊して終わりました'}]},
+{id:117,t:'聖徳太子の改革',e:'👑',c:'japanhistory',g:'upper',done:0,sub:'日本を変えようとした皇子',mid:'asuka',qa:[{q:'聖徳太子は何をした？',a:'冠位十二階や十七条憲法を制定しました'},{q:'冠位十二階って？',a:'家柄でなく能力で役人を評価する制度'},{q:'十七条憲法って？',a:'役人の心構えを示した日本初の成文法'},{q:'遣隋使を送った？',a:'中国の隋に使者を送り、対等な外交を目指しました'},{q:'法隆寺との関係は？',a:'聖徳太子が建てたとされる世界最古の木造建築'}]},
+{id:118,t:'遣唐使の冒険',e:'⛵',c:'japanhistory',g:'upper',done:0,sub:'命がけで中国を目指した人々',mid:'asuka',qa:[{q:'遣唐使って何？',a:'奈良〜平安時代に唐（中国）へ送った使節団'},{q:'何を学びに行った？',a:'政治制度、仏教、文化、技術などを学びました'},{q:'なぜ「命がけ」？',a:'船が沈むことが多く、生還率が低かったから'},{q:'有名な留学生は？',a:'阿倍仲麻呂、空海、最澄など'},{q:'いつ廃止された？',a:'894年、菅原道真の提案で廃止されました'}]},
+{id:119,t:'武士の誕生',e:'⚔️',c:'japanhistory',g:'upper',done:0,sub:'農民から戦士になった人々',mid:'samurai',qa:[{q:'武士はいつ生まれた？',a:'平安時代中期（10世紀頃）に登場しました'},{q:'なぜ生まれた？',a:'土地や貴族を守るために武装した人々が必要に'},{q:'最初の武士団は？',a:'平氏や源氏などの武士団が有名です'},{q:'武士道って何？',a:'名誉、忠義、礼節を重んじる武士の精神'},{q:'武士はいつまでいた？',a:'明治維新（1868年）で身分制度が廃止されるまで'}]},
+{id:120,t:'鎌倉幕府の始まり',e:'🏯',c:'japanhistory',g:'upper',done:0,sub:'初めての武士の政府',mid:'samurai',qa:[{q:'鎌倉幕府を開いたのは？',a:'源頼朝が1185年（または1192年）に開きました'},{q:'なぜ鎌倉？',a:'山に囲まれて守りやすく、京都から離れていたから'},{q:'将軍と執権の違いは？',a:'将軍が名目上のトップ、執権が実権を握りました'},{q:'御恩と奉公って？',a:'将軍が土地を与え、武士が忠誠を誓う関係'},{q:'何年続いた？',a:'約150年間続きました（1185〜1333年）'}]},
+{id:121,t:'戦国武将の戦略',e:'🏴',c:'japanhistory',g:'upper',done:0,sub:'天下を目指した武将たち',mid:'sengoku',qa:[{q:'戦国時代はいつ？',a:'1467年の応仁の乱から約100年間続きました'},{q:'有名な武将は？',a:'武田信玄、上杉謙信、毛利元就、伊達政宗など'},{q:'「風林火山」って？',a:'武田信玄の旗印、孫子の兵法から取った言葉'},{q:'下剋上って何？',a:'身分の低い者が上の者を倒して成り上がること'},{q:'なぜ戦国時代は終わった？',a:'信長・秀吉・家康の三英傑が統一したから'}]},
+{id:122,t:'参勤交代のふしぎ',e:'🚶',c:'japanhistory',g:'upper',done:0,sub:'大名を縛った制度',mid:'edo',qa:[{q:'参勤交代って何？',a:'大名が1年おきに江戸と領地を行き来する制度'},{q:'なぜ始めた？',a:'大名の力を弱め、幕府への忠誠を確保するため'},{q:'大名行列の人数は？',a:'大きい藩は数千人規模の行列でした'},{q:'費用はどれくらい？',a:'藩の財政の半分以上を使うこともありました'},{q:'良い影響もあった？',a:'街道が整備され、各地の文化が交流しました'}]},
+{id:123,t:'浮世絵の世界',e:'🎨',c:'japanhistory',g:'upper',done:0,sub:'北斎と広重の芸術',mid:'edo',qa:[{q:'浮世絵って何？',a:'江戸時代に庶民の間で流行した版画芸術'},{q:'有名な絵師は？',a:'葛飾北斎、歌川広重、喜多川歌麿など'},{q:'「神奈川沖浪裏」って？',a:'北斎の代表作で、大波と富士山を描いた作品'},{q:'海外への影響は？',a:'ゴッホやモネなど印象派の画家に影響を与えました'},{q:'当時の値段は？',a:'そばの値段と同じくらい、庶民も買えました'}]},
+{id:124,t:'明治維新の変革',e:'🎌',c:'japanhistory',g:'upper',done:0,sub:'ちょんまげから洋服へ',mid:'kindai',qa:[{q:'明治維新って何？',a:'幕府が倒れ、天皇中心の近代国家へ変わったこと'},{q:'いつ起きた？',a:'1868年に明治政府が成立しました'},{q:'どんな改革があった？',a:'廃藩置県、徴兵制、学制、太陽暦の採用など'},{q:'「ちょんまげ」はどうなった？',a:'断髪令で洋風の髪型が推奨されました'},{q:'なぜ急いで近代化した？',a:'欧米の植民地にならないためです'}]},
+{id:125,t:'戦争中の暮らし',e:'🏚️',c:'japanhistory',g:'upper',done:0,sub:'子どもたちの生活',mid:'war_peace',qa:[{q:'戦時中の食事は？',a:'配給制で食べ物が足りず、代用食も食べました'},{q:'学童疎開って何？',a:'空襲を避けて子どもが田舎へ避難したこと'},{q:'学校はどうなった？',a:'授業が減り、軍事訓練や勤労動員がありました'},{q:'空襲はどれくらいあった？',a:'日本全国200以上の都市が空襲を受けました'},{q:'この時代から学ぶことは？',a:'戦争の悲惨さと平和の大切さ'}]},
+{id:126,t:'焼け野原からの復興',e:'🏗️',c:'japanhistory',g:'upper',done:0,sub:'ゼロから立ち上がった日本',mid:'war_peace',qa:[{q:'終戦時の日本の状況は？',a:'多くの都市が焼け野原、食料も物資も不足'},{q:'GHQって何？',a:'連合国軍最高司令官総司令部、日本を占領統治した'},{q:'どんな改革があった？',a:'新憲法制定、農地改革、財閥解体など'},{q:'復興のきっかけは？',a:'朝鮮戦争特需や国民の努力で経済が回復'},{q:'何年で復興した？',a:'約10年で戦前の生産水準を回復しました'}]},
+{id:127,t:'東京オリンピック1964',e:'🏅',c:'japanhistory',g:'upper',done:0,sub:'復活のシンボル',mid:'war_peace',qa:[{q:'なぜ重要だった？',a:'戦後復興を世界に示す日本のシンボルだったから'},{q:'何が整備された？',a:'東海道新幹線、首都高速道路、競技施設など'},{q:'聖火リレーの最終走者は？',a:'原爆投下の日に広島で生まれた坂井義則さん'},{q:'日本のメダル数は？',a:'金16、銀5、銅8の計29個を獲得'},{q:'この大会の意義は？',a:'アジア初のオリンピック、カラー放送も始まった'}]},
+{id:128,t:'地理が歴史を動かす',e:'🗺️',c:'geopolitics',g:'upper',done:0,sub:'場所が運命を決める',mid:'basic',qa:[{q:'地政学って何？',a:'地理的条件が国の政治や戦略に与える影響を研究する学問'},{q:'例えばどんなこと？',a:'島国は海に守られ、内陸国は海へのアクセスを求める'},{q:'日本の地政学的特徴は？',a:'海に囲まれ、大陸の強国と海で隔てられている'},{q:'なぜ今注目されている？',a:'米中対立やウクライナ問題で重要性が増したから'},{q:'地政学を学ぶ意味は？',a:'世界のニュースを深く理解できるようになる'}]},
+{id:129,t:'海の国と陸の国',e:'🌊',c:'geopolitics',g:'upper',done:0,sub:'島国と大陸の違い',mid:'basic',qa:[{q:'海洋国家って？',a:'海を利用して発展した国（イギリス、日本など）'},{q:'大陸国家って？',a:'広い陸地を支配して発展した国（ロシア、中国など）'},{q:'違いは何？',a:'海洋国家は貿易重視、大陸国家は領土重視の傾向'},{q:'なぜ対立しやすい？',a:'戦略や価値観が異なり、利害がぶつかるから'},{q:'日本はどちら？',a:'島国で海洋国家ですが、大陸との関係も重要'}]},
+{id:130,t:'大事な海の道',e:'⚓',c:'geopolitics',g:'upper',done:0,sub:'船が通る重要ポイント',mid:'basic',qa:[{q:'チョークポイントって何？',a:'船の航路が狭くなる戦略的に重要な場所'},{q:'有名なチョークポイントは？',a:'マラッカ海峡、ホルムズ海峡、スエズ運河など'},{q:'なぜ重要？',a:'世界の貿易の大部分がここを通るから'},{q:'封鎖されるとどうなる？',a:'石油や物資が届かなくなり、経済に大打撃'},{q:'日本に影響が大きいのは？',a:'マラッカ海峡とホルムズ海峡（石油輸入路）'}]},
+{id:131,t:'ヨーロッパの協力',e:'🇪🇺',c:'geopolitics',g:'upper',done:0,sub:'EUという実験',mid:'world_region',qa:[{q:'EUって何？',a:'欧州連合、27カ国が加盟する経済・政治の共同体'},{q:'なぜ作られた？',a:'二度の世界大戦を経て、二度と戦争しないため'},{q:'どんな利点がある？',a:'国境を越えた移動の自由、共通通貨ユーロなど'},{q:'イギリスが離脱した理由は？',a:'移民問題や主権回復を求める声が高まったから'},{q:'課題は？',a:'各国の利害調整、経済格差、移民問題など'}]},
+{id:132,t:'中東の複雑さ',e:'🏜️',c:'geopolitics',g:'upper',done:0,sub:'石油と宗教と歴史',mid:'world_region',qa:[{q:'中東はどこ？',a:'西アジアからアフリカ北部にかけての地域'},{q:'なぜ紛争が多い？',a:'石油利権、宗教対立、民族問題が絡み合うから'},{q:'イスラエルとパレスチナの問題は？',a:'同じ土地を巡るユダヤ人とアラブ人の対立'},{q:'スンニ派とシーア派って？',a:'イスラム教の二大宗派、歴史的に対立'},{q:'日本との関係は？',a:'石油の約90%を中東から輸入しています'}]},
+{id:133,t:'日本の周りの国々',e:'🗾',c:'geopolitics',g:'upper',done:0,sub:'近くて遠い隣国たち',mid:'basic',qa:[{q:'日本の隣国は？',a:'中国、韓国、北朝鮮、ロシア、台湾など'},{q:'領土問題はある？',a:'北方領土、竹島、尖閣諸島に関する問題'},{q:'日中関係の特徴は？',a:'経済では協力、政治・安全保障では緊張'},{q:'日韓関係の課題は？',a:'歴史認識の違い、文化交流は活発'},{q:'北朝鮮との問題は？',a:'核開発、ミサイル、拉致問題など'}]},
+{id:134,t:'シーレーンって何？',e:'🚢',c:'geopolitics',g:'upper',done:0,sub:'石油を運ぶ海の道',mid:'basic',qa:[{q:'シーレーンって何？',a:'海上交通路、特に重要な貿易ルート'},{q:'日本のシーレーンは？',a:'中東→マラッカ海峡→南シナ海→日本のルート'},{q:'なぜ大切？',a:'石油、天然ガス、食料の多くがこのルートで届く'},{q:'リスクは？',a:'南シナ海の緊張、海賊、紛争による封鎖'},{q:'どう守る？',a:'海上自衛隊の活動、同盟国との協力'}]},
+{id:135,t:'米中の関係',e:'🇺🇸',c:'geopolitics',g:'upper',done:0,sub:'大国同士のせめぎ合い',mid:'world_region',qa:[{q:'何が対立している？',a:'貿易、技術、軍事、価値観など多くの分野'},{q:'貿易戦争って？',a:'関税をかけ合い、経済で争うこと'},{q:'技術覇権って？',a:'AIや半導体など先端技術のリーダーシップ争い'},{q:'台湾問題って？',a:'中国は台湾を自国領土と主張、米国は支援'},{q:'日本への影響は？',a:'同盟国として対応を求められ、経済にも影響'}]},
+{id:136,t:'平和を守るには',e:'🕊️',c:'geopolitics',g:'upper',done:0,sub:'国連と国際協力',mid:'basic',qa:[{q:'国連って何？',a:'1945年設立、193カ国が加盟する国際機関'},{q:'安全保障理事会って？',a:'平和と安全を担う機関、5カ国が拒否権を持つ'},{q:'PKOって何？',a:'国連平和維持活動、紛争地域の安定を支援'},{q:'国連の課題は？',a:'拒否権の乱用、改革の遅れ、資金不足など'},{q:'日本の役割は？',a:'分担金の負担、PKO参加、非常任理事国を務める'}]},
+{id:137,t:'コンピュータの誕生',e:'🖥️',c:'tech',g:'upper',done:0,sub:'部屋いっぱいの機械から',mid:'digital',qa:[{q:'最初のコンピュータは？',a:'1946年のENIAC、30トン、部屋一つ分の大きさ'},{q:'何に使われた？',a:'弾道計算など軍事目的でした'},{q:'なぜ大きかった？',a:'真空管という部品を18,000本使っていたから'},{q:'小さくなったきっかけは？',a:'トランジスタ、ICチップの発明'},{q:'今のスマホと比べると？',a:'スマホの方が何百万倍も高性能です'}]},
+{id:138,t:'機械が学ぶしくみ',e:'🧠',c:'tech',g:'upper',done:0,sub:'データから賢くなる',mid:'ai_secret',qa:[{q:'機械学習って何？',a:'コンピュータがデータからパターンを学ぶこと'},{q:'どうやって学ぶ？',a:'大量のデータを見て、正解を覚えていきます'},{q:'例えば？',a:'猫の画像を何万枚も見て「猫」を認識できるように'},{q:'深層学習（ディープラーニング）って？',a:'脳の神経回路を模した高度な機械学習'},{q:'どこで使われている？',a:'検索エンジン、顔認証、翻訳、自動運転など'}]},
+{id:139,t:'AIが絵を描く',e:'🎨',c:'tech',g:'upper',done:0,sub:'言葉から画像を作る',mid:'ai_secret',qa:[{q:'画像生成AIって何？',a:'文章の指示から絵を作り出すAI'},{q:'有名なサービスは？',a:'Midjourney、DALL-E、Stable Diffusionなど'},{q:'どう使う？',a:'「夕焼けの海に浮かぶ船」と入力すると絵が出来る'},{q:'問題点は？',a:'著作権、フェイク画像、アーティストへの影響'},{q:'将来どうなる？',a:'創作活動の助けになり、新しい表現が生まれる可能性'}]},
+{id:140,t:'ロボットの歴史',e:'🤖',c:'tech',g:'upper',done:0,sub:'人の代わりに働く機械',mid:'robot',qa:[{q:'「ロボット」の語源は？',a:'チェコ語の「robota（強制労働）」から'},{q:'最初の産業用ロボットは？',a:'1961年のユニメート、自動車工場で活躍'},{q:'日本がロボット大国なのはなぜ？',a:'労働力不足を補うため積極的に導入したから'},{q:'ロボット三原則って？',a:'アシモフが提唱した、ロボットの倫理規則'},{q:'人型ロボットの例は？',a:'ホンダのASIMO、ボストン・ダイナミクスのAtlasなど'}]},
+{id:141,t:'工場で働くロボット',e:'🏭',c:'tech',g:'upper',done:0,sub:'自動車を作る腕',mid:'robot',qa:[{q:'産業用ロボットって何？',a:'工場で製品を作る作業をするロボット'},{q:'どんな作業をする？',a:'溶接、塗装、組み立て、検査など'},{q:'なぜロボットを使う？',a:'正確、速い、危険な作業ができる、24時間働ける'},{q:'世界で一番ロボットが多い国は？',a:'中国が最多、次いで日本、韓国'},{q:'協働ロボットって？',a:'人と一緒に安全に働けるように設計されたロボット'}]},
+{id:142,t:'人を助けるロボット',e:'🏥',c:'tech',g:'upper',done:0,sub:'介護や医療の現場で',mid:'robot',qa:[{q:'介護ロボットって？',a:'高齢者の移動や入浴を助けるロボット'},{q:'手術ロボットって？',a:'ダヴィンチなど、医師の手術を支援するロボット'},{q:'リハビリロボットって？',a:'歩行訓練などを助けるパワースーツ型ロボット'},{q:'なぜ必要？',a:'高齢化で介護や医療の人手が足りないから'},{q:'課題は？',a:'高価格、安全性の確保、心のケアは人が必要'}]},
+{id:143,t:'遺伝子を調べる',e:'🧬',c:'tech',g:'upper',done:0,sub:'病気の原因を探る',mid:'life_science',qa:[{q:'遺伝子検査って何？',a:'DNAを調べて病気のリスクや体質を知ること'},{q:'何がわかる？',a:'病気のなりやすさ、薬の効きやすさ、ルーツなど'},{q:'どうやって調べる？',a:'唾液や血液からDNAを取り出して分析'},{q:'費用は？',a:'簡易なものは数千円〜、詳細なものは数万円〜'},{q:'注意点は？',a:'結果の解釈、プライバシー、差別の問題'}]},
+{id:144,t:'ゲノム編集の可能性',e:'✂️',c:'tech',g:'upper',done:0,sub:'遺伝子を変える技術',mid:'life_science',qa:[{q:'ゲノム編集って何？',a:'遺伝子を狙った場所で切り貼りする技術'},{q:'CRISPR-Cas9って？',a:'簡単で正確なゲノム編集ツール、ノーベル賞を受賞'},{q:'何に使える？',a:'病気の治療、農作物の改良、研究など'},{q:'食べ物への応用は？',a:'病気に強いトマト、栄養価の高い作物など'},{q:'問題点は？',a:'人間への応用の倫理的問題、予期せぬ変異のリスク'}]},
+{id:145,t:'量子コンピュータ',e:'💫',c:'tech',g:'upper',done:0,sub:'超高速の計算機',mid:'digital',qa:[{q:'量子コンピュータって何？',a:'量子力学の原理を使った次世代コンピュータ'},{q:'何がすごい？',a:'従来のコンピュータで何万年かかる計算を数分で'},{q:'量子ビットって？',a:'0と1を同時に表せる特殊な情報単位'},{q:'どこで使われる？',a:'創薬、金融、暗号解読、AI開発など'},{q:'実用化は？',a:'まだ研究段階ですが、GoogleやIBMが開発中'}]},
+{id:146,t:'3Dプリンター',e:'🖨️',c:'tech',g:'upper',done:0,sub:'何でも作れる機械',mid:'digital',qa:[{q:'3Dプリンターって何？',a:'デジタルデータから立体物を作り出す機械'},{q:'どうやって作る？',a:'材料を薄く積み重ねて形を作ります'},{q:'何が作れる？',a:'おもちゃ、部品、食品、家、臓器まで！'},{q:'材料は何？',a:'プラスチック、金属、セラミック、食材など'},{q:'将来どうなる？',a:'必要なものを家で作る時代が来るかも'}]},
+{id:147,t:'脳とコンピュータ',e:'🧠',c:'tech',g:'upper',done:0,sub:'考えるだけで動かす',mid:'digital',qa:[{q:'BMI（ブレイン・マシン・インターフェース）って？',a:'脳とコンピュータをつなぐ技術'},{q:'何ができる？',a:'考えるだけで機械を動かしたり、文字を打ったり'},{q:'誰の役に立つ？',a:'手足が不自由な人がロボットアームを動かせる'},{q:'Neuralinkって？',a:'イーロン・マスクの会社が開発する脳インプラント'},{q:'課題は？',a:'安全性、プライバシー、倫理的な問題'}]},
+{id:148,t:'ロケット開発の歴史',e:'🚀',c:'space',g:'upper',done:0,sub:'宇宙を目指した人々',mid:'rocket',qa:[{q:'ロケットの父は誰？',a:'ロバート・ゴダード（アメリカ）が液体燃料ロケットを発明'},{q:'V2ロケットって？',a:'第二次大戦中にドイツが開発した世界初の弾道ミサイル'},{q:'宇宙開発競争って？',a:'冷戦時代、米ソが宇宙一番乗りを競った'},{q:'スプートニクって？',a:'1957年にソ連が打ち上げた世界初の人工衛星'},{q:'日本のロケット開発は？',a:'1970年に「おおすみ」を打ち上げ、世界4番目の衛星保有国に'}]},
+{id:149,t:'再利用ロケット',e:'♻️',c:'space',g:'upper',done:0,sub:'帰ってくるロケット',mid:'rocket',qa:[{q:'再利用ロケットって何？',a:'打ち上げ後に地球に戻って再び使えるロケット'},{q:'なぜ重要？',a:'打ち上げコストを大幅に下げられるから'},{q:'誰が実現した？',a:'SpaceXのファルコン9が初めて成功（2015年）'},{q:'どうやって戻る？',a:'逆噴射しながら垂直に着陸します'},{q:'日本でも開発している？',a:'JAXAやスタートアップ企業が研究中'}]},
+{id:150,t:'スティーブ・ジョブズ',e:'💡',c:'biography',g:'upper',done:0,sub:'世界を変えたアップル創業者',mid:'inventors',qa:[{q:'スティーブ・ジョブズは何をした？',a:'Appleを創業し、iPhone、iPadなどを世に出しました'},{q:'なぜ「天才」と呼ばれる？',a:'デザインと技術を融合させ、革命的な製品を作ったから'},{q:'一度Apple を追い出された？',a:'はい、でも後に復帰して会社を復活させました'},{q:'有名なスピーチは？',a:'スタンフォード大学での「Stay hungry, Stay foolish」'},{q:'彼から学べることは？',a:'情熱を持ち、失敗を恐れず挑戦し続けること'}]},
+{id:151,t:'通信衛星の役割',e:'📡',c:'space',g:'upper',done:0,sub:'宇宙経由の電話とテレビ',mid:'satellite',qa:[{q:'通信衛星って何？',a:'電波を中継して世界中の通信を可能にする衛星'},{q:'どんなことに使われる？',a:'テレビ放送、インターネット、電話など'},{q:'なぜ宇宙経由？',a:'地球の反対側にも電波を届けられるから'},{q:'衛星放送って？',a:'通信衛星から直接家庭に番組を届ける放送'},{q:'スターリンクって何？',a:'SpaceXが展開する衛星インターネットサービス'}]},
+{id:152,t:'地球観測衛星',e:'🛰️',c:'space',g:'upper',done:0,sub:'宇宙から地球を守る',mid:'satellite',qa:[{q:'何を観測する？',a:'森林、海洋、氷河、災害、環境変化など'},{q:'どんなことに役立つ？',a:'気候変動の監視、災害対応、農業支援など'},{q:'日本の観測衛星は？',a:'「だいち」シリーズが活躍中'},{q:'災害時にどう役立つ？',a:'被災地の状況を素早く把握できます'},{q:'違法行為も見つける？',a:'違法伐採や密漁の監視にも使われます'}]},
+{id:153,t:'国際宇宙ステーション',e:'🏠',c:'space',g:'upper',done:0,sub:'宇宙の実験室',mid:'astronaut',qa:[{q:'ISSって何？',a:'15カ国が協力して作った宇宙の研究施設'},{q:'どこにある？',a:'地上約400kmの軌道を約90分で一周'},{q:'大きさは？',a:'サッカー場くらいの大きさです'},{q:'何人住んでる？',a:'常時6人程度の宇宙飛行士が滞在'},{q:'いつまで使う？',a:'2030年頃まで運用予定、その後は民間ステーションへ'}]},
+{id:154,t:'宇宙飛行士の生活',e:'👨‍🚀',c:'space',g:'upper',done:0,sub:'無重力での暮らし',mid:'astronaut',qa:[{q:'無重力で寝るには？',a:'寝袋を壁に固定して、浮かびながら眠ります'},{q:'トイレはどうする？',a:'吸引式の特殊なトイレを使います'},{q:'お風呂は？',a:'水が浮くので、濡れタオルで体を拭きます'},{q:'運動は必要？',a:'筋肉が衰えるので、毎日2時間の運動が必須'},{q:'地球に帰ると？',a:'重力に慣れるまでリハビリが必要です'}]},
+{id:155,t:'宇宙食の進化',e:'🍱',c:'space',g:'upper',done:0,sub:'宇宙で何を食べる？',mid:'astronaut',qa:[{q:'昔の宇宙食は？',a:'チューブ入りのペースト状の食べ物でした'},{q:'今の宇宙食は？',a:'フリーズドライ、レトルト、生鮮食品も'},{q:'日本の宇宙食は？',a:'ラーメン、カレー、羊羹などが認定されています'},{q:'味の感じ方は変わる？',a:'無重力で鼻が詰まり、味を感じにくくなります'},{q:'将来は？',a:'宇宙で野菜を育てる実験が進んでいます'}]},
+{id:156,t:'月に帰ろう',e:'🌙',c:'space',g:'upper',done:0,sub:'アルテミス計画',mid:'rocket',qa:[{q:'アルテミス計画って何？',a:'NASAが進める月面有人探査計画'},{q:'いつ人を送る？',a:'2025年以降に有人着陸を目指しています'},{q:'アポロとの違いは？',a:'月面に長期滞在し、基地を作る計画'},{q:'女性も月に行く？',a:'初の女性宇宙飛行士の月面着陸を目指しています'},{q:'日本も参加？',a:'日本人宇宙飛行士の月面着陸が計画されています'}]},
+{id:157,t:'木星と土星の衛星',e:'🪐',c:'space',g:'upper',done:0,sub:'生命がいるかも？',mid:'solar_explore',qa:[{q:'注目の衛星は？',a:'木星のエウロパ、土星のエンケラドゥス'},{q:'なぜ注目される？',a:'氷の下に液体の海があると考えられている'},{q:'生命がいる可能性は？',a:'熱水噴出孔のような環境があれば可能性あり'},{q:'探査計画は？',a:'NASAのエウロパ・クリッパーが2024年打ち上げ'},{q:'日本も調べる？',a:'JAXAも将来の探査を検討中'}]},
+{id:158,t:'ボイジャーの旅',e:'🚀',c:'space',g:'upper',done:0,sub:'太陽系の外へ',mid:'solar_explore',qa:[{q:'ボイジャーって何？',a:'1977年に打ち上げられた2機の探査機'},{q:'今どこにいる？',a:'太陽系を出て、恒星間空間を飛行中'},{q:'地球からの距離は？',a:'約240億km、光でも20時間以上かかる'},{q:'まだ通信できる？',a:'微弱な電波で今も通信を続けています'},{q:'ゴールデンレコードって？',a:'宇宙人向けに地球の音や映像を収めた金のディスク'}]},
+{id:159,t:'宇宙ゴミ問題',e:'🗑️',c:'space',g:'upper',done:0,sub:'増え続ける軌道のゴミ',mid:'solar_explore',qa:[{q:'宇宙ゴミって何？',a:'役目を終えた衛星やロケットの破片'},{q:'どれくらいある？',a:'1cm以上のものだけで1億個以上'},{q:'なぜ危険？',a:'秒速7〜8kmで飛び、衝突すると大被害'},{q:'対策は？',a:'除去技術の開発、新たなゴミを出さないルール作り'},{q:'日本の取り組みは？',a:'アストロスケールなど企業が除去技術を開発中'}]},
+{id:160,t:'宇宙ビジネスの未来',e:'💰',c:'space',g:'upper',done:0,sub:'民間企業が宇宙へ',mid:'solar_explore',qa:[{q:'宇宙ビジネスって何？',a:'民間企業が宇宙関連事業を行うこと'},{q:'どんな企業がある？',a:'SpaceX、Blue Origin、日本ではispaceなど'},{q:'市場規模は？',a:'2040年代には100兆円を超えると予測'},{q:'宇宙旅行の値段は？',a:'数千万〜数億円、将来は下がる見込み'},{q:'宇宙で仕事ができる？',a:'宇宙ホテル、宇宙工場など新しい仕事が生まれる可能性'}]},
+{id:161,t:'水星と金星',e:'☀️',c:'astronomy',g:'upper',done:0,sub:'太陽に近い惑星たち',mid:'solar_system',qa:[{q:'水星の特徴は？',a:'太陽に一番近く、昼夜の温度差が600℃以上'},{q:'金星はなぜ熱い？',a:'厚い大気が温室効果で熱を閉じ込める（約460℃）'},{q:'金星は「明けの明星」？',a:'朝と夕方に明るく輝くのでそう呼ばれます'},{q:'なぜ生命がいない？',a:'極端な温度と硫酸の雲で生存が難しい'},{q:'探査は行われている？',a:'日本の「あかつき」が金星を観測中'}]},
+{id:162,t:'木星と土星',e:'🪐',c:'astronomy',g:'upper',done:0,sub:'ガスでできた巨大惑星',mid:'solar_system',qa:[{q:'木星の大きさは？',a:'地球の約11倍の直径、太陽系最大の惑星'},{q:'大赤斑って何？',a:'木星の巨大な嵐、地球が2〜3個入る大きさ'},{q:'土星の輪は何でできている？',a:'氷と岩石の小さな粒の集まり'},{q:'輪はどれくらい薄い？',a:'幅は約28万kmだが厚さはわずか数十m'},{q:'ガス惑星に着陸できる？',a:'固い地面がないので着陸はできません'}]},
+{id:163,t:'天王星と海王星',e:'💎',c:'astronomy',g:'upper',done:0,sub:'遠くの氷の惑星',mid:'solar_system',qa:[{q:'天王星の特徴は？',a:'自転軸が横倒しで転がるように公転'},{q:'なぜ青い？',a:'大気中のメタンが赤い光を吸収するから'},{q:'海王星の風速は？',a:'太陽系最速、時速2000km以上'},{q:'発見はいつ？',a:'天王星は1781年、海王星は1846年'},{q:'探査機は行った？',a:'ボイジャー2号が一度だけ接近観測'}]},
+{id:164,t:'冥王星はなぜ降格？',e:'❄️',c:'astronomy',g:'upper',done:0,sub:'惑星の定義を考える',mid:'solar_system',qa:[{q:'冥王星は惑星だった？',a:'1930年の発見から2006年まで第9惑星でした'},{q:'なぜ惑星でなくなった？',a:'惑星の新定義「軌道周辺の支配」を満たさないから'},{q:'今は何に分類？',a:'「準惑星」という新しいカテゴリ'},{q:'大きさは？',a:'直径約2,377km、月より小さい'},{q:'探査機は行った？',a:'2015年にニューホライズンズが接近観測'}]},
+{id:165,t:'月の誕生',e:'🌕',c:'astronomy',g:'upper',done:0,sub:'大衝突でできた？',mid:'moon_mystery',qa:[{q:'月はどうやってできた？',a:'約45億年前、火星サイズの天体が地球に衝突した'},{q:'ジャイアント・インパクト説って？',a:'この大衝突で飛び散った物質が集まって月になった説'},{q:'なぜこの説が有力？',a:'月の岩石が地球に似ていることが証拠'},{q:'月は遠ざかっている？',a:'毎年約3.8cmずつ地球から離れています'},{q:'昔の月は近かった？',a:'約10倍近く、巨大に見えていたはず'}]},
+{id:166,t:'潮の満ち引き',e:'🌊',c:'astronomy',g:'upper',done:0,sub:'月の引力のちから',mid:'moon_mystery',qa:[{q:'なぜ潮が満ち引きする？',a:'月の引力が海水を引っ張るから'},{q:'1日に何回？',a:'約12時間ごとに満潮と干潮、1日2回ずつ'},{q:'大潮と小潮って？',a:'月と太陽の位置関係で潮の差が変わる'},{q:'生き物への影響は？',a:'産卵やカニの行動が潮に合わせて変わる'},{q:'発電に使える？',a:'潮力発電として利用されている地域もあります'}]},
+{id:167,t:'日食と月食',e:'🌑',c:'astronomy',g:'upper',done:0,sub:'太陽・地球・月のダンス',mid:'moon_mystery',qa:[{q:'日食って何？',a:'月が太陽を隠す現象'},{q:'月食って何？',a:'地球の影が月を隠す現象'},{q:'皆既日食はなぜ珍しい？',a:'月の影が地球の狭い範囲にしか当たらないから'},{q:'月食の月が赤いのはなぜ？',a:'地球の大気が赤い光だけ通すから'},{q:'次に日本で皆既日食が見られるのは？',a:'2035年9月2日（北陸〜関東北部）'}]},
+{id:168,t:'星の色と温度',e:'🌟',c:'astronomy',g:'upper',done:0,sub:'赤い星と青い星の違い',mid:'star_life',qa:[{q:'星に色がある？',a:'はい、温度によって色が違います'},{q:'青い星は？',a:'表面温度が高い（約10,000℃以上）'},{q:'赤い星は？',a:'表面温度が低い（約3,000℃程度）'},{q:'太陽は何色？',a:'黄色、約5,500℃の中間的な温度'},{q:'有名な赤い星は？',a:'オリオン座のベテルギウス（冬の一等星）'}]},
+{id:169,t:'超新星爆発',e:'💥',c:'astronomy',g:'upper',done:0,sub:'星の壮大な最期',mid:'star_life',qa:[{q:'超新星爆発って何？',a:'大きな星が一生の最期に起こす大爆発'},{q:'どれくらい明るい？',a:'銀河全体と同じくらい明るくなることも'},{q:'何が残る？',a:'中性子星やブラックホールが残ることがある'},{q:'私たちに関係ある？',a:'爆発で鉄より重い元素が作られ、地球にも存在'},{q:'最近見られた？',a:'1987年に大マゼラン雲で観測されました'}]},
+{id:170,t:'いろいろな銀河',e:'🌌',c:'astronomy',g:'upper',done:0,sub:'渦巻き・楕円・不規則',mid:'observe',qa:[{q:'銀河って何？',a:'何億〜何兆もの星の大集団'},{q:'どんな形がある？',a:'渦巻き銀河、楕円銀河、不規則銀河など'},{q:'天の川銀河は？',a:'棒渦巻き銀河（中心に棒状の構造がある）'},{q:'銀河はいくつある？',a:'観測可能な宇宙に約2兆個以上'},{q:'銀河同士はぶつかる？',a:'天の川とアンドロメダは約45億年後に衝突予定'}]},
+{id:171,t:'宇宙の大きさ',e:'🔭',c:'astronomy',g:'upper',done:0,sub:'どこまで広がっている？',mid:'observe',qa:[{q:'宇宙の大きさは？',a:'観測可能な宇宙は直径約930億光年'},{q:'宇宙に端はある？',a:'端があるかどうかはまだわかっていません'},{q:'宇宙は広がっている？',a:'はい、今も加速しながら膨張しています'},{q:'何が膨張を加速させている？',a:'謎の力「ダークエネルギー」と考えられている'},{q:'光年って何？',a:'光が1年間に進む距離、約9.5兆km'}]},
+{id:172,t:'宇宙の未来',e:'🌠',c:'astronomy',g:'upper',done:0,sub:'このあとどうなる？',mid:'observe',qa:[{q:'宇宙に終わりはある？',a:'いくつかの終焉シナリオが考えられています'},{q:'熱的死（ビッグフリーズ）って？',a:'宇宙が冷え切って何も起こらなくなる'},{q:'ビッグリップって？',a:'膨張が加速し、物質がバラバラになる'},{q:'ビッグクランチって？',a:'膨張が止まり、収縮して一点に戻る'},{q:'いつ頃の話？',a:'何兆年、何京年も先の話です'}]},
+{id:173,t:'望遠鏡の歴史',e:'🔭',c:'astronomy',g:'upper',done:0,sub:'ガリレオから宇宙望遠鏡へ',mid:'observe',qa:[{q:'最初の天体望遠鏡は？',a:'1609年、ガリレオが自作して観測'},{q:'屈折望遠鏡と反射望遠鏡の違いは？',a:'レンズを使うか、鏡を使うかの違い'},{q:'世界最大の望遠鏡は？',a:'建設中のELT（欧州超大型望遠鏡）は直径39m'},{q:'電波望遠鏡って何？',a:'目に見えない電波で宇宙を観測する'},{q:'日本の大型望遠鏡は？',a:'すばる望遠鏡（ハワイ）が有名'}]},
+{id:174,t:'ハッブル宇宙望遠鏡',e:'🛰️',c:'astronomy',g:'upper',done:0,sub:'宇宙の美しい写真',mid:'observe',qa:[{q:'ハッブルって何？',a:'1990年に打ち上げられた宇宙望遠鏡'},{q:'なぜ宇宙に望遠鏡？',a:'大気の影響を受けずにクリアな観測ができる'},{q:'どんな発見をした？',a:'宇宙の年齢測定、暗黒エネルギーの証拠など'},{q:'まだ動いている？',a:'30年以上経った今も現役で観測中'},{q:'後継機は？',a:'ジェイムズ・ウェッブ宇宙望遠鏡（2021年打ち上げ）'}]},
+{id:175,t:'オーロラのしくみ',e:'✨',c:'astronomy',g:'upper',done:0,sub:'太陽からのプレゼント',mid:'observe',qa:[{q:'オーロラって何？',a:'太陽からの粒子が大気と反応して光る現象'},{q:'なぜ極地で見える？',a:'地球の磁力線が極地に集まるから'},{q:'色の違いは何？',a:'酸素は緑や赤、窒素はピンクや青'},{q:'日本で見られる？',a:'北海道で稀に見られることがあります'},{q:'太陽活動との関係は？',a:'太陽フレアが活発だとオーロラも活発に'}]},
+{id:176,t:'地球の内部',e:'🌏',c:'nature',g:'upper',done:0,sub:'地殻・マントル・核',mid:'earth_system',qa:[{q:'地球の構造は？',a:'外側から地殻、マントル、外核、内核'},{q:'地殻の厚さは？',a:'陸で約30〜50km、海で約5〜10km'},{q:'マントルって何？',a:'地殻の下にある岩石の層、ゆっくり動く'},{q:'核は何でできている？',a:'主に鉄とニッケル、中心は固体'},{q:'中心の温度は？',a:'約5,000〜6,000℃、太陽の表面と同じくらい'}]},
+{id:177,t:'津波の科学',e:'🌊',c:'nature',g:'upper',done:0,sub:'波が巨大化する理由',mid:'earth_system',qa:[{q:'津波の原因は？',a:'海底で起きる地震、火山噴火、地滑りなど'},{q:'普通の波と何が違う？',a:'海底から海面まで全体が動く、波長が長い'},{q:'速度はどれくらい？',a:'沖合では時速800km（ジェット機並み）'},{q:'なぜ陸で高くなる？',a:'浅くなると速度が落ち、後ろから押されて高くなる'},{q:'避難のポイントは？',a:'できるだけ高い場所へ、すぐに避難'}]},
+{id:178,t:'天気の変化',e:'🌤️',c:'nature',g:'upper',done:0,sub:'雲・雨・風のしくみ',mid:'weather',qa:[{q:'雲はどうやってできる？',a:'水蒸気が上空で冷えて水滴や氷になる'},{q:'雨が降るのはなぜ？',a:'雲の水滴が大きくなって落ちてくる'},{q:'風はなぜ吹く？',a:'気圧の高いところから低いところへ空気が流れる'},{q:'天気予報のしくみは？',a:'観測データとスーパーコンピュータで計算'},{q:'日本の天気の特徴は？',a:'四季があり、梅雨や台風の影響を受ける'}]},
+{id:179,t:'四季のある日本',e:'🍂',c:'nature',g:'upper',done:0,sub:'なぜ季節がある？',mid:'weather',qa:[{q:'なぜ季節がある？',a:'地球の自転軸が傾いているから'},{q:'傾きはどれくらい？',a:'約23.4度傾いています'},{q:'日本の四季の特徴は？',a:'桜の春、暑い夏、紅葉の秋、雪の冬'},{q:'梅雨って何？',a:'初夏に続く長雨の時期、稲作に大切'},{q:'四季がない地域は？',a:'赤道付近は年中暑く、極地は年中寒い'}]},
+{id:180,t:'異常気象',e:'⛈️',c:'nature',g:'upper',done:0,sub:'増える極端な天気',mid:'weather',qa:[{q:'異常気象って何？',a:'過去に例のない極端な気象現象'},{q:'どんな例がある？',a:'記録的猛暑、大雨、干ばつ、大型台風など'},{q:'なぜ増えている？',a:'地球温暖化で気候システムが不安定に'},{q:'日本への影響は？',a:'豪雨災害、熱中症、農作物被害の増加'},{q:'対策は？',a:'温暖化対策と、災害への備えの両方が必要'}]},
+{id:181,t:'サンゴ礁の危機',e:'🐠',c:'nature',g:'upper',done:0,sub:'海のオアシスを守れ',mid:'ecology',qa:[{q:'サンゴ礁って何？',a:'サンゴが長い年月をかけて作った海中の構造物'},{q:'なぜ大切？',a:'海の生物の25%がサンゴ礁に住む、生命の宝庫'},{q:'白化現象って何？',a:'水温上昇でサンゴが白くなり死んでしまう現象'},{q:'原因は？',a:'温暖化、海の酸性化、汚染など'},{q:'守るには？',a:'CO2削減、海洋保護区の設定、サンゴの養殖'}]},
+{id:182,t:'草原と砂漠',e:'🏜️',c:'nature',g:'upper',done:0,sub:'いろいろな環境',mid:'ecology',qa:[{q:'草原の特徴は？',a:'木が少なく、草が広がる地域、サバンナなど'},{q:'砂漠はどうしてできる？',a:'雨が極端に少ない地域にできます'},{q:'砂漠にも生き物はいる？',a:'サボテン、トカゲ、ラクダなど適応した生物がいる'},{q:'砂漠化って何？',a:'草原や森林が砂漠になっていく現象'},{q:'原因は？',a:'過放牧、森林伐採、気候変動など'}]},
+{id:183,t:'生物多様性って何？',e:'🦋',c:'nature',g:'upper',done:0,sub:'なぜ種類が大切？',mid:'protect',qa:[{q:'生物多様性って何？',a:'生き物の種類や遺伝子、生態系の豊かさ'},{q:'なぜ大切？',a:'食べ物、薬、きれいな水、空気の供給源'},{q:'今どうなっている？',a:'100万種以上が絶滅の危機にあります'},{q:'原因は？',a:'生息地破壊、乱獲、外来種、汚染、気候変動'},{q:'守るには？',a:'保護区設置、持続可能な利用、法律の整備'}]},
+{id:184,t:'外来種の問題',e:'🦔',c:'nature',g:'upper',done:0,sub:'本来いない生き物の影響',mid:'protect',qa:[{q:'外来種って何？',a:'人間によって本来の生息地以外に持ち込まれた生物'},{q:'日本の外来種は？',a:'ブラックバス、アライグマ、セイタカアワダチソウなど'},{q:'何が問題？',a:'在来種を食べたり、住処を奪ったりする'},{q:'ヒアリって何？',a:'毒を持つ危険な外来アリ、水際で監視中'},{q:'防ぐには？',a:'外来種を捨てない、持ち込みの規制'}]},
+{id:185,t:'国立公園の役割',e:'🏞️',c:'nature',g:'upper',done:0,sub:'自然を守るエリア',mid:'protect',qa:[{q:'国立公園って何？',a:'国が指定して守る自然の保護地域'},{q:'日本にいくつある？',a:'34の国立公園があります（2024年時点）'},{q:'有名な国立公園は？',a:'富士箱根伊豆、知床、屋久島など'},{q:'何が守られている？',a:'景観、野生動植物、地形、生態系'},{q:'私たちにできることは？',a:'ルールを守る、ゴミを持ち帰る、自然を傷つけない'}]},
+{id:186,t:'森林破壊',e:'🌳',c:'nature',g:'upper',done:0,sub:'木を切りすぎると',mid:'environment',qa:[{q:'今も森林は減っている？',a:'毎年約470万ヘクタール（日本の1/8）が消失'},{q:'どこで減っている？',a:'特にアマゾン、東南アジア、アフリカの熱帯雨林'},{q:'原因は？',a:'農地拡大、木材伐採、牧場開発など'},{q:'何が起きる？',a:'CO2増加、生物絶滅、洪水増加、先住民への影響'},{q:'防ぐには？',a:'認証木材を選ぶ、植林活動、森林保護の法律'}]},
+{id:187,t:'大気汚染と水質汚染',e:'💨',c:'nature',g:'upper',done:0,sub:'きれいな空気と水',mid:'environment',qa:[{q:'大気汚染って何？',a:'有害物質が空気を汚すこと'},{q:'原因は？',a:'自動車の排気ガス、工場の煙、火力発電など'},{q:'PM2.5って何？',a:'直径2.5μm以下の微粒子、肺の奥まで入る'},{q:'水質汚染の原因は？',a:'工場排水、生活排水、農薬など'},{q:'日本の対策は？',a:'排出規制、下水道整備で改善が進んだ'}]},
+{id:188,t:'3R活動',e:'♻️',c:'nature',g:'upper',done:0,sub:'リデュース・リユース・リサイクル',mid:'future',qa:[{q:'3Rって何？',a:'Reduce（減らす）、Reuse（再使用）、Recycle（再資源化）'},{q:'優先順位は？',a:'まず減らす、次に再使用、最後にリサイクル'},{q:'リデュースの例は？',a:'マイバッグ、詰め替え商品、食品ロス削減'},{q:'リユースの例は？',a:'フリマ、古着、リターナブル瓶'},{q:'リサイクルの例は？',a:'ペットボトル、アルミ缶、古紙の回収'}]},
+{id:189,t:'省エネの工夫',e:'💡',c:'nature',g:'upper',done:0,sub:'毎日できること',mid:'future',qa:[{q:'家庭でできる省エネは？',a:'こまめに電気を消す、エアコン温度調整など'},{q:'待機電力って何？',a:'コンセントにつないでいるだけで使う電気'},{q:'LED電球はなぜいい？',a:'従来の電球より約85%省エネ'},{q:'エコカーって何？',a:'燃費が良い、または電気で走る環境に優しい車'},{q:'省エネの効果は？',a:'電気代節約とCO2削減の両方ができる'}]},
+{id:190,t:'自然と共に生きる',e:'🌾',c:'nature',g:'upper',done:0,sub:'里山という知恵',mid:'future',qa:[{q:'里山って何？',a:'人が手入れしてきた、集落に近い山や林'},{q:'里山の特徴は？',a:'人と自然が共存し、多くの生き物が住む'},{q:'なぜ減っている？',a:'過疎化で手入れされなくなったから'},{q:'SATOYAMAって？',a:'里山の概念は世界に広まり、国際語に'},{q:'守るには？',a:'ボランティア活動、農林業の振興など'}]},
+{id:191,t:'未来を変える行動',e:'🌍',c:'nature',g:'upper',done:0,sub:'一人ひとりの力',mid:'future',qa:[{q:'子どもにもできることは？',a:'省エネ、ゴミの分別、自然を大切にする'},{q:'グレタ・トゥンベリって誰？',a:'気候変動対策を訴えたスウェーデンの少女'},{q:'学校でできることは？',a:'環境委員会、エコ活動、調べ学習'},{q:'声を上げることの意味は？',a:'大人や社会を動かすきっかけになる'},{q:'希望はある？',a:'世界中の若者が行動を起こし始めています'}]},
+{id:192,t:'ゴッホの情熱',e:'🎨',c:'biography',g:'upper',done:0,sub:'生きている間に売れた絵は1枚',mid:'artists',qa:[{q:'ゴッホはどんな画家？',a:'情熱的なタッチで花や星空を描いたオランダの画家'},{q:'代表作は？',a:'「ひまわり」「星月夜」「自画像」など'},{q:'生前は売れた？',a:'生涯で売れた絵は1枚だけと言われています'},{q:'耳を切った話は本当？',a:'精神的に苦しんでいた時期に自分の耳を切った'},{q:'なぜ今は有名？',a:'死後に弟テオの妻が作品を広め、評価された'}]},
+{id:193,t:'レオナルド・ダ・ヴィンチ',e:'🖼️',c:'biography',g:'upper',done:0,sub:'万能の天才',mid:'artists',qa:[{q:'どんな人？',a:'画家であり、科学者、発明家、解剖学者でもあった'},{q:'代表作は？',a:'「モナ・リザ」「最後の晩餐」'},{q:'発明したものは？',a:'ヘリコプターや戦車のアイデアをスケッチに残した'},{q:'なぜ「万能の天才」？',a:'芸術から科学まであらゆる分野で才能を発揮したから'},{q:'左利きだった？',a:'はい、鏡文字で書くこともありました'}]},
+{id:194,t:'植村直己の冒険',e:'🏔️',c:'biography',g:'upper',done:0,sub:'北極を一人で歩いた男',mid:'changers',qa:[{q:'どんな冒険をした？',a:'5大陸最高峰登頂、北極圏単独犬ぞり横断など'},{q:'世界初の記録は？',a:'5大陸最高峰単独登頂を世界で初めて達成'},{q:'北極犬ぞりの距離は？',a:'約12,000kmを単独で走破'},{q:'最期は？',a:'1984年、マッキンリー冬季単独登頂後に消息不明'},{q:'彼の言葉は？',a:'「冒険とは生きて帰ること」'}]},
+{id:195,t:'ナイチンゲール',e:'🏥',c:'biography',g:'upper',done:0,sub:'看護を変えた天使',mid:'changers',qa:[{q:'ナイチンゲールは何をした？',a:'クリミア戦争で傷病兵を看護し、近代看護を確立'},{q:'なぜ「クリミアの天使」？',a:'夜もランプを持って患者を回ったから'},{q:'統計学も使った？',a:'はい、死亡原因をグラフ化して改善を訴えた'},{q:'看護学校を作った？',a:'世界初の看護師養成学校を設立しました'},{q:'5月12日は何の日？',a:'彼女の誕生日にちなんだ「国際看護師の日」'}]},
+{id:196,t:'キング牧師の夢',e:'✊',c:'biography',g:'upper',done:0,sub:'平等を求めた演説',mid:'leaders',qa:[{q:'キング牧師は何をした人？',a:'アメリカで黒人の公民権運動を率いた指導者'},{q:'「I Have a Dream」って？',a:'人種差別のない社会を夢見た有名な演説'},{q:'どんな運動をした？',a:'バスボイコット、平和的なデモ行進など'},{q:'ノーベル平和賞を受賞？',a:'1964年、35歳で受賞しました'},{q:'最期は？',a:'1968年、暗殺されました'}]},
+{id:197,t:'フレミングとペニシリン',e:'💊',c:'scientist',g:'upper',done:0,sub:'カビが薬になった',mid:'medicine',qa:[{q:'ペニシリンって何？',a:'世界初の抗生物質、細菌を殺す薬'},{q:'どうやって発見した？',a:'培養皿に偶然生えたカビが細菌を殺していた'},{q:'いつ発見？',a:'1928年、イギリスのフレミングが発見'},{q:'何に効く？',a:'肺炎、感染症など多くの細菌性の病気'},{q:'今の課題は？',a:'抗生物質が効かない「耐性菌」の出現'}]},
+{id:198,t:'チューリングの頭脳',e:'🖥️',c:'scientist',g:'upper',done:0,sub:'コンピュータの父',mid:'medicine',qa:[{q:'チューリングは何をした？',a:'コンピュータの理論的基礎を作った数学者'},{q:'チューリングマシンって何？',a:'あらゆる計算ができる仮想の機械の概念'},{q:'戦争で何をした？',a:'ドイツの暗号「エニグマ」を解読し、戦争を短縮'},{q:'AIの予言もした？',a:'「機械は考えることができるか」という問いを立てた'},{q:'悲劇の最期？',a:'同性愛者として迫害され、若くして亡くなった'}]},
+{id:199,t:'ファラデーの電気',e:'⚡',c:'scientist',g:'upper',done:0,sub:'電気と磁気のつながり',mid:'physics',qa:[{q:'ファラデーは何を発見した？',a:'電磁誘導の法則、発電機の原理を発見'},{q:'どんな生い立ち？',a:'貧しい家庭に生まれ、製本工から独学で科学者に'},{q:'電磁誘導って何？',a:'磁石を動かすと電気が生まれる現象'},{q:'なぜ重要？',a:'現代の発電機やモーターの基礎になった'},{q:'クリスマス講演って？',a:'子ども向けの科学講演を始め、今も続いている'}]},
+{id:200,t:'レイチェル・カーソン',e:'📗',c:'scientist',g:'upper',done:0,sub:'環境問題を世界に訴えた',mid:'chemistry_bio',qa:[{q:'レイチェル・カーソンは何をした？',a:'「沈黙の春」で農薬の危険性を訴えた科学者'},{q:'「沈黙の春」って？',a:'DDTなどの農薬が生態系を破壊することを告発した本'},{q:'なぜ「沈黙」？',a:'鳥がいなくなり、春が静かになることを警告'},{q:'社会はどう変わった？',a:'環境保護運動のきっかけとなり、DDTは禁止された'},{q:'彼女の教えは？',a:'自然と人間のつながりを大切にすること'}]},
+{id:201,t:'テスラの発明',e:'⚡',c:'scientist',g:'upper',done:0,sub:'忘れられた天才発明家',mid:'medicine',qa:[{q:'テスラは何を発明した？',a:'交流電気システム、無線通信の基礎技術など'},{q:'エジソンとのライバル関係は？',a:'直流vs交流の「電流戦争」で対立しました'},{q:'なぜ「忘れられた」？',a:'生前は評価されず、死後に再評価された'},{q:'テスラコイルって何？',a:'高電圧を発生させる装置、今も実験で使われる'},{q:'電気自動車の「テスラ」との関係は？',a:'彼の名前にちなんで会社名がつけられました'}]},
+{id:202,t:'DNAを解明した人々',e:'🧬',c:'scientist',g:'upper',done:0,sub:'生命のらせんを発見',mid:'chemistry_bio',qa:[{q:'DNAの構造を発見したのは誰？',a:'ワトソンとクリックが二重らせん構造を発見'},{q:'いつ発見した？',a:'1953年にイギリスで発表されました'},{q:'ロザリンド・フランクリンの貢献は？',a:'X線写真でDNA構造解明の重要な手がかりを提供'},{q:'なぜ重要な発見？',a:'遺伝の仕組み、病気の原因解明につながった'},{q:'ノーベル賞は？',a:'ワトソン、クリック、ウィルキンスが1962年に受賞'}]},
+{id:203,t:'ジェンナーと種痘',e:'💉',c:'scientist',g:'upper',done:0,sub:'天然痘を防いだ方法',mid:'medicine',qa:[{q:'種痘って何？',a:'天然痘を予防する世界初のワクチン'},{q:'どうやって発見した？',a:'牛痘にかかった人が天然痘にならないことに気づいた'},{q:'いつ開発された？',a:'1796年、イギリスのジェンナーが開発'},{q:'天然痘は今どうなった？',a:'1980年にWHOが根絶を宣言、唯一根絶された感染症'},{q:'ワクチンの語源は？',a:'ラテン語の「牛（vacca）」から来ています'}]},
+{id:204,t:'牧野富太郎',e:'🌿',c:'scientist',g:'upper',done:0,sub:'植物を愛した「草木の精」',mid:'japan_scientist',qa:[{q:'牧野富太郎は何をした人？',a:'日本の植物学の父、1500以上の植物を命名'},{q:'学歴は？',a:'小学校中退でしたが、独学で世界的な学者に'},{q:'どんな研究をした？',a:'日本中を歩き回り、植物を採集・分類・記録'},{q:'「らんまん」って？',a:'彼をモデルにしたNHK朝ドラ（2023年）'},{q:'有名な言葉は？',a:'「草を褥（しとね）に木の根を枕」'}]},
+{id:205,t:'空手の起源',e:'🥋',c:'japanculture',g:'upper',done:0,sub:'沖縄から世界へ',mid:'budo',qa:[{q:'空手はどこで生まれた？',a:'沖縄で、中国武術と現地の武術が融合して誕生'},{q:'なぜ素手で戦う？',a:'武器を持つことが禁じられていたから'},{q:'「空手」の意味は？',a:'「空っぽの手」、武器を持たない意味'},{q:'いつオリンピック競技に？',a:'2020年東京オリンピックで初めて採用'},{q:'世界でどれくらい普及？',a:'約1億人以上が空手を習っています'}]},
+{id:206,t:'弓道の美しさ',e:'🏹',c:'japanculture',g:'upper',done:0,sub:'心を整えて的を射る',mid:'budo',qa:[{q:'弓道の目的は？',a:'的に当てることより、心身を鍛え精神を磨くこと'},{q:'弓の長さは？',a:'約2.2m、世界でも珍しい長い弓'},{q:'「射法八節」って何？',a:'弓を射るまでの8つの動作の流れ'},{q:'なぜ白い服を着る？',a:'心を清め、集中力を高めるため'},{q:'「正射必中」の意味は？',a:'正しく射れば必ず当たるという教え'}]},
+{id:207,t:'相撲の伝統',e:'🤼',c:'japanculture',g:'upper',done:0,sub:'神様にささげる格闘技',mid:'budo',qa:[{q:'相撲の歴史は？',a:'1500年以上前から神事として行われてきた'},{q:'土俵の意味は？',a:'神聖な場所、塩をまいて清める'},{q:'番付って何？',a:'力士の強さのランキング、横綱が最高位'},{q:'横綱になるには？',a:'大関で2場所連続優勝など、品格・力量が必要'},{q:'なぜ女性は土俵に上がれない？',a:'伝統的な宗教的理由、議論も続いている'}]},
+{id:208,t:'華道の美学',e:'💐',c:'japanculture',g:'upper',done:0,sub:'花を生ける芸術',mid:'geido',qa:[{q:'華道って何？',a:'花や植物を美しく生ける日本の伝統芸術'},{q:'いつ始まった？',a:'室町時代、仏教の供花から発展しました'},{q:'有名な流派は？',a:'池坊、草月流、小原流などがあります'},{q:'生け花のルールは？',a:'天・人・地の3つの線を基本に構成します'},{q:'海外でも人気？',a:'「IKEBANA」として世界中で親しまれています'}]},
+{id:209,t:'書道の世界',e:'✒️',c:'japanculture',g:'upper',done:0,sub:'筆で書く美しい文字',mid:'geido',qa:[{q:'書道はいつ日本に伝わった？',a:'6世紀頃、中国から仏教とともに伝来'},{q:'道具は何を使う？',a:'筆、墨、硯（すずり）、紙の「文房四宝」'},{q:'楷書、行書、草書の違いは？',a:'楷書は正確、行書はやや崩す、草書は大きく崩す'},{q:'有名な書家は？',a:'空海、小野道風、良寛など'},{q:'書道の魅力は？',a:'心を落ち着かせ、集中力と美的感覚を養う'}]},
+{id:210,t:'短歌の楽しみ',e:'📝',c:'japanculture',g:'upper',done:0,sub:'31音に思いをこめて',mid:'geido',qa:[{q:'短歌のルールは？',a:'5・7・5・7・7の31音で詠む'},{q:'俳句との違いは？',a:'短歌は31音で季語は必須ではない'},{q:'万葉集って何？',a:'約1300年前に編まれた日本最古の歌集'},{q:'有名な歌人は？',a:'柿本人麻呂、紀貫之、与謝野晶子など'},{q:'今も作られている？',a:'SNSでも短歌ブーム、若い世代にも人気'}]},
+{id:211,t:'能と狂言',e:'👺',c:'japanculture',g:'upper',done:0,sub:'650年続く舞台芸術',mid:'dentou',qa:[{q:'能と狂言の違いは？',a:'能は悲劇的で幽玄、狂言は喜劇的で庶民的'},{q:'いつ始まった？',a:'約650年前、室町時代に完成しました'},{q:'能面って何？',a:'能で使う仮面、微妙な角度で表情が変わる'},{q:'「幽玄」って何？',a:'奥深く神秘的な美しさを表す言葉'},{q:'世界遺産になった？',a:'2008年にユネスコ無形文化遺産に登録'}]},
+{id:212,t:'文楽のすごさ',e:'🎭',c:'japanculture',g:'upper',done:0,sub:'3人で動かす人形劇',mid:'dentou',qa:[{q:'文楽って何？',a:'人形浄瑠璃とも呼ばれる日本の人形劇'},{q:'なぜ3人で動かす？',a:'主遣い（頭・右手）、左遣い、足遣いで分担'},{q:'義太夫節って何？',a:'三味線に合わせて物語を語る音楽'},{q:'人形の大きさは？',a:'約130〜150cm、ほぼ子どもの大きさ'},{q:'どこで見られる？',a:'大阪の国立文楽劇場が本拠地'}]},
+{id:213,t:'雅楽の響き',e:'🎵',c:'japanculture',g:'upper',done:0,sub:'1300年前の音楽',mid:'dentou',qa:[{q:'雅楽って何？',a:'日本最古のオーケストラ音楽'},{q:'いつ伝わった？',a:'奈良時代に中国や朝鮮半島から伝来'},{q:'使う楽器は？',a:'笙（しょう）、篳篥（ひちりき）、龍笛など'},{q:'どこで聴ける？',a:'宮中行事、神社の祭礼、演奏会など'},{q:'世界最古の音楽？',a:'現在も演奏される音楽としては世界最古級'}]},
+{id:214,t:'和食の基本',e:'🍚',c:'japanculture',g:'upper',done:0,sub:'一汁三菜のバランス',mid:'washoku',qa:[{q:'一汁三菜って何？',a:'ご飯、汁物、主菜1品、副菜2品の基本形'},{q:'なぜバランスがいい？',a:'炭水化物、タンパク質、野菜がそろう'},{q:'和食の特徴は？',a:'素材の味を活かす、季節感、美しい盛り付け'},{q:'「いただきます」の意味は？',a:'命をいただくことへの感謝の言葉'},{q:'世界遺産になった理由は？',a:'健康的で文化的価値が高いと評価された'}]},
+{id:215,t:'和菓子の美しさ',e:'🍡',c:'japanculture',g:'upper',done:0,sub:'季節を食べる',mid:'washoku',qa:[{q:'和菓子の特徴は？',a:'季節の花や風物を表現した美しさ'},{q:'主な材料は？',a:'小豆、もち米、砂糖、寒天など植物性素材'},{q:'上生菓子って何？',a:'茶道で使う高級な練り切りなどの菓子'},{q:'羊羹はなぜ宇宙食に？',a:'長持ち、栄養価が高い、食べやすいから'},{q:'洋菓子との違いは？',a:'油脂や乳製品をあまり使わない'}]},
+{id:216,t:'日本の家',e:'🏠',c:'japanculture',g:'upper',done:0,sub:'畳・障子・縁側の知恵',mid:'koromo',qa:[{q:'畳の良さは？',a:'調湿効果、防音、座り心地、い草の香り'},{q:'障子の役割は？',a:'光を通しながら視線を遮る、通気性もある'},{q:'縁側って何？',a:'部屋と庭をつなぐ板張りの空間'},{q:'日本の家が木造なのはなぜ？',a:'湿気が多く、地震にも柔軟に対応できるから'},{q:'現代に活かせることは？',a:'自然素材、通風、省エネの工夫'}]},
+{id:217,t:'日本庭園の見方',e:'🌸',c:'japanculture',g:'upper',done:0,sub:'石と砂で自然を表す',mid:'koromo',qa:[{q:'日本庭園の特徴は？',a:'自然を縮小して表現する「縮景」の考え方'},{q:'枯山水って何？',a:'水を使わず、石と砂で山や川を表現する庭'},{q:'龍安寺の石庭は？',a:'15個の石を配置、どこから見ても全部見えない'},{q:'借景って何？',a:'庭の外の山などを景色の一部として取り込む技法'},{q:'有名な庭園は？',a:'兼六園、後楽園、偕楽園が日本三名園'}]},
+{id:218,t:'お城の構造',e:'🏯',c:'japanculture',g:'upper',done:0,sub:'天守閣のひみつ',mid:'koromo',qa:[{q:'天守閣の役割は？',a:'見張り台、権威の象徴、最後の砦'},{q:'石垣はなぜ曲線？',a:'敵が登りにくく、重さを分散するため'},{q:'狭間（さま）って何？',a:'鉄砲や矢を撃つための壁の穴'},{q:'現存天守はいくつ？',a:'江戸時代以前から残る天守は12城のみ'},{q:'国宝の城は？',a:'姫路城、松本城、犬山城、彦根城、松江城'}]},
+{id:219,t:'神社とお寺',e:'⛩️',c:'japanculture',g:'upper',done:0,sub:'建物の違いを見つけよう',mid:'koromo',qa:[{q:'神社とお寺の違いは？',a:'神社は神道（鳥居）、お寺は仏教（山門）'},{q:'鳥居の意味は？',a:'神聖な場所と俗世を分ける門'},{q:'なぜ両方にお参りする？',a:'日本では神仏習合の歴史があるから'},{q:'手水の作法は？',a:'左手→右手→口→柄杓の柄を清める'},{q:'おみくじの順番は？',a:'大吉→吉→中吉→小吉→末吉→凶が一般的'}]},
+{id:220,t:'ひな祭りと端午の節句',e:'🎎',c:'japanculture',g:'upper',done:0,sub:'子どもの成長を願う',mid:'matsuri',qa:[{q:'ひな祭りはいつ？',a:'3月3日、女の子の健康と幸せを願う'},{q:'ひな人形の意味は？',a:'厄を人形に移して流す風習が起源'},{q:'端午の節句はいつ？',a:'5月5日、男の子の成長を願う'},{q:'鯉のぼりの意味は？',a:'鯉が滝を登る故事から、立身出世を願う'},{q:'ちまきと柏餅の違いは？',a:'関西はちまき、関東は柏餅が多い'}]},
+{id:221,t:'お盆のはなし',e:'🏮',c:'japanculture',g:'upper',done:0,sub:'ご先祖様との再会',mid:'matsuri',qa:[{q:'お盆って何？',a:'ご先祖様の霊が帰ってくる期間'},{q:'いつ行われる？',a:'8月13日〜16日（地域により7月も）'},{q:'迎え火と送り火って？',a:'霊を迎え入れる火と、送り出す火'},{q:'精霊馬って何？',a:'きゅうりの馬とナスの牛、霊の乗り物'},{q:'盆踊りの意味は？',a:'霊を慰め、送り出すための踊り'}]},
+{id:222,t:'地元の祭り',e:'🎉',c:'japanculture',g:'upper',done:0,sub:'私たちの地域の伝統',mid:'matsuri',qa:[{q:'祭りの起源は？',a:'神様に感謝し、豊作や安全を祈る行事'},{q:'神輿（みこし）の意味は？',a:'神様が乗る乗り物、担いで地域を回る'},{q:'山車（だし）って何？',a:'祭りで引く飾りのついた車'},{q:'祭囃子の役割は？',a:'神様を楽しませ、祭りを盛り上げる音楽'},{q:'祭りを続ける意味は？',a:'地域の絆、伝統の継承、コミュニティの活性化'}]},
+{id:223,t:'漆器の美',e:'🥣',c:'japanculture',g:'upper',done:0,sub:'ジャパンと呼ばれた理由',mid:'monozukuri',qa:[{q:'漆器って何？',a:'漆を塗った木製の器や道具'},{q:'なぜ「ジャパン」？',a:'英語でjapanは漆器を意味するほど有名だった'},{q:'漆の特徴は？',a:'抗菌性、耐久性、美しい光沢'},{q:'有名な産地は？',a:'輪島塗（石川）、会津塗（福島）など'},{q:'金継ぎって何？',a:'壊れた器を漆と金で修理する技法'}]},
+{id:224,t:'陶磁器の産地',e:'🏺',c:'japanculture',g:'upper',done:0,sub:'有田焼・九谷焼・益子焼',mid:'monozukuri',qa:[{q:'陶器と磁器の違いは？',a:'陶器は土、磁器は石が原料で、磁器の方が硬い'},{q:'有田焼の特徴は？',a:'白い素地に青や赤の絵付け、佐賀県'},{q:'九谷焼の特徴は？',a:'鮮やかな五彩の色絵、石川県'},{q:'益子焼の特徴は？',a:'素朴で温かみのある民芸風、栃木県'},{q:'なぜ各地で違う？',a:'土、水、気候、歴史が影響している'}]},
+{id:225,t:'日本刀の技術',e:'⚔️',c:'japanculture',g:'upper',done:0,sub:'刀鍛冶の神業',mid:'monozukuri',qa:[{q:'日本刀の特徴は？',a:'反りがある、折れず曲がらずよく切れる'},{q:'なぜ強い？',a:'硬い鋼と柔らかい鋼を組み合わせているから'},{q:'刃文（はもん）って何？',a:'刃に現れる波のような模様、刀鍛冶の個性'},{q:'作るのにどれくらいかかる？',a:'1本に数ヶ月〜1年以上かかることも'},{q:'今も作られている？',a:'美術品として、限られた刀鍛冶が制作中'}]},
+{id:226,t:'伝統工芸の今',e:'🎨',c:'japanculture',g:'upper',done:0,sub:'受け継ぐ人々',mid:'monozukuri',qa:[{q:'伝統工芸はいくつある？',a:'国指定だけで240品目以上あります'},{q:'後継者問題って？',a:'職人の高齢化と若い継承者不足が深刻'},{q:'新しい取り組みは？',a:'現代デザインとの融合、海外展開など'},{q:'伝統工芸士って？',a:'経済産業大臣が認定する熟練職人の称号'},{q:'私たちにできることは？',a:'興味を持ち、使い、価値を伝える'}]},
+{id:227,t:'香辛料は宝物',e:'🌶️',c:'worldhistory',g:'upper',done:0,sub:'コショウが金より高かった時代',mid:'voyage',qa:[{q:'なぜ香辛料が貴重だった？',a:'肉の保存、味付け、薬として必需品だったから'},{q:'どこで取れた？',a:'主にインドや東南アジアの熱帯地域'},{q:'コショウの価値は？',a:'同じ重さの金と交換されることもあった'},{q:'ヴェネツィアが栄えた理由は？',a:'香辛料貿易の中継地として独占していたから'},{q:'大航海時代のきっかけに？',a:'香辛料を直接手に入れるため、新航路を探した'}]},
+{id:228,t:'新大陸との出会い',e:'🌎',c:'worldhistory',g:'upper',done:0,sub:'先住民から見た「発見」',mid:'voyage',qa:[{q:'新大陸には誰がいた？',a:'マヤ、アステカ、インカなどの高度な文明'},{q:'「発見」への批判は？',a:'先住民からすれば「侵略」だったという視点'},{q:'コロンブス交換って？',a:'新旧大陸間で動植物、病気が行き来したこと'},{q:'何がヨーロッパに伝わった？',a:'トマト、ジャガイモ、トウモロコシ、カカオなど'},{q:'先住民への影響は？',a:'病気の流行、征服により人口が激減した'}]},
+{id:229,t:'城のひみつ',e:'🏰',c:'worldhistory',g:'upper',done:0,sub:'攻める側と守る側の知恵くらべ',mid:'medieval',qa:[{q:'中世の城の役割は？',a:'領主の住居、防衛拠点、権力の象徴'},{q:'堀の役割は？',a:'敵の侵入を防ぎ、城を守る水や空の溝'},{q:'跳ね橋って何？',a:'上げ下ろしできる橋、敵の侵入を防ぐ'},{q:'狭い階段の理由は？',a:'右利きの攻撃者が剣を振りにくくするため'},{q:'日本の城との違いは？',a:'西洋は石造りで高い塔、日本は木造で複雑な構造'}]},
+{id:230,t:'元寇と神風',e:'🌪️',c:'worldhistory',g:'upper',done:0,sub:'日本を襲ったモンゴル軍',mid:'medieval',qa:[{q:'元寇って何？',a:'モンゴル帝国（元）が日本を2度攻めたこと'},{q:'いつ起きた？',a:'1274年（文永の役）と1281年（弘安の役）'},{q:'なぜ攻めてきた？',a:'フビライ・ハンが日本を支配しようとしたから'},{q:'神風って何？',a:'元軍を撃退した台風のこと'},{q:'実際はどうだった？',a:'日本の武士の抵抗と台風の両方が要因'}]},
+{id:231,t:'工場で働く子どもたち',e:'🏭',c:'worldhistory',g:'upper',done:0,sub:'産業革命の光と影',mid:'revolution',qa:[{q:'なぜ子どもが働いた？',a:'小さくて機械の間に入れる、賃金が安いから'},{q:'何歳から働いた？',a:'5〜6歳から1日12時間以上働く子も'},{q:'どんな仕事？',a:'紡績工場、炭鉱、煙突掃除など危険な仕事'},{q:'改善されたきっかけは？',a:'工場法などの法律で児童労働が規制された'},{q:'今も児童労働はある？',a:'世界で約1.6億人の子どもが働いています'}]},
+{id:232,t:'グローバル化する世界',e:'🌐',c:'worldhistory',g:'upper',done:0,sub:'インターネットが世界をつないだ',mid:'modern',qa:[{q:'グローバル化って何？',a:'国境を越えて人・物・情報が行き交うこと'},{q:'いつから加速した？',a:'1990年代、インターネットの普及から'},{q:'良い面は？',a:'情報や文化の共有、経済発展、交流の拡大'},{q:'問題点は？',a:'格差拡大、文化の画一化、環境問題'},{q:'これからどうなる？',a:'デジタル化がさらに進み、新しい課題も'}]},
+{id:233,t:'メソポタミアの発明',e:'📜',c:'worldhistory',g:'upper',done:0,sub:'文字・車輪・60進法はここで生まれた',mid:'ancient',qa:[{q:'メソポタミアってどこ？',a:'現在のイラクあたり、チグリス・ユーフラテス川の間'},{q:'楔形文字って何？',a:'粘土板にくさび形の記号を刻んだ文字'},{q:'60進法はどこで使われている？',a:'時計（60秒・60分）や角度（360度）'},{q:'ハンムラビ法典って？',a:'「目には目を」で知られる古代の法律集'},{q:'なぜ文明が栄えた？',a:'川の水で農業が発達、人が集まったから'}]},
+{id:234,t:'バビロンの空中庭園',e:'🌳',c:'worldhistory',g:'upper',done:0,sub:'本当にあった？世界の七不思議',mid:'ancient',qa:[{q:'空中庭園って何？',a:'古代バビロンにあったとされる階段状の庭園'},{q:'誰が作った？',a:'ネブカドネザル2世が王妃のために作ったとされる'},{q:'なぜ「空中」？',a:'高い建物の上に庭園があり、空中に浮いて見えた'},{q:'本当にあった？',a:'遺跡が見つかっておらず、存在は謎のまま'},{q:'世界の七不思議って？',a:'古代の驚くべき建造物7つ、現存はピラミッドのみ'}]},
+{id:235,t:'兵馬俑の8000人',e:'🗿',c:'worldhistory',g:'upper',done:0,sub:'土で作られた兵士たちの正体',mid:'ancient',qa:[{q:'兵馬俑って何？',a:'中国の始皇帝の墓を守る等身大の土人形'},{q:'何体ある？',a:'約8000体の兵士と馬が発掘されています'},{q:'なぜ作られた？',a:'死後の世界でも皇帝を守るため'},{q:'全部同じ顔？',a:'いいえ、一体一体顔が異なります'},{q:'いつ発見された？',a:'1974年、農民が井戸を掘っていて偶然発見'}]},
+{id:236,t:'インダスの計画都市',e:'🏛️',c:'worldhistory',g:'upper',done:0,sub:'4000年前に下水道があった！',mid:'ancient',qa:[{q:'インダス文明ってどこ？',a:'現在のパキスタン・インドあたり'},{q:'有名な都市は？',a:'モヘンジョダロ、ハラッパーなど'},{q:'すごい点は？',a:'整然とした街路、水洗トイレ、下水道'},{q:'なぜ滅んだ？',a:'気候変動、川の流路変化など諸説あり'},{q:'文字は解読された？',a:'インダス文字は今も解読されていません'}]},
+{id:237,t:'コロッセオの真実',e:'🏟️',c:'worldhistory',g:'upper',done:0,sub:'5万人が見た剣闘士の戦い',mid:'greece',qa:[{q:'コロッセオって何？',a:'古代ローマの円形闘技場'},{q:'何が行われた？',a:'剣闘士の戦い、猛獣狩り、模擬海戦など'},{q:'収容人数は？',a:'約5万人を収容できました'},{q:'剣闘士は誰？',a:'奴隷、捕虜、借金を返せない人など'},{q:'なぜ闘技は終わった？',a:'キリスト教の普及で残酷な見世物が禁止に'}]},
+{id:238,t:'ポンペイが消えた日',e:'🌋',c:'worldhistory',g:'upper',done:0,sub:'火山に埋もれた街のタイムカプセル',mid:'greece',qa:[{q:'ポンペイって何？',a:'古代ローマの都市、ヴェスヴィオ火山の噴火で埋没'},{q:'いつ埋もれた？',a:'西暦79年8月24日'},{q:'なぜ「タイムカプセル」？',a:'火山灰に覆われ、当時の生活がそのまま保存'},{q:'何が見つかった？',a:'家、店、壁画、パン、人の型など'},{q:'人の型って？',a:'火山灰の中に残った空洞に石膏を流して復元'}]},
+{id:239,t:'源平の戦い',e:'⚔️',c:'japanhistory',g:'upper',done:0,sub:'武士が日本を動かし始めた',mid:'samurai',qa:[{q:'源氏と平氏って？',a:'天皇家から分かれた二大武士集団'},{q:'なぜ戦った？',a:'朝廷内の権力争いに武士が巻き込まれた'},{q:'有名な戦いは？',a:'壇ノ浦の戦いで平氏が滅亡'},{q:'義経と頼朝の関係は？',a:'兄弟だが、後に頼朝が義経を追い詰めた'},{q:'この戦いの意味は？',a:'武士が政治の主役になるきっかけ'}]},
+{id:240,t:'金閣と銀閣',e:'🏯',c:'japanhistory',g:'upper',done:0,sub:'将軍が建てた美しい建物',mid:'samurai',qa:[{q:'金閣を建てたのは？',a:'室町幕府3代将軍・足利義満'},{q:'銀閣を建てたのは？',a:'8代将軍・足利義政'},{q:'なぜ金箔を貼った？',a:'権力と富を示すため、極楽浄土のイメージ'},{q:'銀閣に銀は貼ってない？',a:'はい、銀箔を貼る予定だったが実現せず'},{q:'北山文化と東山文化って？',a:'義満の華やかな文化と義政のわびさびの文化'}]},
+{id:241,t:'鉄砲が変えた戦',e:'💥',c:'japanhistory',g:'upper',done:0,sub:'新兵器がやってきた',mid:'sengoku',qa:[{q:'鉄砲はいつ伝わった？',a:'1543年、種子島にポルトガル人が伝えた'},{q:'なぜ「種子島」と呼ばれた？',a:'伝来地の名前が銃の呼び名になった'},{q:'戦い方はどう変わった？',a:'騎馬突撃より、鉄砲隊による集団戦術へ'},{q:'日本の鉄砲生産量は？',a:'戦国末期には世界最大級の保有数だった'},{q:'信長はどう使った？',a:'長篠の戦いで3000丁を組織的に使用'}]},
+{id:242,t:'鎖国の本当の姿',e:'🚢',c:'japanhistory',g:'upper',done:0,sub:'日本は閉じていた？',mid:'edo',qa:[{q:'鎖国って完全に閉じていた？',a:'いいえ、限定的な貿易は続いていました'},{q:'貿易を許された場所は？',a:'長崎（オランダ・中国）、対馬（朝鮮）、薩摩（琉球）、松前（アイヌ）'},{q:'なぜ鎖国した？',a:'キリスト教の禁止、貿易の独占など'},{q:'出島って何？',a:'長崎にあった人工島、オランダ人の居留地'},{q:'鎖国の良い面は？',a:'平和が続き、独自の文化が発展した'}]},
+{id:243,t:'寺子屋と教育',e:'📚',c:'japanhistory',g:'upper',done:0,sub:'読み書きそろばん',mid:'edo',qa:[{q:'寺子屋って何？',a:'江戸時代の庶民の学校'},{q:'何を教えた？',a:'読み書き、そろばん、道徳など'},{q:'誰が教えた？',a:'僧侶、武士、町人など様々な人'},{q:'どれくらい普及した？',a:'幕末には全国に数万の寺子屋があった'},{q:'識字率は？',a:'江戸時代の識字率は世界トップクラスだった'}]},
+{id:244,t:'文明開化の時代',e:'💡',c:'japanhistory',g:'upper',done:0,sub:'西洋の文化が入ってきた',mid:'kindai',qa:[{q:'文明開化って何？',a:'明治時代に西洋文化を積極的に取り入れたこと'},{q:'どんなものが入ってきた？',a:'洋服、洋食、ガス灯、郵便、新聞など'},{q:'「ざんぎり頭」って？',a:'西洋風に短く切った髪型'},{q:'有名な言葉は？',a:'「散切り頭を叩いてみれば文明開化の音がする」'},{q:'問題点は？',a:'急激な変化で伝統文化が失われる面も'}]},
+{id:245,t:'鉄道の開通',e:'🚃',c:'japanhistory',g:'upper',done:0,sub:'初めての汽車が走った日',mid:'kindai',qa:[{q:'日本初の鉄道はいつ？',a:'1872年10月14日（今の「鉄道の日」）'},{q:'どこを走った？',a:'新橋〜横浜間、約29km'},{q:'何分かかった？',a:'約53分、今は東海道線で約25分'},{q:'人々の反応は？',a:'「陸蒸気（おかじょうき）」と呼んで驚いた'},{q:'鉄道が変えたことは？',a:'時間の統一、経済発展、人の移動の拡大'}]},
+{id:246,t:'戦争への道',e:'⚠️',c:'japanhistory',g:'upper',done:0,sub:'なぜ戦争が起きたのか',mid:'war_peace',qa:[{q:'なぜ戦争に向かった？',a:'資源確保、領土拡大、軍部の台頭など複合的な要因'},{q:'満州事変って何？',a:'1931年、関東軍が中国で起こした軍事行動'},{q:'日中戦争はいつから？',a:'1937年から本格化しました'},{q:'太平洋戦争の始まりは？',a:'1941年12月8日、真珠湾攻撃'},{q:'学ぶべきことは？',a:'なぜ止められなかったかを考えること'}]},
+{id:247,t:'終戦と平和',e:'🕊️',c:'japanhistory',g:'upper',done:0,sub:'二度と繰り返さないために',mid:'war_peace',qa:[{q:'終戦はいつ？',a:'1945年8月15日'},{q:'ポツダム宣言って何？',a:'連合国が日本に降伏を求めた宣言'},{q:'原爆の被害は？',a:'広島・長崎で合わせて約21万人以上が亡くなった'},{q:'日本国憲法の特徴は？',a:'戦争放棄、主権在民、基本的人権の尊重'},{q:'平和を守るには？',a:'歴史を学び、対話を大切にすること'}]},
+{id:248,t:'古墳のなぞ',e:'⛰️',c:'japanhistory',g:'upper',done:0,sub:'なぜ巨大なお墓を作った？',mid:'ancient_jp',qa:[{q:'古墳って何？',a:'3〜7世紀に作られた有力者のお墓'},{q:'前方後円墳の形は？',a:'鍵穴のような形、日本独自の形式'},{q:'最大の古墳は？',a:'大仙陵古墳（仁徳天皇陵）、全長486m'},{q:'なぜ大きく作った？',a:'権力の大きさを示すため'},{q:'中から何が出てきた？',a:'鏡、剣、玉、埴輪など'}]},
+{id:249,t:'埴輪が語ること',e:'🗿',c:'japanhistory',g:'upper',done:0,sub:'土の人形に残されたメッセージ',mid:'ancient_jp',qa:[{q:'埴輪って何？',a:'古墳に並べられた素焼きの土製品'},{q:'どんな形がある？',a:'人物、馬、家、船など様々な形'},{q:'何のために作られた？',a:'死者の魂を守る、副葬品の代わりなど諸説'},{q:'何がわかる？',a:'当時の服装、髪型、道具、生活の様子'},{q:'有名な埴輪は？',a:'「踊る人々」の埴輪（東京国立博物館）'}]},
+{id:250,t:'平安貴族の生活',e:'👘',c:'japanhistory',g:'upper',done:0,sub:'きらびやかな暮らしのうら側',mid:'asuka',qa:[{q:'平安貴族の住まいは？',a:'寝殿造という広い屋敷に住みました'},{q:'どんな服を着た？',a:'女性は十二単、男性は束帯や直衣'},{q:'毎日何をしていた？',a:'和歌、音楽、香遊び、蹴鞠などの遊び'},{q:'庶民との違いは？',a:'貴族は特権階級で、庶民とは大きな格差'},{q:'平安文化の特徴は？',a:'優雅で繊細、日本独自の「国風文化」が発展'}]},
+{id:251,t:'アレキサンダー大王',e:'👑',c:'biography',g:'upper',done:0,sub:'世界を征服した若き王',mid:'leaders',qa:[{q:'アレキサンダー大王って誰？',a:'古代マケドニアの王、史上最大の帝国を築いた'},{q:'何歳で王になった？',a:'20歳で即位し、32歳で亡くなりました'},{q:'どこまで征服した？',a:'ギリシャからエジプト、ペルシャ、インドまで'},{q:'師匠は誰？',a:'哲学者アリストテレスに教育を受けました'},{q:'彼の功績は？',a:'東西文化の融合（ヘレニズム文化）を生み出した'}]},
+{id:252,t:'クレオパトラの知恵',e:'👸',c:'biography',g:'upper',done:0,sub:'古代エジプト最後の女王',mid:'leaders',qa:[{q:'クレオパトラって誰？',a:'古代エジプト・プトレマイオス朝最後の女王'},{q:'美人だった？',a:'容姿より知性と魅力で人を引きつけたと言われる'},{q:'何カ国語話せた？',a:'9カ国語以上を操る教養人でした'},{q:'ローマとの関係は？',a:'カエサル、アントニウスと同盟・恋愛関係に'},{q:'最期は？',a:'ローマに敗れ、毒蛇に噛ませて自殺したとされる'}]},
+{id:253,t:'ナポレオンの野望',e:'🎖️',c:'biography',g:'upper',done:0,sub:'フランスを率いた皇帝',mid:'leaders',qa:[{q:'ナポレオンは何をした人？',a:'フランス革命後に皇帝となり、ヨーロッパを征服'},{q:'どんな改革をした？',a:'ナポレオン法典（近代法の基礎）を制定'},{q:'なぜ失敗した？',a:'ロシア遠征の失敗、諸国連合軍に敗北'},{q:'最期はどこで？',a:'セントヘレナ島に流され、そこで亡くなりました'},{q:'身長は低かった？',a:'実は平均的、イギリスのプロパガンダで広まった誤解'}]},
+{id:254,t:'チャーチルの言葉',e:'🎤',c:'biography',g:'upper',done:0,sub:'言葉で国を救った指導者',mid:'leaders',qa:[{q:'チャーチルって誰？',a:'第二次世界大戦中のイギリス首相'},{q:'何がすごかった？',a:'演説で国民を鼓舞し、ナチスに立ち向かった'},{q:'有名な言葉は？',a:'「私が提供できるのは血と労苦と涙と汗だけだ」'},{q:'ノーベル賞を取った？',a:'文学賞を受賞（回顧録などの著作で）'},{q:'子ども時代は？',a:'成績は悪く、問題児と言われていました'}]},
+{id:255,t:'坂本龍馬の夢',e:'⚔️',c:'biography',g:'upper',done:0,sub:'日本を変えようとした志士',mid:'changers',qa:[{q:'坂本龍馬は何をした？',a:'薩長同盟を仲介し、大政奉還に貢献しました'},{q:'薩長同盟って何？',a:'対立していた薩摩と長州を結びつけた同盟'},{q:'海援隊って何？',a:'龍馬が作った日本初の商社的組織'},{q:'「船中八策」って何？',a:'新しい日本の政治構想を示した8つの提案'},{q:'最期は？',a:'京都の近江屋で暗殺されました（33歳）'}]},
+{id:256,t:'渋沢栄一の精神',e:'💴',c:'biography',g:'upper',done:0,sub:'日本資本主義の父',mid:'inventors',qa:[{q:'渋沢栄一は何をした？',a:'約500の会社設立に関わり、日本経済の基礎を作った'},{q:'どんな会社を作った？',a:'銀行、鉄道、製紙、保険など幅広い分野'},{q:'「論語と算盤」って何？',a:'道徳と経済は両立するという彼の考え'},{q:'なぜ新1万円札に？',a:'日本の近代化に大きく貢献したから'},{q:'社会事業も？',a:'福祉、教育など600以上の社会事業にも関わりました'}]},
+{id:257,t:'ヘレン・ケラーの奇跡',e:'✨',c:'biography',g:'upper',done:0,sub:'三重の障害を乗り越えた人',mid:'changers',qa:[{q:'ヘレン・ケラーの障害は？',a:'1歳で病気になり、目・耳・声の三重苦に'},{q:'サリバン先生って誰？',a:'ヘレンに言葉を教えた家庭教師'},{q:'「water」の瞬間って？',a:'井戸水を触って「水」という概念を理解した瞬間'},{q:'何を成し遂げた？',a:'大学を卒業し、世界中で障害者支援の活動'},{q:'日本との関係は？',a:'3度来日し、多くの人に勇気を与えました'}]},
+{id:258,t:'アンネの日記',e:'📔',c:'biography',g:'upper',done:0,sub:'戦争の悲劇を伝える少女',mid:'changers',qa:[{q:'アンネ・フランクって誰？',a:'第二次大戦中、隠れ家で日記を書いたユダヤ人少女'},{q:'なぜ隠れていた？',a:'ナチスによるユダヤ人迫害から逃れるため'},{q:'どれくらい隠れた？',a:'約2年間、8人で狭い隠れ家に暮らしました'},{q:'最期は？',a:'発見され、強制収容所で15歳で亡くなりました'},{q:'日記が残った理由は？',a:'協力者が日記を保管し、父親が出版しました'}]},
+{id:259,t:'コロンブス以前のアメリカ',e:'🌎',c:'biography',g:'upper',done:0,sub:'最初に渡った人々',mid:'changers',qa:[{q:'最初にアメリカに渡ったのは？',a:'約1万5000年前、アジアから陸橋を渡った人々'},{q:'ベーリング陸橋って何？',a:'氷河期にアジアとアメリカをつないでいた陸地'},{q:'どんな文明があった？',a:'マヤ、アステカ、インカなどの高度な文明'},{q:'ヴァイキングも来た？',a:'コロンブスより500年前に北米に到達'},{q:'「発見」の問題は？',a:'すでに人が住んでいたのに「発見」と呼ぶことへの批判'}]},
+{id:260,t:'マルコ・ポーロの旅',e:'🐫',c:'biography',g:'upper',done:0,sub:'東方見聞録を書いた商人',mid:'changers',qa:[{q:'マルコ・ポーロって誰？',a:'13世紀にアジアを旅したイタリアの商人'},{q:'どこまで行った？',a:'中国（元）まで行き、フビライ・ハンに仕えた'},{q:'何年旅した？',a:'約24年間も東方で過ごしました'},{q:'「東方見聞録」って何？',a:'旅の記録、ヨーロッパにアジアを紹介した'},{q:'日本は「黄金の国」？',a:'「ジパング」として金が豊富な国と紹介された'}]},
+{id:261,t:'コッホと感染症',e:'🔬',c:'scientist',g:'upper',done:0,sub:'病原菌を見つけた人',mid:'medicine',qa:[{q:'コッホは何を発見した？',a:'結核菌、コレラ菌、炭疽菌などの病原菌'},{q:'「コッホの原則」って何？',a:'病原菌を特定するための科学的な手順'},{q:'なぜ重要？',a:'感染症の原因を科学的に証明する方法を確立'},{q:'ノーベル賞は？',a:'1905年にノーベル生理学・医学賞を受賞'},{q:'パスツールとの違いは？',a:'パスツールはワクチン、コッホは病原菌発見が専門'}]},
+{id:262,t:'メンデルの法則',e:'🌱',c:'scientist',g:'upper',done:0,sub:'エンドウ豆が教えてくれた遺伝',mid:'chemistry_bio',qa:[{q:'メンデルは何を発見した？',a:'遺伝の法則（優性・分離・独立の法則）'},{q:'どうやって発見した？',a:'修道院でエンドウ豆を何世代も交配して観察'},{q:'なぜエンドウ豆？',a:'育てやすく、特徴がはっきりしているから'},{q:'生前は認められた？',a:'いいえ、死後35年経って再発見されました'},{q:'「遺伝学の父」と呼ばれる理由は？',a:'遺伝の仕組みを初めて科学的に解明したから'}]},
+{id:263,t:'ラボアジエと化学革命',e:'⚗️',c:'scientist',g:'upper',done:0,sub:'近代化学の父',mid:'chemistry_bio',qa:[{q:'ラボアジエは何をした？',a:'燃焼の仕組みを解明し、酸素の役割を発見'},{q:'「質量保存の法則」って何？',a:'化学反応の前後で物質の総質量は変わらない'},{q:'なぜ「化学の父」？',a:'錬金術を科学的な化学に変えたから'},{q:'最期は？',a:'フランス革命中に処刑されてしまいました'},{q:'残した言葉は？',a:'「頭を切り落とすのは一瞬だが、同じ頭は百年かかっても作れない」'}]},
+{id:264,t:'ガウスの数学',e:'📐',c:'scientist',g:'upper',done:0,sub:'数学の王',mid:'physics',qa:[{q:'ガウスって誰？',a:'「数学の王」と呼ばれるドイツの数学者'},{q:'子どもの頃のエピソードは？',a:'10歳で1から100までの足し算を瞬時に解いた'},{q:'何を発見した？',a:'正17角形の作図法、最小二乗法など多数'},{q:'磁気の単位「ガウス」は？',a:'彼の名前にちなんでつけられました'},{q:'他の分野でも活躍？',a:'天文学、物理学、測量学でも大きな業績'}]},
+{id:265,t:'アルフレッド・ノーベル',e:'🏆',c:'scientist',g:'upper',done:0,sub:'ダイナマイトとノーベル賞',mid:'chemistry_bio',qa:[{q:'ノーベルは何を発明した？',a:'ダイナマイト（安全な爆薬）'},{q:'なぜダイナマイトを作った？',a:'危険なニトログリセリンを安全に使うため'},{q:'「死の商人」って？',a:'兵器に使われ、誤報で批判されたこと'},{q:'ノーベル賞を作った理由は？',a:'平和や科学の発展に貢献する人を称えたかった'},{q:'何部門ある？',a:'物理学、化学、医学、文学、平和、経済学の6部門'}]},
+{id:266,t:'山中伸弥のiPS細胞',e:'🧬',c:'scientist',g:'upper',done:0,sub:'何にでもなれる細胞を作った',mid:'japan_scientist',qa:[{q:'山中伸弥は何を発見した？',a:'iPS細胞（人工多能性幹細胞）を作り出す方法'},{q:'iPS細胞の何がすごい？',a:'体のどんな細胞にもなれる可能性がある'},{q:'何に使える？',a:'病気の治療、新薬開発、臓器の再生など'},{q:'ノーベル賞は？',a:'2012年にノーベル医学生理学賞を受賞'},{q:'研究のきっかけは？',a:'整形外科医時代に治せない患者を救いたいと思った'}]},
+{id:267,t:'小柴昌俊とニュートリノ',e:'✨',c:'scientist',g:'upper',done:0,sub:'幽霊粒子をつかまえた',mid:'japan_scientist',qa:[{q:'ニュートリノって何？',a:'ほとんど何も通り抜ける「幽霊のような粒子」'},{q:'小柴昌俊は何をした？',a:'超新星からのニュートリノを世界で初めて観測'},{q:'カミオカンデって何？',a:'岐阜県の地下にある巨大な観測装置'},{q:'ノーベル賞は？',a:'2002年にノーベル物理学賞を受賞'},{q:'なぜ地下深く？',a:'他の粒子を遮断してニュートリノだけを捉えるため'}]},
+{id:268,t:'利根川進と免疫',e:'🛡️',c:'scientist',g:'upper',done:0,sub:'免疫のしくみを解明',mid:'japan_scientist',qa:[{q:'利根川進は何を発見した？',a:'抗体の多様性を生み出す遺伝子の仕組み'},{q:'抗体って何？',a:'病原菌やウイルスを攻撃する免疫のタンパク質'},{q:'なぜ無限の抗体ができる？',a:'遺伝子が組み換わって多様な抗体を作るから'},{q:'ノーベル賞は？',a:'1987年に日本人初の単独ノーベル医学生理学賞'},{q:'今は何を研究？',a:'記憶や脳の仕組みの研究に取り組んでいます'}]},
+{id:269,t:'富士山',e:'🗻',c:'nature',g:'upper',done:0,sub:'日本一高い山の秘密',mid:'japan_nature',qa:[{q:'富士山の高さは？',a:'3,776m、日本で一番高い山'},{q:'いつ噴火した？',a:'最後は1707年（宝永噴火）、約300年前'},{q:'また噴火する？',a:'活火山なので、将来噴火する可能性があります'},{q:'なぜ美しい形？',a:'何度も噴火して溶岩が均等に積み重なったから'},{q:'世界遺産になった理由は？',a:'信仰の対象と芸術の源泉として（文化遺産）'}]},
+{id:270,t:'四季の生き物',e:'🦋',c:'nature',g:'upper',done:0,sub:'季節を感じる動植物',mid:'japan_nature',qa:[{q:'春を告げる生き物は？',a:'ウグイス、ツバメ、桜、菜の花など'},{q:'夏の生き物は？',a:'セミ、カブトムシ、ヒマワリ、アサガオなど'},{q:'秋を感じる生き物は？',a:'赤トンボ、スズムシ、紅葉、コスモスなど'},{q:'冬の生き物は？',a:'渡り鳥（ハクチョウ）、冬眠するクマなど'},{q:'季節の変化と生き物の関係は？',a:'気温や日照時間に合わせて行動や姿が変わる'}]},
+{id:271,t:'日本のジオパーク',e:'🌄',c:'nature',g:'upper',done:0,sub:'大地の歴史を学ぶ場所',mid:'japan_nature',qa:[{q:'ジオパークって何？',a:'地質や地形が貴重な地域を保護・活用する場所'},{q:'日本にいくつある？',a:'46地域（2024年時点）、うち10が世界ジオパーク'},{q:'有名なジオパークは？',a:'洞爺湖有珠山、島原半島、糸魚川など'},{q:'何が学べる？',a:'火山、地震、化石など大地の成り立ち'},{q:'ユネスコジオパークとは？',a:'国連が認定する世界的に価値のあるジオパーク'}]},
+{id:272,t:'川の役割',e:'🏞️',c:'nature',g:'upper',done:0,sub:'水の旅と私たちの暮らし',mid:'japan_nature',qa:[{q:'川はどこから始まる？',a:'山に降った雨や雪解け水が集まって流れ出す'},{q:'川の3つの働きは？',a:'侵食（削る）、運搬（運ぶ）、堆積（積もる）'},{q:'日本の川の特徴は？',a:'短くて急、流れが速い'},{q:'川が暮らしに与える恵みは？',a:'飲み水、農業用水、発電、漁業など'},{q:'川の防災は？',a:'堤防、ダム、遊水地などで洪水を防ぐ'}]},
+{id:273,t:'身近な鳥を観察しよう',e:'🐦',c:'nature',g:'upper',done:0,sub:'スズメ・カラス・ハト',mid:'japan_nature',qa:[{q:'スズメの特徴は？',a:'茶色い体、頬の黒い斑点、人の近くで暮らす'},{q:'カラスが賢い理由は？',a:'道具を使う、記憶力が良い、問題解決ができる'},{q:'ハトの帰巣本能って？',a:'遠くからでも自分の巣に戻れる能力'},{q:'渡り鳥と留鳥の違いは？',a:'渡り鳥は季節移動、留鳥は一年中同じ場所'},{q:'野鳥観察のコツは？',a:'静かに、双眼鏡で、早朝がおすすめ'}]},
+{id:274,t:'昆虫の不思議',e:'🐞',c:'nature',g:'upper',done:0,sub:'小さな体のすごい能力',mid:'japan_nature',qa:[{q:'昆虫の特徴は？',a:'体が頭・胸・腹に分かれ、脚が6本'},{q:'なぜ昆虫は多い？',a:'小さくて適応力が高く、あらゆる環境に住める'},{q:'変態って何？',a:'幼虫から成虫へ姿が大きく変わること'},{q:'昆虫の目のすごさは？',a:'複眼で360度近く見える種類も'},{q:'昆虫食って？',a:'栄養豊富で環境に優しい未来の食料として注目'}]},
+{id:275,t:'夜空を見上げよう',e:'🌟',c:'astronomy',g:'upper',done:0,sub:'星座の見つけ方',mid:'observe',qa:[{q:'星座はいくつある？',a:'全部で88星座が国際的に定められています'},{q:'北極星の見つけ方は？',a:'北斗七星の端の2つを延長すると見つかる'},{q:'季節で見える星座が変わる理由は？',a:'地球が太陽の周りを回っているから'},{q:'プラネタリウムって何？',a:'室内で星空を再現する施設'},{q:'星空観察のコツは？',a:'暗い場所、月のない日、目を慣らすこと'}]},
+{id:276,t:'彗星と小惑星',e:'☄️',c:'astronomy',g:'upper',done:0,sub:'太陽系の旅人たち',mid:'observe',qa:[{q:'彗星って何？',a:'氷と岩石でできた「汚れた雪だるま」のような天体'},{q:'彗星の尾はなぜできる？',a:'太陽に近づくと氷が溶けてガスや塵が噴き出すから'},{q:'小惑星って何？',a:'主に火星と木星の間にある岩石の小天体'},{q:'地球に衝突する危険は？',a:'監視が行われ、対策も研究されています'},{q:'ハレー彗星って？',a:'約76年周期で現れる有名な彗星'}]},
+{id:277,t:'南極と北極',e:'🧊',c:'nature',g:'upper',done:0,sub:'地球の端っこの世界',mid:'earth_system',qa:[{q:'南極と北極の違いは？',a:'南極は大陸、北極は海の上の氷'},{q:'どれくらい寒い？',a:'南極で記録された最低気温は−89.2℃'},{q:'南極に住んでいる人は？',a:'定住者はいませんが、研究者が滞在'},{q:'日本の南極観測基地は？',a:'昭和基地が1957年に開設されました'},{q:'なぜ極地を研究する？',a:'気候変動や地球の歴史を知る重要な場所'}]},
+{id:278,t:'海流のはたらき',e:'🌊',c:'nature',g:'upper',done:0,sub:'海の中の大きな流れ',mid:'earth_system',qa:[{q:'海流って何？',a:'海の中を流れる大きな水の動き'},{q:'暖流と寒流って？',a:'暖流は暖かい水、寒流は冷たい水の流れ'},{q:'日本に影響する海流は？',a:'黒潮（暖流）と親潮（寒流）'},{q:'海流が気候に与える影響は？',a:'沿岸の気温や降水量を左右する'},{q:'魚との関係は？',a:'暖流と寒流がぶつかる場所は良い漁場に'}]},
+{id:279,t:'火山の恵み',e:'🌋',c:'nature',g:'upper',done:0,sub:'怖いだけじゃない火山',mid:'earth_system',qa:[{q:'火山の恵みって何？',a:'温泉、地熱発電、肥沃な土壌、美しい景観'},{q:'日本の温泉と火山の関係は？',a:'多くの温泉が火山の熱で温められている'},{q:'火山灰は役に立つ？',a:'肥沃な土を作り、農業に適した土地になる'},{q:'火山がないとどうなる？',a:'大地が作られず、温泉もない世界に'},{q:'火山と共に生きるには？',a:'恵みを活かしつつ、災害に備えることが大切'}]},
+{id:280,t:'雪と氷の科学',e:'❄️',c:'nature',g:'upper',done:0,sub:'水の不思議な変化',mid:'weather',qa:[{q:'雪の結晶はなぜ六角形？',a:'水分子の結合の角度が60度だから'},{q:'雪と霜の違いは？',a:'雪は空で、霜は地上でできる氷の結晶'},{q:'氷が水に浮くのはなぜ？',a:'氷は水より密度が小さいから（珍しい性質）'},{q:'これが生き物に大切な理由は？',a:'湖が全部凍らず、魚が生きられるから'},{q:'中谷宇吉郎って誰？',a:'「雪は天から送られた手紙」と言った日本の雪博士'}]},
+{id:281,t:'特定外来生物',e:'⚠️',c:'nature',g:'upper',done:0,sub:'生態系を脅かす生き物',mid:'protect',qa:[{q:'特定外来生物って何？',a:'法律で飼育や移動が禁止されている外来種'},{q:'代表的な生き物は？',a:'ブラックバス、アライグマ、オオキンケイギク'},{q:'なぜ問題？',a:'在来種を食べたり、生態系のバランスを壊す'},{q:'どうやって広まった？',a:'ペットの放棄、釣り目的の放流、船に紛れるなど'},{q:'私たちにできることは？',a:'外来種を「入れない・捨てない・拡げない」'}]},
+{id:282,t:'地球の水',e:'💧',c:'nature',g:'upper',done:0,sub:'水は限られた資源',mid:'environment',qa:[{q:'地球にどれくらい水がある？',a:'約14億km³、でも使える淡水は0.01%以下'},{q:'水不足の地域は？',a:'中東、アフリカ、南アジアなど約20億人が影響'},{q:'バーチャルウォーターって？',a:'食品や製品を作るのに使われた水の量'},{q:'日本は水が豊か？',a:'雨は多いが、食料輸入で海外の水も使っている'},{q:'水を大切にするには？',a:'節水、水を汚さない、食品ロスを減らす'}]},
+{id:283,t:'食品ロスを減らそう',e:'🍽️',c:'nature',g:'upper',done:0,sub:'「もったいない」の心',mid:'future',qa:[{q:'食品ロスってどれくらい？',a:'日本で年間約523万トン（2021年度）'},{q:'一人当たりだと？',a:'毎日おにぎり1個分を捨てている計算'},{q:'なぜ問題？',a:'資源の無駄、環境負荷、飢餓との矛盾'},{q:'家庭でできることは？',a:'買いすぎない、使い切る、食べきる'},{q:'「てまえどり」って何？',a:'店で手前の商品から取り、廃棄を減らす行動'}]},
+{id:284,t:'持続可能な社会へ',e:'🌍',c:'nature',g:'upper',done:0,sub:'未来の地球のために今できること',mid:'future',qa:[{q:'持続可能って何？',a:'将来の世代も使えるように資源を大切にすること'},{q:'なぜ今行動が必要？',a:'環境問題は待ってくれない、今が分岐点'},{q:'一人の行動で変わる？',a:'小さな行動が集まれば大きな変化になる'},{q:'希望はある？',a:'技術の進歩、若い世代の意識、国際協力が進んでいる'},{q:'まず何をする？',a:'知ること、考えること、できることから始める'}]}
+];
+// ローカルストレージの進捗をマージ（バージョン管理付き）
+const SLIDES_VERSION='v4.1';
+const savedVersion=localStorage.getItem('sherupa_slides_version');
+let slides;
+if(savedVersion===SLIDES_VERSION){
+const savedSlides=JSON.parse(localStorage.getItem('sherupa_s')||'[]');
+slides=INITIAL_SLIDES.map(s=>{
+const saved=savedSlides.find(x=>x.id===s.id);
+return saved?{...s,done:saved.done||0,embed:saved.embed||s.embed}:s;
+});
+}else{
+// バージョンが違う場合は初期データを使用
+slides=[...INITIAL_SLIDES];
+localStorage.setItem('sherupa_slides_version',SLIDES_VERSION);
+localStorage.removeItem('sherupa_s');
+}
 document.addEventListener('DOMContentLoaded',init);
-function init(){renderNav();renderGrades();renderCats();renderSlides();renderGallery();renderBadges();renderEmojis();renderSlideList();renderUsers();renderFM();updateFMCount();renderClasses();renderStudents();renderTasks();renderMountains();renderClimbBadges();renderCertificates();renderSpecialGalleries();renderAdminGallery();renderParentDash();loadProfile();renderSponsorMissions();renderSponsorSlides();renderSponsorReport();renderSponsorDash();renderRankings();renderAdminStats();renderReportContent();renderAdminGradeUsers();renderMasterSponsorSelect();renderMasterSponsorSlides();renderDiary();renderChildRanking();renderCompletedSlides();}
-function renderNav(){const items=mode==='child'?[{id:'home',i:'🏠',l:'ホーム'},{id:'diary',i:'📔',l:'日記'},{id:'ranking',i:'🏆',l:'ランキング'},{id:'climb',i:'🏔️',l:'登頂'},{id:'gallery',i:'🖼️',l:'ギャラリー'},{id:'profile',i:'👤',l:'マイページ'}]:mode==='parent'?[{id:'parent-dash',i:'📊',l:'ダッシュボード'},{id:'parent-report',i:'📈',l:'レポート'},{id:'parent-gallery',i:'🖼️',l:'作品応援'},{id:'parent-family',i:'👨‍👩‍👧',l:'ファミリー'},{id:'parent-settings',i:'⚙️',l:'設定'}]:mode==='teacher'?[{id:'teacher-dash',i:'📊',l:'ダッシュボード'},{id:'teacher-ranking',i:'🏆',l:'ランキング'},{id:'teacher-gallery',i:'🖼️',l:'作品応援'},{id:'teacher-class',i:'👥',l:'クラス'},{id:'teacher-tasks',i:'📝',l:'課題'}]:mode==='sponsor'?[{id:'sponsor-dash',i:'🎗️',l:'ダッシュボード'},{id:'sponsor-gallery',i:'💎',l:'作品応援'},{id:'sponsor-report',i:'📊',l:'レポート'},{id:'sponsor-settings',i:'⚙️',l:'設定'}]:[{id:'admin-home',i:'⚙️',l:'管理'}];document.getElementById('navItems').innerHTML=items.map((x,i)=>'<div class="nav-item'+(i===0?' active':'')+'" onclick="showScreen(\''+x.id+'\',this)"><span>'+x.i+'</span><span>'+x.l+'</span></div>').join('');}
-function showScreen(id,el){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));document.getElementById('screen-'+id).classList.add('active');if(el)el.classList.add('active');}
+function init(){renderNav();renderGrades();renderCats();renderSlides();renderGallery();renderBadges();renderEmojis();renderSlideList();renderUsers();renderFM();updateFMCount();renderClasses();renderStudents();renderTasks();renderMountains();renderClimbBadges();renderCertificates();renderSpecialGalleries();renderAdminGallery();renderParentDash();loadProfile();renderFamilyMissions();renderSponsorMissions();renderSponsorSlides();renderSponsorReport();renderSponsorDash();renderRankings();renderAdminStats();renderReportContent();renderAdminGradeUsers();renderMasterSponsorSelect();renderMasterSponsorSlides();renderDiary();renderChildRanking();renderCompletedSlides();loadApiKey();renderQAReport();renderLinkedChildren();renderBookshelfMain();renderSlideRequests();renderVideoPanel();}
+let currentBigCat=null;let currentMidCat=null;
+function renderBookshelfMain(){const el=document.getElementById('bookshelfMain');if(!el)return;
+let html='<div style="background:linear-gradient(180deg,#8B4513 0%,#A0522D 100%);border-radius:16px;padding:16px;box-shadow:inset 0 -4px 8px rgba(0,0,0,.3)">';
+html+='<div style="font-size:12px;color:#DEB887;margin-bottom:10px;font-weight:600">📚 大カテゴリを選ぼう</div>';
+html+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:10px">';
+BOOKSHELF_DATA.forEach(big=>{
+const catSlides=slides.filter(s=>s.c===big.id);
+const done=catSlides.filter(s=>s.done).length;
+const total=catSlides.length;
+html+='<div onclick="openBigCategory(\''+big.id+'\')" style="cursor:pointer;transition:transform .2s" onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'">';
+html+='<div style="background:'+big.color+';height:100px;border-radius:6px 6px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:2px 2px 8px rgba(0,0,0,.3)">';
+html+='<div style="font-size:32px;text-shadow:0 2px 4px rgba(0,0,0,.3)">'+big.e+'</div>';
+html+='<div style="font-size:10px;color:#fff;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.5);margin-top:4px">'+big.n+'</div>';
+html+='</div>';
+html+='<div style="background:linear-gradient(180deg,#DEB887,#D2B48C);height:24px;border-radius:0 0 6px 6px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 2px 4px rgba(0,0,0,.2)">';
+html+='<div style="font-size:9px;color:#5D4037;font-weight:700">'+done+'/'+total+'</div>';
+html+='</div>';
+html+='</div>';
+});
+html+='</div>';
+html+='<div style="background:#654321;height:10px;border-radius:5px;margin-top:12px;box-shadow:inset 0 2px 4px rgba(0,0,0,.3)"></div>';
+html+='</div>';
+el.innerHTML=html;}
+function openBigCategory(bigId){currentBigCat=bigId;const big=BOOKSHELF_DATA.find(b=>b.id===bigId);if(!big)return;
+document.getElementById('bookshelfMain').style.display='none';
+document.getElementById('bookshelfMid').style.display='block';
+document.getElementById('bookshelfSmall').style.display='none';
+document.getElementById('bookshelfMidTitle').textContent=big.e+' '+big.n;
+let html='<div style="background:linear-gradient(180deg,#8B4513 0%,#A0522D 100%);border-radius:16px;padding:16px;box-shadow:inset 0 -4px 8px rgba(0,0,0,.3)">';
+html+='<div style="font-size:12px;color:#DEB887;margin-bottom:10px;font-weight:600">📖 中カテゴリを選ぼう</div>';
+html+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px">';
+big.mid.forEach(mid=>{
+const midSlides=slides.filter(s=>s.mid===mid.id);
+const midDone=midSlides.filter(s=>s.done).length;
+const midTotal=midSlides.length;
+html+='<div onclick="openMidCategory(\''+bigId+'\',\''+mid.id+'\')" style="cursor:pointer;transition:transform .2s" onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'">';
+html+='<div style="background:'+big.color+';height:80px;border-radius:6px 6px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:2px 2px 8px rgba(0,0,0,.3);opacity:.9">';
+html+='<div style="font-size:28px;text-shadow:0 2px 4px rgba(0,0,0,.3)">'+mid.e+'</div>';
+html+='<div style="font-size:9px;color:#fff;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.5);margin-top:2px;text-align:center;padding:0 4px;line-height:1.2">'+mid.n+'</div>';
+html+='</div>';
+html+='<div style="background:linear-gradient(180deg,#DEB887,#D2B48C);height:20px;border-radius:0 0 6px 6px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 2px 4px rgba(0,0,0,.2)">';
+html+='<div style="font-size:8px;color:#5D4037;font-weight:600">'+midDone+'/'+midTotal+'テーマ</div>';
+html+='</div>';
+html+='</div>';
+});
+html+='</div>';
+html+='<div style="background:#654321;height:8px;border-radius:4px;margin-top:12px;box-shadow:inset 0 2px 4px rgba(0,0,0,.3)"></div>';
+html+='</div>';
+document.getElementById('bookshelfMidContent').innerHTML=html;}
+function closeBookshelfMid(){document.getElementById('bookshelfMain').style.display='block';document.getElementById('bookshelfMid').style.display='none';currentBigCat=null;}
+function openMidCategory(bigId,midId){
+currentMidCat=midId;
+const big=BOOKSHELF_DATA.find(b=>b.id===bigId);
+const mid=big?.mid.find(m=>m.id===midId);
+if(!big||!mid){
+console.error('openMidCategory: big or mid not found', bigId, midId);
+return;
+}
+document.getElementById('bookshelfMid').style.display='none';
+document.getElementById('bookshelfSmall').style.display='block';
+document.getElementById('bookshelfSmallTitle').textContent=mid.e+' '+mid.n;
+const midSlides=slides.filter(s=>s.mid===midId);
+console.log('openMidCategory:', midId, 'slides:', midSlides.length, 'total slides:', slides.length);
+let html='<div style="background:linear-gradient(180deg,#8B4513 0%,#A0522D 100%);border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:inset 0 -4px 8px rgba(0,0,0,.3)">';
+html+='<div style="font-size:12px;color:#DEB887;margin-bottom:10px;font-weight:600">📕 テーマを選んで学ぼう（'+midSlides.length+'テーマ）</div>';
+html+='<div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:8px">';
+midSlides.forEach(sl=>{
+const done=sl.done;
+html+='<div onclick="openTopicSlides(\''+bigId+'\',\''+midId+'\','+sl.id+')" style="cursor:pointer;transition:transform .2s;flex-shrink:0;width:100px" onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'">';
+html+='<div style="background:'+(done?'linear-gradient(180deg,#22c55e,#16a34a)':big.color)+';height:80px;border-radius:6px 6px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:2px 2px 8px rgba(0,0,0,.3);position:relative;padding:6px">';
+if(done)html+='<div style="position:absolute;top:-6px;right:-6px;background:#fff;color:#22c55e;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;box-shadow:0 2px 4px rgba(0,0,0,.2)">✓</div>';
+html+='<div style="font-size:28px;text-shadow:0 2px 4px rgba(0,0,0,.3)">'+sl.e+'</div>';
+html+='<div style="font-size:9px;color:#fff;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.5);text-align:center;margin-top:2px;line-height:1.2;max-height:24px;overflow:hidden;padding:0 4px">'+sl.t+'</div>';
+html+='</div>';
+html+='<div style="background:linear-gradient(180deg,#DEB887,#D2B48C);height:20px;border-radius:0 0 6px 6px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 2px 4px rgba(0,0,0,.2)">';
+html+='<div style="font-size:8px;color:#5D4037;font-weight:600">'+(done?'✓ 完了':'未完了')+'</div>';
+html+='</div>';
+html+='</div>';
+});
+if(midSlides.length===0){
+html+='<div style="text-align:center;color:#DEB887;padding:20px;font-size:11px;width:100%">このカテゴリのテーマは準備中です</div>';
+}
+html+='</div>';
+html+='<div style="background:#654321;height:6px;border-radius:3px;margin-top:10px;box-shadow:inset 0 2px 4px rgba(0,0,0,.3)"></div>';
+html+='</div>';
+document.getElementById('bookshelfSmallContent').innerHTML=html;}
+function closeBookshelfSmall(){document.getElementById('bookshelfMid').style.display='block';document.getElementById('bookshelfSmall').style.display='none';currentMidCat=null;}
+let bookshelfReturnInfo=null;
+function openTopicSlides(bigId,midId,slideId){
+const s=slides.find(x=>x.id===slideId);
+if(s){
+const idx=slides.indexOf(s);
+bookshelfReturnInfo={bigId,midId};
+openSlide(idx);
+}else{toast('このテーマのスライドは準備中です');}
+}
+function loadApiKey(){const key=localStorage.getItem('sherupa_claude_api_key');if(key&&document.getElementById('claudeApiKey')){document.getElementById('claudeApiKey').value=key;document.getElementById('apiKeyStatus').innerHTML='<div style="font-size:11px;color:var(--meadow)">✅ APIキー登録済み</div>';}}
+function saveApiKey(){const key=document.getElementById('claudeApiKey').value.trim();if(!key){toast('APIキーを入力してください');return;}localStorage.setItem('sherupa_claude_api_key',key);document.getElementById('apiKeyStatus').innerHTML='<div style="font-size:11px;color:var(--meadow)">✅ 保存しました</div>';toast('🔑 APIキーを保存しました');}
+async function testApiKey(){const key=document.getElementById('claudeApiKey').value.trim()||localStorage.getItem('sherupa_claude_api_key');if(!key){toast('APIキーを入力してください');return;}document.getElementById('apiKeyStatus').innerHTML='<div style="font-size:11px;color:var(--rock)">🔄 テスト中...</div>';try{const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:50,messages:[{role:'user',content:'こんにちは'}]})});if(res.ok){document.getElementById('apiKeyStatus').innerHTML='<div style="font-size:11px;color:var(--meadow)">✅ 接続成功！AIが利用可能です</div>';toast('✅ API接続成功！');}else{const err=await res.json();throw new Error(err.error?.message||'接続失敗');}}catch(e){document.getElementById('apiKeyStatus').innerHTML='<div style="font-size:11px;color:#ef4444">❌ エラー: '+e.message+'</div>';}}
+function renderNav(){const items=mode==='child'?[{id:'home',i:'🏠',l:'ホーム'},{id:'bookshelf',i:'📚',l:'本棚'},{id:'diary',i:'📔',l:'日記'},{id:'ranking',i:'🏆',l:'ランキング'},{id:'climb',i:'🏔️',l:'登頂'},{id:'gallery',i:'🖼️',l:'ギャラリー'},{id:'profile',i:'👤',l:'マイページ'}]:mode==='parent'?[{id:'parent-dash',i:'📊',l:'ダッシュボード'},{id:'parent-report',i:'📈',l:'レポート'},{id:'parent-gallery',i:'🖼️',l:'作品応援'},{id:'parent-family',i:'👨‍👩‍👧',l:'ファミリー'},{id:'parent-settings',i:'⚙️',l:'設定'}]:mode==='teacher'?[{id:'teacher-dash',i:'📊',l:'ダッシュボード'},{id:'teacher-ranking',i:'🏆',l:'ランキング'},{id:'teacher-gallery',i:'🖼️',l:'作品応援'},{id:'teacher-class',i:'👥',l:'クラス'},{id:'teacher-tasks',i:'📝',l:'課題'}]:mode==='sponsor'?[{id:'sponsor-dash',i:'🎗️',l:'ダッシュボード'},{id:'sponsor-gallery',i:'💎',l:'作品応援'},{id:'sponsor-report',i:'📊',l:'レポート'},{id:'sponsor-settings',i:'⚙️',l:'設定'}]:[{id:'admin-home',i:'⚙️',l:'管理'}];document.getElementById('navItems').innerHTML=items.map((x,i)=>'<div class="nav-item'+(i===0?' active':'')+'" onclick="showScreen(\''+x.id+'\',this)"><span>'+x.i+'</span><span>'+x.l+'</span></div>').join('');}
+function showScreen(id,el){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));document.getElementById('screen-'+id).classList.add('active');if(el)el.classList.add('active');
+if(id==='bookshelf'){document.getElementById('bookshelfMain').style.display='block';document.getElementById('bookshelfMid').style.display='none';document.getElementById('bookshelfSmall').style.display='none';currentBigCat=null;currentMidCat=null;renderBookshelfMain();}}
 function goHome(){showScreen(mode==='child'?'home':mode==='parent'?'parent-dash':mode==='teacher'?'teacher-dash':mode==='sponsor'?'sponsor-dash':'admin-home');document.querySelector('.nav-item').click();}
 function renderCats(){document.getElementById('catFilter').innerHTML=Object.entries(CATS).map(([k,v])=>'<div class="cat-chip'+(k===cat?' active':'')+'" onclick="filterCat(\''+k+'\',this)">'+v.e+' '+v.n+'</div>').join('');}
 function renderGrades(){const el=document.getElementById('gradeFilter');if(!el)return;el.innerHTML=Object.entries(GRADES).map(([k,v])=>'<div class="cat-chip'+(k===grade?' active':'')+'" onclick="filterGrade(\''+k+'\',this)">'+v.e+' '+v.n+'</div>').join('');}
 function filterGrade(g,el){grade=g;document.querySelectorAll('#gradeFilter .cat-chip').forEach(x=>x.classList.remove('active'));el.classList.add('active');renderSlides();}
 function filterCat(c,el){cat=c;document.querySelectorAll('#catFilter .cat-chip').forEach(x=>x.classList.remove('active'));el.classList.add('active');renderSlides();}
-function renderSlides(){let f=slides;if(cat!=='all')f=f.filter(s=>s.c===cat);if(grade!=='all')f=f.filter(s=>s.g===grade);document.getElementById('slidesGrid').innerHTML=f.length>0?f.map(s=>'<div class="slide-card'+(s.done?' done':'')+'" onclick="openSlide('+slides.indexOf(s)+')"><div class="slide-visual '+s.c+'" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px;text-align:center"><div style="font-size:28px;margin-bottom:4px">'+s.e+'</div><div style="font-size:9px;font-weight:600;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.4);line-height:1.3;max-height:32px;overflow:hidden;word-break:break-all">'+s.t+'</div></div><div class="slide-body"><div style="display:flex;gap:3px;margin-bottom:4px;flex-wrap:wrap"><span class="slide-cat" style="font-size:9px;padding:2px 4px">'+(CATS[s.c]?.e||'')+(CATS[s.c]?.n||'')+'</span><span class="slide-cat" style="font-size:9px;padding:2px 4px;background:'+(s.g==='lower'?'#22c55e':s.g==='middle'?'#f59e0b':'#ef4444')+';color:#fff">'+(GRADES[s.g]?.e||'')+'</span>'+(s.embed?'<span class="slide-cat" style="font-size:9px;padding:2px 4px;background:#3b82f6;color:#fff">🔗</span>':'')+'</div><div class="slide-title" style="font-size:11px;line-height:1.2;max-height:26px;overflow:hidden">'+s.t+'</div><div class="slide-reward" style="font-size:10px">+10 ALT</div></div></div>').join(''):'<div style="text-align:center;color:rgba(255,255,255,.7);padding:30px;grid-column:span 2"><div style="font-size:40px;margin-bottom:10px">📭</div><div>この条件のスライドはまだありません</div></div>';}
-function loadProfile(){const p=userProfile;document.getElementById('editName').value=p.name;document.getElementById('editRegion').value=p.region;document.getElementById('editGrade').value=p.grade;document.getElementById('profName').textContent=p.name;document.getElementById('profAvatar').textContent=p.name.charAt(0);grade=p.grade;renderGrades();}
+function renderSlides(){let f=slides;if(cat!=='all')f=f.filter(s=>s.c===cat);if(grade!=='all')f=f.filter(s=>s.g===grade);document.getElementById('slidesGrid').innerHTML=f.length>0?f.map(s=>'<div class="slide-card'+(s.done?' done':'')+'" onclick="openSlide('+slides.indexOf(s)+')"><div class="slide-visual '+s.c+'" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px;text-align:center"><div style="font-size:28px;margin-bottom:4px">'+s.e+'</div><div style="font-size:9px;font-weight:600;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.4);line-height:1.3;max-height:32px;overflow:hidden;word-break:break-all">'+s.t+'</div></div><div class="slide-body"><div style="display:flex;gap:3px;margin-bottom:4px;flex-wrap:wrap"><span class="slide-cat" style="font-size:9px;padding:2px 4px">'+(CATS[s.c]?.e||'')+(CATS[s.c]?.n||'')+'</span><span class="slide-cat" style="font-size:9px;padding:2px 4px;background:'+(s.g==='lower'?'#22c55e':s.g==='middle'?'#f59e0b':'#ef4444')+';color:#fff">'+(GRADES[s.g]?.e||'')+'</span>'+(s.embed?'<span class="slide-cat" style="font-size:9px;padding:2px 4px;background:#3b82f6;color:#fff">🔗</span>':'')+'</div><div class="slide-title" style="font-size:11px;line-height:1.2;max-height:26px;overflow:hidden">'+s.t+'</div><div class="slide-reward" style="font-size:10px">+10 ALT</div></div></div>').join(''):'<div style="text-align:center;color:rgba(255,255,255,.7);padding:30px;grid-column:span 2"><div style="font-size:40px;margin-bottom:10px">📭</div><div>この条件のスライドはまだありません</div></div>';renderBookshelf();}
+function renderBookshelf(){const el=document.getElementById('bookshelfView');if(!el)return;
+let html='<div style="display:flex;gap:8px;overflow-x:auto;padding:8px 4px 12px 4px">';
+BOOKSHELF_DATA.forEach(big=>{
+const catSlides=slides.filter(s=>s.c===big.id);
+const done=catSlides.filter(s=>s.done).length;
+const total=catSlides.length;
+const isComplete=total>0&&done===total;
+html+='<div onclick="goToBookshelfMid(\''+big.id+'\')" style="flex-shrink:0;width:70px;cursor:pointer;transition:transform .2s" onmouseover="this.style.transform=\'translateY(-4px)\'" onmouseout="this.style.transform=\'translateY(0)\'">';
+html+='<div style="background:'+big.color+';height:90px;border-radius:4px 4px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;box-shadow:2px 2px 8px rgba(0,0,0,.3)">';
+if(isComplete){html+='<div style="position:absolute;top:-8px;right:-8px;background:#22c55e;color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 2px 4px rgba(0,0,0,.3)">✓</div>';}
+html+='<div style="font-size:28px;text-shadow:0 2px 4px rgba(0,0,0,.3)">'+big.e+'</div>';
+html+='<div style="font-size:9px;color:#fff;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.5);margin-top:4px">'+big.n+'</div>';
+html+='</div>';
+html+='<div style="background:linear-gradient(180deg,#DEB887,#D2B48C);height:20px;border-radius:0 0 4px 4px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 2px 4px rgba(0,0,0,.2)">';
+html+='<div style="font-size:8px;color:#5D4037;font-weight:700">'+done+'/'+total+'</div>';
+html+='</div>';
+html+='<div style="background:#654321;height:6px;border-radius:0 0 2px 2px;box-shadow:0 2px 4px rgba(0,0,0,.4)"></div>';
+html+='</div>';
+});
+html+='</div>';
+html+='<div style="background:#654321;height:8px;border-radius:4px;margin-top:4px;box-shadow:inset 0 2px 4px rgba(0,0,0,.3)"></div>';
+el.innerHTML=html;}
+
+function goToBookshelfMid(bigId){
+showScreen('bookshelf');
+document.getElementById('bookshelfMain').style.display='none';
+document.getElementById('bookshelfMid').style.display='block';
+document.getElementById('bookshelfSmall').style.display='none';
+currentBigCat=bigId;
+openBigCategory(bigId);
+}
+
+function scrollToSlides(){const el=document.getElementById('slidesGrid');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
+let currentCurriculum='science';
+const CAT_DESCRIPTIONS={science:'身の回りの不思議を科学で解明しよう',sdgs:'地球と人類の未来を考えよう',nature:'動物・植物・自然の神秘を探ろう',tech:'テクノロジーの世界を冒険しよう',biography:'偉人たちの人生から学ぼう',geopolitics:'世界の国々と地理を知ろう',energy:'エネルギーの仕組みを学ぼう'};
+const CAT_COLORS={science:'linear-gradient(135deg,#3b82f6,#1d4ed8)',sdgs:'linear-gradient(135deg,#22c55e,#16a34a)',nature:'linear-gradient(135deg,#84cc16,#65a30d)',tech:'linear-gradient(135deg,#8b5cf6,#7c3aed)',biography:'linear-gradient(135deg,#f59e0b,#d97706)',geopolitics:'linear-gradient(135deg,#ec4899,#db2777)',energy:'linear-gradient(135deg,#f97316,#ea580c)'};
+function openCurriculum(catKey){currentCurriculum=catKey;const cat=CATS[catKey];const catSlides=slides.filter(s=>s.c===catKey);const done=catSlides.filter(s=>s.done).length;const total=catSlides.length;const pct=total>0?Math.round(done/total*100):0;
+document.getElementById('curriculumTitle').textContent=cat.e+' '+cat.n;
+document.getElementById('curriculumProgress').textContent='進捗: '+done+'/'+total+'完了';
+document.getElementById('curriculumIcon').textContent=cat.e;
+document.getElementById('curriculumIcon').style.background=CAT_COLORS[catKey]||'#6b7280';
+document.getElementById('curriculumName').textContent=cat.n;
+document.getElementById('curriculumDesc').textContent=CAT_DESCRIPTIONS[catKey]||'';
+document.getElementById('curriculumProgressBar').style.width=pct+'%';
+document.getElementById('curriculumDone').textContent=done+'件完了';
+document.getElementById('curriculumTotal').textContent='全'+total+'件';
+renderCurriculumSlides(catSlides);
+showScreen('curriculum');}
+function renderCurriculumSlides(catSlides){const el=document.getElementById('curriculumSlides');if(!el)return;
+if(catSlides.length===0){el.innerHTML='<div style="text-align:center;color:rgba(255,255,255,.7);padding:30px;font-size:12px">このカテゴリにはまだスライドがありません</div>';return;}
+el.innerHTML=catSlides.map((s,i)=>{const realIdx=slides.findIndex(sl=>sl.id===s.id);return'<div class="slide-card'+(s.done?' done':'')+'" onclick="openSlide('+realIdx+')"><div class="slide-emoji">'+s.e+'</div><div class="slide-info"><div class="slide-title">'+s.t+'</div><div class="slide-cat">'+(s.done?'✅ 完了':'📖 未完了')+'</div></div></div>';}).join('');}
+function loadProfile(){const p=userProfile;document.getElementById('editName').value=p.name;document.getElementById('editRegion').value=p.region;document.getElementById('editGrade').value=p.grade;document.getElementById('profName').textContent=p.name;document.getElementById('profAvatar').textContent=p.name.charAt(0);grade=p.grade;renderGrades();renderFamilyLinkStatus();}
+function renderFamilyLinkStatus(){const statusEl=document.getElementById('familyLinkStatus');const formEl=document.getElementById('familyLinkForm');if(!statusEl)return;if(userProfile.familyCode){const family=FAMILIES.find(f=>f.code===userProfile.familyCode);statusEl.innerHTML='<div style="background:linear-gradient(135deg,#dcfce7,#bbf7d0);border-radius:10px;padding:12px;text-align:center"><div style="font-size:24px;margin-bottom:6px">✅</div><div style="font-size:12px;font-weight:700;color:#16a34a;margin-bottom:4px">保護者と連携中</div><div style="font-size:11px;color:#15803d">ファミリーコード: <strong>'+userProfile.familyCode+'</strong></div>'+(family?'<div style="font-size:10px;color:#166534;margin-top:4px">👨‍👩‍👧 '+family.parentName+'</div>':'')+'<button class="btn btn-sm" style="margin-top:10px;background:#ef4444;color:#fff" onclick="unlinkFamily()">🔓 連携を解除</button></div>';formEl.style.display='none';}else{statusEl.innerHTML='<div style="background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:10px;padding:12px;text-align:center;margin-bottom:12px"><div style="font-size:24px;margin-bottom:6px">🔗</div><div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:4px">まだ連携されていません</div><div style="font-size:10px;color:#b45309">保護者と連携すると、学習状況を見守ってもらえます</div></div>';formEl.style.display='block';}}
+function linkFamily(){const code=document.getElementById('familyCodeInput').value.trim().toUpperCase();if(!code){toast('ファミリーコードを入力してください');return;}const family=FAMILIES.find(f=>f.code===code);if(!family){toast('❌ このコードは見つかりません');return;}userProfile.familyCode=code;userProfile.childId=Date.now();localStorage.setItem('sherupa_profile',JSON.stringify(userProfile));let linkedChildren=JSON.parse(localStorage.getItem('sherupa_linked_children')||'[]');linkedChildren.push({id:userProfile.childId,name:userProfile.name,familyCode:code,linkedAt:Date.now()});localStorage.setItem('sherupa_linked_children',JSON.stringify(linkedChildren));renderFamilyLinkStatus();renderLinkedChildren();toast('✅ '+family.parentName+'と連携しました！');}
+function unlinkFamily(){if(!confirm('本当に連携を解除しますか？')){return;}let linkedChildren=JSON.parse(localStorage.getItem('sherupa_linked_children')||'[]');linkedChildren=linkedChildren.filter(c=>c.id!==userProfile.childId);localStorage.setItem('sherupa_linked_children',JSON.stringify(linkedChildren));userProfile.familyCode=null;userProfile.childId=null;localStorage.setItem('sherupa_profile',JSON.stringify(userProfile));renderFamilyLinkStatus();renderLinkedChildren();toast('🔓 連携を解除しました');}
+function copyFamilyCode(){const code=document.getElementById('parentFamilyCode')?.textContent||'FAM001';navigator.clipboard.writeText(code);toast('📋 コピーしました: '+code);}
+function renderLinkedChildren(){const listEl=document.getElementById('linkedChildrenList');const countEl=document.getElementById('linkedChildCount');const noEl=document.getElementById('noLinkedChildren');if(!listEl)return;const linkedChildren=JSON.parse(localStorage.getItem('sherupa_linked_children')||'[]');const myFamilyCode=document.getElementById('parentFamilyCode')?.textContent||'FAM001';const myChildren=linkedChildren.filter(c=>c.familyCode===myFamilyCode);if(countEl)countEl.textContent=myChildren.length+'人';if(myChildren.length===0){listEl.innerHTML='';if(noEl)noEl.style.display='block';return;}if(noEl)noEl.style.display='none';listEl.innerHTML=myChildren.map(c=>{const linkedDate=new Date(c.linkedAt);const dateStr=(linkedDate.getMonth()+1)+'/'+linkedDate.getDate();return'<div class="list-item"><div class="avatar">'+c.name.charAt(0)+'</div><div class="list-info"><div class="list-title">'+c.name+'</div><div class="list-sub">連携日: '+dateStr+'</div></div><button class="sbtn" style="background:#ef4444;color:#fff" onclick="removeLinkedChild('+c.id+')">削除</button></div>';}).join('');}
+function removeLinkedChild(childId){if(!confirm('このお子さまの連携を解除しますか？')){return;}let linkedChildren=JSON.parse(localStorage.getItem('sherupa_linked_children')||'[]');linkedChildren=linkedChildren.filter(c=>c.id!==childId);localStorage.setItem('sherupa_linked_children',JSON.stringify(linkedChildren));renderLinkedChildren();toast('連携を解除しました');}
 function saveProfile(){const n=document.getElementById('editName').value.trim();const r=document.getElementById('editRegion').value;const g=document.getElementById('editGrade').value;if(n){userProfile={name:n,region:r,grade:g};localStorage.setItem('sherupa_profile',JSON.stringify(userProfile));document.getElementById('profName').textContent=n;document.getElementById('profAvatar').textContent=n.charAt(0);grade=g;renderGrades();renderSlides();updateRefCode(n);toast('保存しました！');}}
-function openSlide(i){curSlide=i;const s=slides[i];document.getElementById('viewerTitle').textContent=s.t;document.getElementById('viewerCat').textContent=CATS[s.c]?.n||'';if(s.embed){document.getElementById('viewerFrame').innerHTML='<iframe src="'+s.embed+'" style="position:absolute;inset:0;width:100%;height:100%;border:none" allowfullscreen></iframe>';}else{document.getElementById('viewerFrame').innerHTML='<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#2d4a6f,#1a2f4e);color:#fff"><div style="font-size:60px;margin-bottom:10px">'+s.e+'</div><div style="font-size:18px;font-weight:700">'+s.t+'</div><div style="font-size:11px;margin-top:8px;opacity:.7">埋め込みコンテンツがありません</div></div>';}showScreen('viewer');}
-function closeViewer(){const chatBox=document.getElementById('viewerChatBox');if(chatBox)chatBox.style.display='none';viewerChatHistory=[];showScreen('home');curSlide=null;}
+let slideViewStartTime=null;
+function openSlide(i){
+curSlide=i;
+const s=slides[i];
+if(!s){toast('スライドが見つかりません');return;}
+// 先に画面を表示
+showScreen('viewer');
+// 要素にアクセス
+const titleEl=document.getElementById('viewerTitle');
+const catEl=document.getElementById('viewerCat');
+const actionsEl=document.getElementById('viewerActions');
+const frameEl=document.getElementById('viewerFrame');
+if(!titleEl||!actionsEl||!frameEl){toast('画面の読み込みエラー');return;}
+titleEl.textContent=s.t;
+if(catEl)catEl.textContent=CATS[s.c]?.n||'';
+if(s.embed){
+// スライドあり
+slideViewStartTime=Date.now();
+frameEl.innerHTML='<iframe src="'+s.embed+'" style="position:absolute;inset:0;width:100%;height:100%;border:none" allowfullscreen></iframe>';
+actionsEl.innerHTML='<span style="font-size:11px;color:var(--rock)">'+(CATS[s.c]?.n||'')+'</span><button class="btn btn-sm" style="background:#9ca3af;color:#fff" disabled id="viewerCompleteBtn">⏳ スライドを見てね</button>';
+// 10秒後に完了ボタン有効化
+setTimeout(()=>{
+const btn=document.getElementById('viewerCompleteBtn');
+if(btn&&curSlide===i){btn.disabled=false;btn.style.background='linear-gradient(135deg,#22c55e,#16a34a)';btn.textContent='✅ 完了 +10 ALT';btn.onclick=completeSlide;}
+},10000);
+}else{
+// スライド未実装
+slideViewStartTime=null;
+frameEl.innerHTML='<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#f3f4f6,#e5e7eb);color:#374151"><div style="font-size:60px;margin-bottom:10px">'+s.e+'</div><div style="font-size:18px;font-weight:700;margin-bottom:8px">'+s.t+'</div><div style="background:#fef3c7;border-radius:12px;padding:12px 20px;margin-bottom:16px"><div style="font-size:14px;color:#92400e;font-weight:700">🚧 現在準備中</div><div style="font-size:11px;color:#b45309;margin-top:4px">このスライドは近日公開予定です</div></div></div>';
+actionsEl.innerHTML='<span style="font-size:11px;color:var(--rock)">'+(CATS[s.c]?.n||'')+'</span><button class="btn btn-sm" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff" onclick="requestSlide('+i+')">📝 スライド作成を希望</button>';
+}
+// 関連動画を表示
+renderRelatedVideos(s);
+}
+
+function renderRelatedVideos(s){
+const el=document.getElementById('relatedVideoList');
+if(!el)return;
+// 関連動画データ（管理者登録→スライド定義→ダミーの優先順）
+const registeredVideos=slideVideos[s.id]||[];
+const defaultVideos=[
+{title:'【解説】'+s.t+'とは？',thumb:'📺',duration:'5:30'},
+{title:s.t+'をもっと知ろう',thumb:'🎥',duration:'8:15'},
+{title:'子ども向け'+s.t+'入門',thumb:'📹',duration:'6:45'},
+{title:s.t+'の歴史',thumb:'🎬',duration:'10:20'},
+{title:'実験！'+s.t,thumb:'🔬',duration:'7:00'}
+];
+const videos=registeredVideos.length>0?registeredVideos:(s.videos||defaultVideos);
+let html='';
+videos.forEach((v,idx)=>{
+html+='<div onclick="playVideo('+curSlide+','+idx+')" style="flex-shrink:0;width:140px;cursor:pointer;transition:transform .2s" onmouseover="this.style.transform=\'scale(1.03)\'" onmouseout="this.style.transform=\'scale(1)\'">';
+html+='<div style="background:linear-gradient(135deg,#1f2937,#374151);height:80px;border-radius:8px;display:flex;align-items:center;justify-content:center;position:relative">';
+html+='<div style="font-size:32px">'+v.thumb+'</div>';
+html+='<div style="position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,.7);color:#fff;font-size:9px;padding:2px 4px;border-radius:3px">'+v.duration+'</div>';
+html+='<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><div style="width:28px;height:28px;background:rgba(255,255,255,.9);border-radius:50%;display:flex;align-items:center;justify-content:center"><div style="width:0;height:0;border-top:6px solid transparent;border-bottom:6px solid transparent;border-left:10px solid #ef4444;margin-left:2px"></div></div></div>';
+html+='</div>';
+html+='<div style="padding:6px 2px"><div style="font-size:10px;color:#fff;font-weight:600;line-height:1.3;max-height:28px;overflow:hidden">'+v.title+'</div></div>';
+html+='</div>';
+});
+el.innerHTML=html;
+}
+
+function playVideo(slideIdx,videoIdx){
+const s=slides[slideIdx];
+const registeredVideos=slideVideos[s.id]||[];
+const defaultVideos=[
+{title:'【解説】'+s.t+'とは？',thumb:'📺',duration:'5:30'},
+{title:s.t+'をもっと知ろう',thumb:'🎥',duration:'8:15'},
+{title:'子ども向け'+s.t+'入門',thumb:'📹',duration:'6:45'},
+{title:s.t+'の歴史',thumb:'🎬',duration:'10:20'},
+{title:'実験！'+s.t,thumb:'🔬',duration:'7:00'}
+];
+const videos=registeredVideos.length>0?registeredVideos:(s.videos||defaultVideos);
+const v=videos[videoIdx];
+// YouTubeのIDを抽出
+let youtubeId=null;
+if(v.url){
+const match=v.url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/))([^?&]+)/);
+if(match)youtubeId=match[1];
+}
+// 大画面で動画を表示
+const modal=document.createElement('div');
+modal.className='modal-overlay active';
+modal.id='videoPlayerModal';
+if(youtubeId){
+modal.innerHTML='<div style="width:100%;max-width:600px;margin:0 16px">'+
+'<div style="background:#000;border-radius:12px;overflow:hidden">'+
+'<div style="position:relative;padding-top:56.25%">'+
+'<iframe src="https://www.youtube.com/embed/'+youtubeId+'?autoplay=1" style="position:absolute;inset:0;width:100%;height:100%;border:none" allowfullscreen allow="autoplay"></iframe>'+
+'</div>'+
+'<div style="background:#111;padding:12px;display:flex;justify-content:space-between;align-items:center">'+
+'<div style="color:#fff;font-size:11px;flex:1">'+v.title+'</div>'+
+'<button onclick="closeVideoPlayer()" style="background:#ef4444;color:#fff;border:none;border-radius:6px;padding:8px 16px;font-size:12px;cursor:pointer">✕ 閉じる</button>'+
+'</div>'+
+'</div>'+
+'</div>';
+}else{
+modal.innerHTML='<div style="width:100%;max-width:600px;margin:0 16px">'+
+'<div style="background:#000;border-radius:12px;overflow:hidden">'+
+'<div style="position:relative;padding-top:56.25%;background:linear-gradient(135deg,#1f2937,#374151)">'+
+'<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff">'+
+'<div style="font-size:80px;margin-bottom:16px">'+v.thumb+'</div>'+
+'<div style="font-size:16px;font-weight:700;margin-bottom:8px;text-align:center;padding:0 16px">'+v.title+'</div>'+
+'<div style="background:#fef3c7;border-radius:8px;padding:8px 16px;margin-top:8px">'+
+'<div style="font-size:12px;color:#92400e;font-weight:600">🚧 動画は準備中です</div>'+
+'</div>'+
+'</div>'+
+'</div>'+
+'<div style="background:#111;padding:12px;display:flex;justify-content:space-between;align-items:center">'+
+'<div style="color:#fff;font-size:11px">'+v.duration+'</div>'+
+'<button onclick="closeVideoPlayer()" style="background:#ef4444;color:#fff;border:none;border-radius:6px;padding:8px 16px;font-size:12px;cursor:pointer">✕ 閉じる</button>'+
+'</div>'+
+'</div>'+
+'</div>';
+}
+document.body.appendChild(modal);
+}
+
+function closeVideoPlayer(){
+const modal=document.getElementById('videoPlayerModal');
+if(modal)modal.remove();
+}
+function closeViewer(){
+const chatBox=document.getElementById('viewerChatBox');
+if(chatBox)chatBox.style.display='none';
+viewerChatHistory=[];
+slideViewStartTime=null;
+curSlide=null;
+if(bookshelfReturnInfo){
+const bigId=bookshelfReturnInfo.bigId;
+const midId=bookshelfReturnInfo.midId;
+bookshelfReturnInfo=null;
+showScreen('bookshelf');
+document.getElementById('bookshelfMain').style.display='none';
+document.getElementById('bookshelfMid').style.display='none';
+document.getElementById('bookshelfSmall').style.display='block';
+currentBigCat=bigId;
+currentMidCat=midId;
+openMidCategory(bigId,midId);
+}else{
+showScreen('home');
+}
+}
+function requestSlide(i){const s=slides[i];
+let requests=JSON.parse(localStorage.getItem('sherupa_slide_requests')||'[]');
+if(requests.includes(s.id)){toast('すでにリクエスト済みです');return;}
+requests.push(s.id);
+localStorage.setItem('sherupa_slide_requests',JSON.stringify(requests));
+toast('📝 「'+s.t+'」のスライド作成をリクエストしました！');
+const actionsEl=document.getElementById('viewerActions');
+actionsEl.innerHTML='<span style="font-size:11px;color:var(--rock)">'+(CATS[s.c]?.n||'')+'</span><button class="btn btn-sm" style="background:#9ca3af;color:#fff" disabled>✓ リクエスト済み</button>';
+}
 function completeSlide(){if(curSlide===null)return;const s=slides[curSlide];if(!s.done){s.done=1;addAlt(10);doneToday++;updateMission();localStorage.setItem('sherupa_s',JSON.stringify(slides));renderSlides();renderCompletedSlides();}document.getElementById('challengeTitle').textContent='お題：'+s.t+'に挑戦！';showSlideCompleteModal(s);}
 function showSlideCompleteModal(s){const modal=document.createElement('div');modal.className='modal-overlay active';modal.id='slideCompleteModal';modal.innerHTML='<div class="modal-box"><div class="modal-header success"><h3>✨ スライド完了！</h3></div><div class="modal-body" style="text-align:center"><div style="font-size:48px;margin-bottom:8px">'+s.e+'</div><div style="font-size:14px;font-weight:700;margin-bottom:4px">「'+s.t+'」を学んだね！</div><div style="font-size:20px;font-weight:900;color:var(--sunrise);margin-bottom:16px">+10 ALT</div><div style="background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:12px;padding:12px;margin-bottom:12px;text-align:left"><div style="font-size:11px;font-weight:700;color:#92400e;margin-bottom:6px">🎨 次のステップ</div><div style="font-size:10px;color:#b45309;line-height:1.5">学んだことを作品にしてギャラリーに投稿しよう！<br>いいねがもらえると追加ALTがもらえるよ✨</div></div><div style="display:flex;gap:8px"><button class="btn" style="flex:1" onclick="closeSlideCompleteModal()">あとで</button><button class="btn btn-primary" style="flex:1" onclick="goToSubmitWork('+slides.indexOf(s)+')">🖼️ 作品を作る</button></div></div></div>';document.body.appendChild(modal);}
 function closeSlideCompleteModal(){const modal=document.getElementById('slideCompleteModal');if(modal)modal.remove();}
@@ -723,10 +1572,244 @@ function submitWork(slideIdx){const title=document.getElementById('workTitle')?.
 function renderCompletedSlides(){const el=document.getElementById('completedSlideList');const countEl=document.getElementById('completedSlideCount');const noEl=document.getElementById('noCompletedSlide');if(!el)return;const completed=slides.filter(s=>s.done);if(countEl)countEl.textContent=completed.length+'件';if(completed.length===0){el.style.display='none';if(noEl)noEl.style.display='block';return;}el.style.display='grid';if(noEl)noEl.style.display='none';el.innerHTML=completed.map(s=>{const idx=slides.indexOf(s);return'<div style="background:rgba(255,255,255,.95);border-radius:10px;overflow:hidden;cursor:pointer" onclick="openWorkSubmitModal('+idx+')"><div class="slide-visual '+s.c+'" style="height:60px;display:flex;align-items:center;justify-content:center"><div style="font-size:24px">'+s.e+'</div></div><div style="padding:6px"><div style="font-size:9px;font-weight:600;color:var(--summit);line-height:1.2;max-height:24px;overflow:hidden">'+s.t+'</div><div style="font-size:8px;color:var(--meadow);margin-top:2px">✅完了</div><div style="font-size:8px;color:var(--rock);margin-top:2px">🎨 作品を作る</div></div></div>';}).join('');}
 // ビューアーAIチャット機能
 let viewerChatHistory=[];
-function toggleViewerChat(){const box=document.getElementById('viewerChatBox');const isHidden=box.style.display==='none';box.style.display=isHidden?'block':'none';if(isHidden&&viewerChatHistory.length===0){const s=slides[curSlide];viewerChatHistory=[{role:'ai',text:'こんにちは！「'+s.t+'」について質問があれば聞いてね😊'}];renderViewerChat();}}
-function renderViewerChat(){const el=document.getElementById('viewerChatMessages');el.innerHTML=viewerChatHistory.map(m=>'<div style="margin-bottom:10px;display:flex;'+(m.role==='user'?'justify-content:flex-end':'')+'"><div style="max-width:85%;padding:8px 12px;border-radius:12px;font-size:11px;line-height:1.4;'+(m.role==='user'?'background:linear-gradient(135deg,#8b5cf6,#a78bfa);color:#fff':'background:var(--cloud);color:var(--summit)')+'">'+m.text+'</div></div>').join('');el.scrollTop=el.scrollHeight;}
-function sendViewerChat(){const input=document.getElementById('viewerChatInput');const q=input.value.trim();if(!q)return;viewerChatHistory.push({role:'user',text:q});input.value='';renderViewerChat();setTimeout(()=>{const response=generateAIResponse(q);viewerChatHistory.push({role:'ai',text:response});renderViewerChat();},500);}
-function generateAIResponse(q){const s=slides[curSlide];const topic=s?.t||'このトピック';const isSimple=q.length<15||q.includes('？')&&q.length<20;const isDeep=q.includes('なぜ')||q.includes('どうして')||q.includes('理由');const wantsMore=q.includes('もっと')||q.includes('他に')||q.includes('詳しく');if(isSimple&&!isDeep){const answers=['いい質問だね！「'+topic+'」について、簡単に説明するね。調べてみると面白い発見があるかも！📚','それはね、'+topic+'に関係していて、とても大切なポイントなんだ！✨','うんうん、気になるよね！実は、これにはすごく面白い理由があるんだよ🔍'];return answers[Math.floor(Math.random()*answers.length)];}if(isDeep){return'おお、深い質問だね！🤔\n\n「なぜ」を考えるのはとても大切。'+topic+'について、もう少し調べてみると、きっと新しい発見があるよ！\n\n💡ヒント：原因と結果を考えてみよう';}if(wantsMore){return'もっと知りたいんだね！素晴らしい探究心✨\n\n'+topic+'には、まだまだ面白いことがたくさんあるよ。\n\n🎁おまけ情報：図書館やインターネットで「'+topic+'」を調べると、びっくりする事実が見つかるかも！';}return'なるほど、いい視点だね！👀\n\n'+topic+'について考えてくれてありがとう。\n\nもし「なぜ？」「どうして？」と思ったことがあれば、それも聞いてみてね！一緒に考えよう😊';}
+function toggleViewerChat(){const box=document.getElementById('viewerChatBox');const isHidden=box.style.display==='none';box.style.display=isHidden?'block':'none';if(isHidden){viewerChatHistory=[];renderViewerChat();}}
+function renderViewerChat(){const el=document.getElementById('viewerChatMessages');const s=slides[curSlide];const qa=s?.qa||[];
+let html='<div style="text-align:center;margin-bottom:12px"><div style="font-size:11px;color:var(--rock);margin-bottom:8px">❓ 質問をタップしてね</div>';
+if(qa.length>0){html+='<div style="display:flex;flex-direction:column;gap:6px">'+qa.map(item=>'<button onclick="askPresetQuestion(\''+item.q.replace(/'/g,"\\'")+'\',\''+item.a.replace(/'/g,"\\'")+'\')" style="background:linear-gradient(135deg,#8b5cf6,#a78bfa);color:#fff;border:none;border-radius:20px;padding:8px 12px;font-size:11px;cursor:pointer;text-align:left">❓ '+item.q+'</button>').join('')+'</div>';}else{html+='<div style="font-size:10px;color:var(--rock);background:var(--cloud);padding:12px;border-radius:8px">このスライドにはまだ<br>Q&Aが登録されていません</div>';}
+html+='</div>';
+if(viewerChatHistory.length>0){html+='<div style="border-top:1px solid var(--cloud);padding-top:10px;margin-top:10px">'+viewerChatHistory.map(m=>'<div style="margin-bottom:10px;display:flex;'+(m.role==='user'?'justify-content:flex-end':'')+'"><div style="max-width:85%;padding:8px 12px;border-radius:12px;font-size:11px;line-height:1.4;'+(m.role==='user'?'background:linear-gradient(135deg,#8b5cf6,#a78bfa);color:#fff':'background:var(--cloud);color:var(--summit)')+'">'+m.text.replace(/\n/g,'<br>')+'</div></div>').join('')+'</div>';}
+el.innerHTML=html;el.scrollTop=el.scrollHeight;}
+function sendViewerChat(){const input=document.getElementById('viewerChatInput');const q=input.value.trim();if(!q)return;viewerChatHistory.push({role:'user',text:q});input.value='';renderViewerChat();answerFromQA(q);}
+function answerFromQA(question){const s=slides[curSlide];const topic=s?.t||'このトピック';const qa=s?.qa||[];
+setTimeout(()=>{
+const qLower=question.toLowerCase();
+let bestMatch=null;let bestScore=0;
+qa.forEach(item=>{const qWords=item.q.toLowerCase().split(/\s+/);const matchCount=qWords.filter(w=>qLower.includes(w)||w.includes(qLower.split(/\s+/)[0])).length;const score=matchCount/qWords.length;if(score>bestScore){bestScore=score;bestMatch=item;}});
+let response;
+if(bestMatch&&bestScore>=0.3){response=bestMatch.a+' 😊';logQAUsage(curSlide,bestMatch.q);}
+else if(question.includes('なぜ')||question.includes('どうして')){response='いい質問だね！🤔\n\n「'+topic+'」について「なぜ？」と考えるのは大切！\n\nヒント：スライドをもう一度見て、原因と結果を探してみよう💡';}
+else if(question.includes('もっと')||question.includes('詳しく')){response='もっと知りたいんだね！✨\n\n「'+topic+'」についてもっと調べてみよう！\n\n📚 図書館で本を探したり、おうちの人に聞いてみるのもいいね！';}
+else if(question.includes('わからない')||question.includes('むずかしい')){response='大丈夫！ゆっくり考えよう 😊\n\nわからないことがあるのは当たり前だよ。\n\n💡 スライドをもう一度見てみたり、絵や図に注目してみてね！';}
+else{response='うーん、その質問への答えはまだ用意されていないみたい 🤔\n\n上のボタンから質問を選んでみてね！';}
+viewerChatHistory.push({role:'ai',text:response});renderViewerChat();},400);}
+function askPresetQuestion(question,answer){viewerChatHistory.push({role:'user',text:question});viewerChatHistory.push({role:'ai',text:answer+' 😊'});logQAUsage(curSlide,question);renderViewerChat();}
+function logQAUsage(slideIdx,question){let logs=JSON.parse(localStorage.getItem('sherupa_qa_logs')||'[]');logs.push({slideId:slides[slideIdx]?.id,slideTitle:slides[slideIdx]?.t,question:question,user:userProfile.name,timestamp:Date.now()});localStorage.setItem('sherupa_qa_logs',JSON.stringify(logs));renderQAReport();}
+
+// リクエスト管理機能
+let currentRequestFilter='all';
+function renderSlideRequests(){
+const requests=JSON.parse(localStorage.getItem('sherupa_slide_requests')||'[]');
+const requestData=JSON.parse(localStorage.getItem('sherupa_request_data')||'{}');
+// 統計更新
+const pending=requests.filter(id=>!requestData[id]||requestData[id].status==='pending').length;
+const progress=requests.filter(id=>requestData[id]?.status==='progress').length;
+const done=requests.filter(id=>requestData[id]?.status==='done').length;
+document.getElementById('requestTotal').textContent=requests.length;
+document.getElementById('requestPending').textContent=pending;
+document.getElementById('requestInProgress').textContent=progress;
+document.getElementById('requestCompleted').textContent=done;
+// リスト表示
+const listEl=document.getElementById('requestList');
+if(!listEl)return;
+let filtered=requests;
+if(currentRequestFilter==='pending')filtered=requests.filter(id=>!requestData[id]||requestData[id].status==='pending');
+else if(currentRequestFilter==='progress')filtered=requests.filter(id=>requestData[id]?.status==='progress');
+else if(currentRequestFilter==='done')filtered=requests.filter(id=>requestData[id]?.status==='done');
+if(filtered.length===0){
+listEl.innerHTML='<div style="text-align:center;padding:30px;color:var(--rock)"><div style="font-size:32px;margin-bottom:8px">📭</div><div style="font-size:12px">リクエストはありません</div></div>';
+return;
+}
+listEl.innerHTML=filtered.map(id=>{
+const sl=slides.find(s=>s.id===id);
+if(!sl)return'';
+const data=requestData[id]||{status:'pending',count:1};
+const statusColors={pending:'#f59e0b',progress:'#3b82f6',done:'#22c55e'};
+const statusLabels={pending:'⏳ 未対応',progress:'🔨 作成中',done:'✅ 完了'};
+return'<div style="background:var(--cloud);border-radius:10px;padding:12px;margin-bottom:8px">'+
+'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">'+
+'<div style="display:flex;align-items:center;gap:8px">'+
+'<div style="font-size:24px">'+sl.e+'</div>'+
+'<div><div style="font-size:12px;font-weight:700">'+sl.t+'</div>'+
+'<div style="font-size:10px;color:var(--rock)">'+(CATS[sl.c]?.n||'')+'</div></div>'+
+'</div>'+
+'<div style="background:'+statusColors[data.status]+';color:#fff;padding:3px 8px;border-radius:10px;font-size:9px;font-weight:600">'+statusLabels[data.status]+'</div>'+
+'</div>'+
+'<div style="display:flex;justify-content:space-between;align-items:center">'+
+'<div style="font-size:10px;color:var(--rock)">👥 リクエスト数: <strong>'+(data.count||1)+'</strong></div>'+
+'<div style="display:flex;gap:6px">'+
+(data.status!=='done'?'<button onclick="updateRequestStatus('+id+',\'progress\')" class="btn btn-sm" style="font-size:9px;padding:4px 8px;background:#3b82f6;color:#fff">🔨 作成開始</button>':'')+
+(data.status!=='done'?'<button onclick="updateRequestStatus('+id+',\'done\')" class="btn btn-sm" style="font-size:9px;padding:4px 8px;background:#22c55e;color:#fff">✅ 完了</button>':'')+
+'<button onclick="removeRequest('+id+')" class="btn btn-sm" style="font-size:9px;padding:4px 8px;background:#ef4444;color:#fff">🗑️</button>'+
+'</div></div></div>';
+}).join('');
+// 人気リクエストTOP10
+renderPopularRequests();
+}
+function renderPopularRequests(){
+const requests=JSON.parse(localStorage.getItem('sherupa_slide_requests')||'[]');
+const requestData=JSON.parse(localStorage.getItem('sherupa_request_data')||'{}');
+const countMap={};
+requests.forEach(id=>{countMap[id]=(requestData[id]?.count||1);});
+const sorted=Object.entries(countMap).sort((a,b)=>b[1]-a[1]).slice(0,10);
+const el=document.getElementById('popularRequestList');
+if(!el)return;
+if(sorted.length===0){
+el.innerHTML='<div style="text-align:center;padding:20px;color:var(--rock);font-size:11px">データなし</div>';
+return;
+}
+el.innerHTML=sorted.map(([id,count],i)=>{
+const sl=slides.find(s=>s.id===parseInt(id));
+if(!sl)return'';
+return'<div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--cloud);border-radius:8px;margin-bottom:6px">'+
+'<div style="font-size:14px;font-weight:700;color:var(--summit);width:20px">'+(i+1)+'</div>'+
+'<div style="font-size:18px">'+sl.e+'</div>'+
+'<div style="flex:1;font-size:11px;font-weight:600">'+sl.t+'</div>'+
+'<div style="background:var(--summit);color:#fff;padding:2px 8px;border-radius:10px;font-size:10px">'+count+'件</div>'+
+'</div>';
+}).join('');
+}
+function filterRequests(filter,el){
+currentRequestFilter=filter;
+document.querySelectorAll('#admin-requests .cat-chip').forEach(c=>c.classList.remove('active'));
+el.classList.add('active');
+renderSlideRequests();
+}
+function updateRequestStatus(id,status){
+let requestData=JSON.parse(localStorage.getItem('sherupa_request_data')||'{}');
+if(!requestData[id])requestData[id]={status:'pending',count:1};
+requestData[id].status=status;
+localStorage.setItem('sherupa_request_data',JSON.stringify(requestData));
+toast(status==='progress'?'🔨 作成開始しました':'✅ 完了にしました');
+renderSlideRequests();
+}
+function removeRequest(id){
+if(!confirm('このリクエストを削除しますか？'))return;
+let requests=JSON.parse(localStorage.getItem('sherupa_slide_requests')||'[]');
+requests=requests.filter(r=>r!==id);
+localStorage.setItem('sherupa_slide_requests',JSON.stringify(requests));
+let requestData=JSON.parse(localStorage.getItem('sherupa_request_data')||'{}');
+delete requestData[id];
+localStorage.setItem('sherupa_request_data',JSON.stringify(requestData));
+toast('🗑️ リクエストを削除しました');
+renderSlideRequests();
+}
+
+// 関連動画管理
+let slideVideos=JSON.parse(localStorage.getItem('sherupa_slide_videos')||'{}');
+
+function renderVideoPanel(){
+const selectEl=document.getElementById('videoSlideSelect');
+if(!selectEl)return;
+// スライド選択肢を生成
+selectEl.innerHTML='<option value="">-- スライドを選択 --</option>'+
+BOOKSHELF_DATA.map(big=>{
+return'<optgroup label="'+big.e+' '+big.n+'">'+
+big.mid.map(mid=>{
+const midSlides=slides.filter(s=>s.mid===mid.id);
+return midSlides.map(sl=>'<option value="'+sl.id+'">'+sl.e+' '+sl.t+'</option>').join('');
+}).join('')+'</optgroup>';
+}).join('');
+// 統計更新
+const totalVideos=Object.values(slideVideos).reduce((sum,v)=>sum+(v?.length||0),0);
+const slidesWithVideo=Object.keys(slideVideos).filter(k=>slideVideos[k]?.length>0).length;
+document.getElementById('videoTotal').textContent=totalVideos;
+document.getElementById('videoSlides').textContent=slidesWithVideo;
+document.getElementById('videoNoSlides').textContent=slides.length-slidesWithVideo;
+// 動画登録済みスライド一覧
+renderVideoRegisteredList();
+}
+
+function loadSlideVideos(){
+const selectEl=document.getElementById('videoSlideSelect');
+const slideId=parseInt(selectEl.value);
+const listEl=document.getElementById('currentVideoList');
+if(!slideId){
+listEl.innerHTML='';
+return;
+}
+const sl=slides.find(s=>s.id===slideId);
+const videos=slideVideos[slideId]||[];
+if(videos.length===0){
+listEl.innerHTML='<div style="text-align:center;padding:16px;color:var(--rock);font-size:11px;background:var(--cloud);border-radius:8px"><div style="font-size:24px;margin-bottom:4px">📭</div>登録された動画はありません</div>';
+return;
+}
+listEl.innerHTML='<div style="font-size:11px;font-weight:600;margin-bottom:8px">📺 登録済み動画（'+videos.length+'件）</div>'+
+videos.map((v,i)=>'<div style="background:var(--cloud);border-radius:8px;padding:10px;margin-bottom:6px;display:flex;align-items:center;gap:10px">'+
+'<div style="font-size:20px">'+v.thumb+'</div>'+
+'<div style="flex:1"><div style="font-size:11px;font-weight:600">'+v.title+'</div>'+
+'<div style="font-size:9px;color:var(--rock)">⏱ '+v.duration+(v.url?' | 🔗 URL登録済':'')+'</div></div>'+
+'<button onclick="removeVideo('+slideId+','+i+')" style="background:#ef4444;color:#fff;border:none;border-radius:6px;padding:4px 8px;font-size:10px;cursor:pointer">🗑️</button>'+
+'</div>').join('');
+}
+
+function addVideo(){
+const slideId=parseInt(document.getElementById('videoSlideSelect').value);
+if(!slideId){toast('スライドを選択してください');return;}
+const title=document.getElementById('videoTitle').value.trim();
+const url=document.getElementById('videoUrl').value.trim();
+const thumb=document.getElementById('videoThumb').value.trim()||'📺';
+const duration=document.getElementById('videoDuration').value.trim()||'0:00';
+if(!title){toast('動画タイトルを入力してください');return;}
+if(!slideVideos[slideId])slideVideos[slideId]=[];
+slideVideos[slideId].push({title,url,thumb,duration});
+localStorage.setItem('sherupa_slide_videos',JSON.stringify(slideVideos));
+// 入力欄クリア
+document.getElementById('videoTitle').value='';
+document.getElementById('videoUrl').value='';
+document.getElementById('videoDuration').value='';
+toast('🎬 動画を追加しました');
+loadSlideVideos();
+renderVideoPanel();
+}
+
+function removeVideo(slideId,index){
+if(!confirm('この動画を削除しますか？'))return;
+if(slideVideos[slideId]){
+slideVideos[slideId].splice(index,1);
+if(slideVideos[slideId].length===0)delete slideVideos[slideId];
+localStorage.setItem('sherupa_slide_videos',JSON.stringify(slideVideos));
+toast('🗑️ 動画を削除しました');
+loadSlideVideos();
+renderVideoPanel();
+}
+}
+
+function renderVideoRegisteredList(){
+const el=document.getElementById('videoRegisteredList');
+if(!el)return;
+const registered=Object.keys(slideVideos).filter(k=>slideVideos[k]?.length>0);
+if(registered.length===0){
+el.innerHTML='<div style="text-align:center;padding:20px;color:var(--rock);font-size:11px">動画登録済みのスライドはありません</div>';
+return;
+}
+el.innerHTML=registered.map(id=>{
+const sl=slides.find(s=>s.id===parseInt(id));
+if(!sl)return'';
+const vids=slideVideos[id];
+return'<div style="background:var(--cloud);border-radius:8px;padding:10px;margin-bottom:6px;display:flex;align-items:center;gap:10px">'+
+'<div style="font-size:20px">'+sl.e+'</div>'+
+'<div style="flex:1"><div style="font-size:11px;font-weight:600">'+sl.t+'</div>'+
+'<div style="font-size:9px;color:var(--rock)">'+(CATS[sl.c]?.n||'')+' | 動画 '+vids.length+'件</div></div>'+
+'<button onclick="document.getElementById(\'videoSlideSelect\').value=\''+id+'\';loadSlideVideos()" class="btn btn-sm" style="font-size:9px;padding:4px 8px">編集</button>'+
+'</div>';
+}).join('');
+}
+
+function renderQAReport(){const logs=JSON.parse(localStorage.getItem('sherupa_qa_logs')||'[]');const now=Date.now();const today=new Date().setHours(0,0,0,0);const weekAgo=now-7*24*60*60*1000;
+const totalEl=document.getElementById('qaLogTotal');const todayEl=document.getElementById('qaLogToday');const weekEl=document.getElementById('qaLogWeek');const usersEl=document.getElementById('qaLogUsers');const popularEl=document.getElementById('qaPopularList');const recentEl=document.getElementById('qaRecentList');
+if(!totalEl)return;
+totalEl.textContent=logs.length;
+todayEl.textContent=logs.filter(l=>l.timestamp>=today).length;
+weekEl.textContent=logs.filter(l=>l.timestamp>=weekAgo).length;
+const uniqueUsers=[...new Set(logs.map(l=>l.user))];usersEl.textContent=uniqueUsers.length;
+const qCount={};logs.forEach(l=>{const key=l.slideTitle+': '+l.question;qCount[key]=(qCount[key]||0)+1;});
+const sorted=Object.entries(qCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
+popularEl.innerHTML=sorted.length>0?sorted.map(([q,c],i)=>'<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 8px;background:var(--cloud);border-radius:6px;margin-bottom:4px;font-size:10px"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(i+1)+'. '+q+'</span><span style="background:var(--summit);color:#fff;padding:2px 6px;border-radius:10px;margin-left:8px">'+c+'回</span></div>').join(''):'<div style="font-size:10px;color:var(--rock);text-align:center;padding:10px">まだデータがありません</div>';
+const recent=logs.slice(-10).reverse();
+recentEl.innerHTML=recent.length>0?recent.map(l=>{const date=new Date(l.timestamp);const timeStr=(date.getMonth()+1)+'/'+date.getDate()+' '+date.getHours()+':'+String(date.getMinutes()).padStart(2,'0');return'<div style="padding:6px 0;border-bottom:1px solid var(--cloud);font-size:10px"><div style="display:flex;justify-content:space-between"><span style="font-weight:600">'+l.user+'</span><span style="color:var(--rock)">'+timeStr+'</span></div><div style="color:var(--rock);margin-top:2px">📚 '+l.slideTitle+'</div><div style="margin-top:2px">❓ '+l.question+'</div></div>';}).join(''):'<div style="font-size:10px;color:var(--rock);text-align:center;padding:10px">まだデータがありません</div>';}
+function exportQAReport(){const logs=JSON.parse(localStorage.getItem('sherupa_qa_logs')||'[]');if(logs.length===0){toast('データがありません');return;}let csv='日時,ユーザー,スライド,質問\n';logs.forEach(l=>{const date=new Date(l.timestamp);const dateStr=date.toLocaleString('ja-JP');csv+='"'+dateStr+'","'+l.user+'","'+l.slideTitle+'","'+l.question+'"\n';});const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download='qa_report_'+new Date().toISOString().split('T')[0]+'.csv';link.click();toast('📥 CSVをダウンロードしました');}
+function generateAIResponse(q){return'質問してみてね！';}
+async function callClaudeAPI(question){answerFromQA(question);}
 function updateMission(){const p=Math.min(doneToday/2*100,100);document.getElementById('missionFill').style.width=p+'%';if(doneToday>=2&&p===100)setTimeout(()=>{addAlt(30);toast('🎯 ミッション達成！+30 ALT');},500);}
 function uploadWork(){works++;document.getElementById('profWorks').textContent=works;toast('🎨 作品を投稿しました！いいねをもらおう！');setTimeout(()=>showScreen('gallery'),1000);}
 function renderGalleryCats(){const cats=[{k:'all',n:'全部',e:'✨'},{k:'science',n:'科学',e:'🔬'},{k:'sdgs',n:'SDGs',e:'🌍'},{k:'nature',n:'自然',e:'🦋'},{k:'tech',n:'テクノロジー',e:'🤖'},{k:'biography',n:'伝記',e:'📖'},{k:'geopolitics',n:'地政学',e:'🗺️'},{k:'energy',n:'エネルギー',e:'⚡'}];const el=document.getElementById('galleryCatFilter');if(!el)return;el.innerHTML=cats.map(c=>'<div class="cat-chip'+(curGalleryCat===c.k?' active':'')+'" onclick="filterGallery(\''+c.k+'\')">'+c.e+' '+c.n+'</div>').join('');}
@@ -794,7 +1877,12 @@ function renderTasks(){document.getElementById('taskList').innerHTML=tasks.map(t
 function addTask(){const title=document.getElementById('newTaskTitle').value.trim();const deadline=document.getElementById('newTaskDeadline').value;if(!title||!deadline){toast('タイトルと締切を入力');return;}tasks.unshift({id:Date.now(),title:title,deadline:deadline,submitted:0,total:classes[curClass]?.students||24,active:true});document.getElementById('newTaskTitle').value='';document.getElementById('newTaskDeadline').value='';renderTasks();toast('配信！');}
 function renderEmojis(){document.getElementById('emojiPicker').innerHTML=EMOJIS.map(e=>'<button class="emoji-btn'+(e===selEmoji?' selected':'')+'" onclick="selEmoji=\''+e+'\';renderEmojis()">'+e+'</button>').join('');}
 function extractEmbedUrl(input){if(!input)return'';const srcMatch=input.match(/src=["']([^"']+)["']/);if(srcMatch)return srcMatch[1];if(input.startsWith('http'))return input;return'';}
-function addSlide(){const t=document.getElementById('addTitle').value.trim(),c=document.getElementById('addCat').value,g=document.getElementById('addGrade').value,rawEmbed=document.getElementById('addEmbedUrl')?.value.trim()||'',embedUrl=extractEmbedUrl(rawEmbed);if(!t){toast('タイトルを入力');return;}slides.push({id:Date.now(),t:t,e:selEmoji,c:c,g:g,done:0,embed:embedUrl});localStorage.setItem('sherupa_s',JSON.stringify(slides));renderSlides();renderSlideList();document.getElementById('addTitle').value='';if(document.getElementById('addEmbedUrl'))document.getElementById('addEmbedUrl').value='';toast('追加しました！');}
+let qaInputCount=0;
+function addQAInput(){qaInputCount++;const container=document.getElementById('qaInputList');const div=document.createElement('div');div.id='qa-item-'+qaInputCount;div.style.cssText='background:#fff;border-radius:10px;padding:10px;margin-bottom:8px;border:1px solid #e9d5ff';div.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:11px;font-weight:700;color:#7c3aed">❓ Q&A #'+qaInputCount+'</span><button type="button" onclick="removeQAInput('+qaInputCount+')" style="background:#fee2e2;border:none;color:#ef4444;cursor:pointer;font-size:10px;padding:2px 8px;border-radius:4px">削除</button></div><div style="margin-bottom:6px"><div style="font-size:9px;color:var(--rock);margin-bottom:2px">質問</div><input type="text" class="form-input qa-question" placeholder="例：なぜ空は青いの？" style="font-size:12px"></div><div><div style="font-size:9px;color:var(--rock);margin-bottom:2px">回答</div><textarea class="form-input qa-answer" placeholder="例：太陽の光が空気にぶつかって、青い光だけが散らばるからだよ！" style="font-size:12px;min-height:50px;resize:vertical"></textarea></div>';container.appendChild(div);}
+function removeQAInput(id){const el=document.getElementById('qa-item-'+id);if(el)el.remove();}
+function getQAInputs(){const questions=document.querySelectorAll('#qaInputList .qa-question');const answers=document.querySelectorAll('#qaInputList .qa-answer');const qa=[];questions.forEach((q,i)=>{const qText=q.value.trim();const aText=answers[i]?.value.trim();if(qText&&aText)qa.push({q:qText,a:aText});});return qa;}
+function clearQAInputs(){document.getElementById('qaInputList').innerHTML='';qaInputCount=0;}
+function addSlide(){const t=document.getElementById('addTitle').value.trim(),c=document.getElementById('addCat').value,g=document.getElementById('addGrade').value,rawEmbed=document.getElementById('addEmbedUrl')?.value.trim()||'',embedUrl=extractEmbedUrl(rawEmbed),qa=getQAInputs();if(!t){toast('タイトルを入力');return;}slides.push({id:Date.now(),t:t,e:selEmoji,c:c,g:g,done:0,embed:embedUrl,qa:qa});localStorage.setItem('sherupa_s',JSON.stringify(slides));renderSlides();renderSlideList();document.getElementById('addTitle').value='';if(document.getElementById('addEmbedUrl'))document.getElementById('addEmbedUrl').value='';clearQAInputs();toast('追加しました！');}
 function deleteSlide(i){if(confirm('削除？')){slides.splice(i,1);localStorage.setItem('sherupa_s',JSON.stringify(slides));renderSlides();renderSlideList();toast('削除');}}
 function renderSlideList(){const el=document.getElementById('slideList');const countEl=document.getElementById('adminSlideCount');
 // カテゴリフィルターレンダリング
@@ -896,6 +1984,41 @@ function renderSponsorSlides(){const sp=SPONSORS[curSponsor];const el=document.g
 function openSponsorSlideModal(){document.getElementById('sponsorSlideTitle').value='';document.getElementById('sponsorSlideEmoji').value='';document.getElementById('sponsorSlideAlt').value='30';document.getElementById('sponsorSlideModal').classList.add('active');}
 function addSponsorSlide(){const t=document.getElementById('sponsorSlideTitle').value.trim();const e=document.getElementById('sponsorSlideEmoji').value.trim()||'📚';const a=parseInt(document.getElementById('sponsorSlideAlt').value);if(!t){toast('タイトルを入力してください');return;}const sp=SPONSORS[curSponsor];sp.slides.push({id:Date.now(),t:t,e:e,alt:a,remaining:100,completed:[]});closeModals();renderSponsorSlides();renderSponsorMissions();toast('📚 スライドを作成しました！');}
 function deleteSponsorSlide(i){if(confirm('このスライドを削除しますか？')){SPONSORS[curSponsor].slides.splice(i,1);renderSponsorSlides();renderSponsorMissions();toast('削除しました');}}
+
+function renderFamilyMissions(){
+const el=document.getElementById('familyMissions');
+if(!el)return;
+// ファミリーミッションのダミーデータ
+const missions=[
+{id:1,title:'今日の夕食を一緒に作ろう',emoji:'🍳',reward:20,theme:'linear-gradient(135deg,#ec4899,#f472b6)',desc:'親子で料理にチャレンジ！',deadline:'今日中'},
+{id:2,title:'お気に入りの本を紹介し合おう',emoji:'📚',reward:15,theme:'linear-gradient(135deg,#8b5cf6,#a78bfa)',desc:'読書感想を共有しよう',deadline:'今週中'},
+{id:3,title:'家族で散歩して写真を撮ろう',emoji:'📸',reward:25,theme:'linear-gradient(135deg,#22c55e,#4ade80)',desc:'季節の風景を見つけよう',deadline:'週末まで'}
+];
+if(missions.length===0){
+el.innerHTML='<div style="background:linear-gradient(135deg,#fdf2f8,#fce7f3);border-radius:12px;padding:20px;text-align:center"><div style="font-size:32px;margin-bottom:8px">👨‍👩‍👧</div><div style="font-size:12px;color:#be185d">ファミリーミッションは準備中です</div></div>';
+return;
+}
+el.innerHTML='<div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:8px">'+
+missions.map(m=>'<div onclick="openFamilyMission('+m.id+')" style="flex-shrink:0;width:160px;background:#fff;border-radius:12px;overflow:hidden;cursor:pointer;transition:transform .2s;box-shadow:0 2px 8px rgba(0,0,0,.1)" onmouseover="this.style.transform=\'translateY(-4px)\'" onmouseout="this.style.transform=\'translateY(0)\'">'+
+'<div style="background:'+m.theme+';padding:16px;text-align:center">'+
+'<div style="font-size:36px">'+m.emoji+'</div>'+
+'</div>'+
+'<div style="padding:10px">'+
+'<div style="font-size:11px;font-weight:700;color:#1f2937;margin-bottom:4px;line-height:1.3">'+m.title+'</div>'+
+'<div style="font-size:9px;color:#6b7280;margin-bottom:6px">'+m.desc+'</div>'+
+'<div style="display:flex;justify-content:space-between;align-items:center">'+
+'<div style="font-size:10px;color:#ec4899;font-weight:700">+'+m.reward+' ALT</div>'+
+'<div style="font-size:8px;color:#9ca3af">⏰'+m.deadline+'</div>'+
+'</div>'+
+'</div>'+
+'</div>').join('')+
+'</div>';
+}
+
+function openFamilyMission(id){
+toast('👨‍👩‍👧 ファミリーミッション機能は近日公開！');
+}
+
 function renderSponsorMissions(){const el=document.getElementById('sponsorMissions');if(!el)return;const userId=userProfile.name;const allSlides=SPONSORS.flatMap((sp,si)=>sp.slides.map((s,sli)=>({...s,si,sli,sponsor:sp.name,logo:sp.logo,theme:sp.theme,startDate:sp.startDate,message:sp.message})));const available=allSlides.filter(s=>s.remaining>0&&getRemainingDays(s.startDate)>0);if(available.length===0){el.innerHTML='<div style="text-align:center;color:rgba(255,255,255,.7);padding:20px;font-size:12px">現在利用可能なスポンサーミッションはありません</div>';return;}
 const gradeLabels={lower:'🌱低学年',middle:'⭐中学年',upper:'🚀高学年',all:'👥全学年'};
 const diffStars=['','★☆☆','★★☆','★★★'];
