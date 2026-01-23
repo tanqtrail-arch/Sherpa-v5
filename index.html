@@ -244,17 +244,51 @@ main{padding:80px 16px 100px;max-width:900px;margin:0 auto}
 <main>
 <!-- CHILD -->
 <div id="screen-home" class="screen active">
+<!-- 今日のミッション -->
 <div class="daily-mission"><div style="font-size:10px;font-weight:700;opacity:.8">🎯 今日のミッション</div><div style="font-size:16px;font-weight:700;margin:4px 0">スライドを2つ見よう！</div><div style="font-size:12px;opacity:.9">達成で +30 ALT</div><div class="mission-bar"><div class="mission-fill" id="missionFill" style="width:50%"></div></div></div>
 
-<!-- 本棚風カリキュラムビュー -->
-<div class="section-title">📚 学びの本棚<span class="free-tag">タップしてカリキュラムへ</span></div>
-<div id="bookshelfView" style="background:linear-gradient(180deg,#8B4513 0%,#A0522D 100%);border-radius:16px;padding:12px;margin-bottom:16px;box-shadow:inset 0 -4px 8px rgba(0,0,0,.3)"></div>
-
+<!-- ファミリーミッション（4つ） -->
 <div class="section-title">👨‍👩‍👧 ファミリーミッション<span style="background:linear-gradient(135deg,#ec4899,#f472b6);color:#fff;font-size:9px;padding:2px 8px;border-radius:10px;margin-left:6px">家族で挑戦</span></div>
-<div id="familyMissions" style="margin-bottom:16px"></div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">
+<div onclick="toast('👨‍👩‍👧 ファミリーミッション近日公開！')" style="background:#fff;border-radius:10px;overflow:hidden;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.1)"><div style="background:linear-gradient(135deg,#ec4899,#f472b6);padding:10px;text-align:center"><div style="font-size:24px">🍳</div></div><div style="padding:6px;text-align:center"><div style="font-size:9px;font-weight:700;color:#1f2937;height:22px;overflow:hidden">夕食を一緒に</div><div style="font-size:8px;color:#ec4899;font-weight:700">+20</div></div></div>
+<div onclick="toast('👨‍👩‍👧 ファミリーミッション近日公開！')" style="background:#fff;border-radius:10px;overflow:hidden;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.1)"><div style="background:linear-gradient(135deg,#8b5cf6,#a78bfa);padding:10px;text-align:center"><div style="font-size:24px">📚</div></div><div style="padding:6px;text-align:center"><div style="font-size:9px;font-weight:700;color:#1f2937;height:22px;overflow:hidden">本を紹介</div><div style="font-size:8px;color:#8b5cf6;font-weight:700">+15</div></div></div>
+<div onclick="toast('👨‍👩‍👧 ファミリーミッション近日公開！')" style="background:#fff;border-radius:10px;overflow:hidden;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.1)"><div style="background:linear-gradient(135deg,#22c55e,#4ade80);padding:10px;text-align:center"><div style="font-size:24px">📸</div></div><div style="padding:6px;text-align:center"><div style="font-size:9px;font-weight:700;color:#1f2937;height:22px;overflow:hidden">散歩＆写真</div><div style="font-size:8px;color:#22c55e;font-weight:700">+25</div></div></div>
+<div onclick="toast('👨‍👩‍👧 ファミリーミッション近日公開！')" style="background:#fff;border-radius:10px;overflow:hidden;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.1)"><div style="background:linear-gradient(135deg,#3b82f6,#60a5fa);padding:10px;text-align:center"><div style="font-size:24px">🌟</div></div><div style="padding:6px;text-align:center"><div style="font-size:9px;font-weight:700;color:#1f2937;height:22px;overflow:hidden">星空観察</div><div style="font-size:8px;color:#3b82f6;font-weight:700">+30</div></div></div>
+</div>
 
+<!-- スポンサーミッション（8つ） -->
 <div class="section-title">🎗️ スポンサーミッション<span style="background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#fff;font-size:9px;padding:2px 8px;border-radius:10px;margin-left:6px">特別報酬</span></div>
-<div class="slides-grid" id="sponsorMissions" style="margin-bottom:16px"></div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">
+<div onclick="openSponsorMission(0,0)" style="background:#fff;border-radius:10px;overflow:hidden;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.1)"><div style="background:linear-gradient(135deg,#f59e0b,#fbbf24);padding:10px;text-align:center;position:relative"><div style="font-size:24px">♻️</div><div style="position:absolute;top:2px;left:2px;font-size:10px">🌱</div></div><div style="padding:6px;text-align:center"><div style="font-size:9px;font-weight:700;color:#1f2937;height:22px;overflow:hidden">リサイクルの基本</div><div style="font-size:8px;color:#f59e0b;font-weight:700">+50</div></div></div>
+<div onclick="openSponsorMission(1,0)" style="background:#fff;border-radius:10px;overflow:hidden;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.1)"><div style="background:linear-gradient(135deg,#f59e0b,#fbbf24);padding:10px;text-align:center;position:relative"><div style="font-size:24px">💻</div><div style="position:absolute;top:2px;left:2px;font-size:10px">💻</div></div><div style="padding:6px;text-align:center"><div style="font-size:9px;font-weight:700;color:#1f2937;height:22px;overflow:hidden">プログラミング</div><div style="font-size:8px;color:#f59e0b;font-weight:700">+50</div></div></div>
+<div onclick="openSponsorMission(2,0)" style="background:#fff;border-radius:10px;overflow:hidden;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.1)"><div style="background:linear-gradient(135deg,#f59e0b,#fbbf24);padding:10px;text-align:center;position:relative"><div style="font-size:24px">📖</div><div style="position:absolute;top:2px;left:2px;font-size:10px">📚</div></div><div style="padding:6px;text-align:center"><div style="font-size:9px;font-weight:700;color:#1f2937;height:22px;overflow:hidden">本の楽しさ</div><div style="font-size:8px;color:#f59e0b;font-weight:700">+50</div></div></div>
+<div onclick="openSponsorMission(3,0)" style="background:#fff;border-radius:10px;overflow:hidden;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.1)"><div style="background:linear-gradient(135deg,#f59e0b,#fbbf24);padding:10px;text-align:center;position:relative"><div style="font-size:24px">🫀</div><div style="position:absolute;top:2px;left:2px;font-size:10px">🏥</div></div><div style="padding:6px;text-align:center"><div style="font-size:9px;font-weight:700;color:#1f2937;height:22px;overflow:hidden">体のしくみ</div><div style="font-size:8px;color:#f59e0b;font-weight:700">+50</div></div></div>
+<div onclick="openSponsorMission(4,0)" style="background:#fff;border-radius:10px;overflow:hidden;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.1)"><div style="background:linear-gradient(135deg,#f59e0b,#fbbf24);padding:10px;text-align:center;position:relative"><div style="font-size:24px">🪐</div><div style="position:absolute;top:2px;left:2px;font-size:10px">🚀</div></div><div style="padding:6px;text-align:center"><div style="font-size:9px;font-weight:700;color:#1f2937;height:22px;overflow:hidden">太陽系の惑星</div><div style="font-size:8px;color:#f59e0b;font-weight:700">+50</div></div></div>
+<div onclick="openSponsorMission(5,0)" style="background:#fff;border-radius:10px;overflow:hidden;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.1)"><div style="background:linear-gradient(135deg,#f59e0b,#fbbf24);padding:10px;text-align:center;position:relative"><div style="font-size:24px">🐠</div><div style="position:absolute;top:2px;left:2px;font-size:10px">🐋</div></div><div style="padding:6px;text-align:center"><div style="font-size:9px;font-weight:700;color:#1f2937;height:22px;overflow:hidden">海の生き物</div><div style="font-size:8px;color:#f59e0b;font-weight:700">+50</div></div></div>
+<div onclick="openSponsorMission(6,0)" style="background:#fff;border-radius:10px;overflow:hidden;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.1)"><div style="background:linear-gradient(135deg,#f59e0b,#fbbf24);padding:10px;text-align:center;position:relative"><div style="font-size:24px">🐼</div><div style="position:absolute;top:2px;left:2px;font-size:10px">🦁</div></div><div style="padding:6px;text-align:center"><div style="font-size:9px;font-weight:700;color:#1f2937;height:22px;overflow:hidden">絶滅危惧種</div><div style="font-size:8px;color:#f59e0b;font-weight:700">+50</div></div></div>
+<div onclick="openSponsorMission(7,0)" style="background:#fff;border-radius:10px;overflow:hidden;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.1)"><div style="background:linear-gradient(135deg,#f59e0b,#fbbf24);padding:10px;text-align:center;position:relative"><div style="font-size:24px">🌈</div><div style="position:absolute;top:2px;left:2px;font-size:10px">🎨</div></div><div style="padding:6px;text-align:center"><div style="font-size:9px;font-weight:700;color:#1f2937;height:22px;overflow:hidden">色の不思議</div><div style="font-size:8px;color:#f59e0b;font-weight:700">+50</div></div></div>
+</div>
+
+<!-- 本棚風カリキュラムビュー（HTML直書き） -->
+<div class="section-title">📚 学びの本棚<span class="free-tag">タップしてカリキュラムへ</span></div>
+<div style="background:linear-gradient(180deg,#8B4513 0%,#A0522D 100%);border-radius:16px;padding:12px;margin-bottom:16px;box-shadow:inset 0 -4px 8px rgba(0,0,0,.3)">
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px">
+<div onclick="goToBookshelfMid('science')" style="cursor:pointer"><div style="background:linear-gradient(180deg,#3b82f6,#1d4ed8);height:70px;border-radius:6px 6px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:2px 2px 8px rgba(0,0,0,.3)"><div style="font-size:24px;text-shadow:0 2px 4px rgba(0,0,0,.3)">🔬</div><div style="font-size:8px;color:#fff;font-weight:700;margin-top:2px">科学</div></div><div style="background:linear-gradient(180deg,#DEB887,#D2B48C);height:16px;border-radius:0 0 6px 6px;display:flex;align-items:center;justify-content:center"><div style="font-size:8px;color:#5D4037;font-weight:700">3/10</div></div></div>
+<div onclick="goToBookshelfMid('sdgs')" style="cursor:pointer"><div style="background:linear-gradient(180deg,#22c55e,#16a34a);height:70px;border-radius:6px 6px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:2px 2px 8px rgba(0,0,0,.3)"><div style="font-size:24px;text-shadow:0 2px 4px rgba(0,0,0,.3)">🌍</div><div style="font-size:8px;color:#fff;font-weight:700;margin-top:2px">SDGs</div></div><div style="background:linear-gradient(180deg,#DEB887,#D2B48C);height:16px;border-radius:0 0 6px 6px;display:flex;align-items:center;justify-content:center"><div style="font-size:8px;color:#5D4037;font-weight:700">2/8</div></div></div>
+<div onclick="goToBookshelfMid('nature')" style="cursor:pointer"><div style="background:linear-gradient(180deg,#84cc16,#65a30d);height:70px;border-radius:6px 6px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:2px 2px 8px rgba(0,0,0,.3)"><div style="font-size:24px;text-shadow:0 2px 4px rgba(0,0,0,.3)">🦋</div><div style="font-size:8px;color:#fff;font-weight:700;margin-top:2px">自然</div></div><div style="background:linear-gradient(180deg,#DEB887,#D2B48C);height:16px;border-radius:0 0 6px 6px;display:flex;align-items:center;justify-content:center"><div style="font-size:8px;color:#5D4037;font-weight:700">1/5</div></div></div>
+<div onclick="goToBookshelfMid('tech')" style="cursor:pointer"><div style="background:linear-gradient(180deg,#8b5cf6,#7c3aed);height:70px;border-radius:6px 6px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:2px 2px 8px rgba(0,0,0,.3)"><div style="font-size:24px;text-shadow:0 2px 4px rgba(0,0,0,.3)">🤖</div><div style="font-size:8px;color:#fff;font-weight:700;margin-top:2px">テクノロジー</div></div><div style="background:linear-gradient(180deg,#DEB887,#D2B48C);height:16px;border-radius:0 0 6px 6px;display:flex;align-items:center;justify-content:center"><div style="font-size:8px;color:#5D4037;font-weight:700">0/6</div></div></div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+<div onclick="goToBookshelfMid('biography')" style="cursor:pointer"><div style="background:linear-gradient(180deg,#f59e0b,#d97706);height:70px;border-radius:6px 6px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:2px 2px 8px rgba(0,0,0,.3)"><div style="font-size:24px;text-shadow:0 2px 4px rgba(0,0,0,.3)">📖</div><div style="font-size:8px;color:#fff;font-weight:700;margin-top:2px">伝記</div></div><div style="background:linear-gradient(180deg,#DEB887,#D2B48C);height:16px;border-radius:0 0 6px 6px;display:flex;align-items:center;justify-content:center"><div style="font-size:8px;color:#5D4037;font-weight:700">0/8</div></div></div>
+<div onclick="goToBookshelfMid('geopolitics')" style="cursor:pointer"><div style="background:linear-gradient(180deg,#ec4899,#db2777);height:70px;border-radius:6px 6px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:2px 2px 8px rgba(0,0,0,.3)"><div style="font-size:24px;text-shadow:0 2px 4px rgba(0,0,0,.3)">🗺️</div><div style="font-size:8px;color:#fff;font-weight:700;margin-top:2px">地政学</div></div><div style="background:linear-gradient(180deg,#DEB887,#D2B48C);height:16px;border-radius:0 0 6px 6px;display:flex;align-items:center;justify-content:center"><div style="font-size:8px;color:#5D4037;font-weight:700">1/6</div></div></div>
+<div onclick="goToBookshelfMid('energy')" style="cursor:pointer"><div style="background:linear-gradient(180deg,#f97316,#ea580c);height:70px;border-radius:6px 6px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:2px 2px 8px rgba(0,0,0,.3)"><div style="font-size:24px;text-shadow:0 2px 4px rgba(0,0,0,.3)">⚡</div><div style="font-size:8px;color:#fff;font-weight:700;margin-top:2px">エネルギー</div></div><div style="background:linear-gradient(180deg,#DEB887,#D2B48C);height:16px;border-radius:0 0 6px 6px;display:flex;align-items:center;justify-content:center"><div style="font-size:8px;color:#5D4037;font-weight:700">0/4</div></div></div>
+<div onclick="showScreen('bookshelf')" style="cursor:pointer"><div style="background:linear-gradient(180deg,#6b7280,#4b5563);height:70px;border-radius:6px 6px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:2px 2px 8px rgba(0,0,0,.3)"><div style="font-size:24px;text-shadow:0 2px 4px rgba(0,0,0,.3)">📚</div><div style="font-size:8px;color:#fff;font-weight:700;margin-top:2px">もっと見る</div></div><div style="background:linear-gradient(180deg,#DEB887,#D2B48C);height:16px;border-radius:0 0 6px 6px;display:flex;align-items:center;justify-content:center"><div style="font-size:8px;color:#5D4037;font-weight:700">→</div></div></div>
+</div>
+</div>
+
+<!-- お気に入りのスライド -->
+<div class="section-title">⭐ お気に入りのスライド<span class="free-tag" id="favCount">0件</span></div>
+<div id="favoritesGrid" style="margin-bottom:16px"></div>
 </div>
 <!-- カリキュラム画面 -->
 <div id="screen-curriculum" class="screen">
@@ -309,7 +343,7 @@ main{padding:80px 16px 100px;max-width:900px;margin:0 auto}
 <div id="bookshelfSmallContent"></div>
 </div>
 </div>
-<div id="screen-viewer" class="screen"><div class="card"><div class="card-header" style="display:flex;justify-content:space-between;align-items:center"><span id="viewerTitle" style="flex:1">タイトル</span><button onclick="closeViewer()" style="background:#ef4444;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer">✕ 閉じる</button></div><div style="position:relative;padding-top:56.25%;background:var(--cloud)" id="viewerFrame"></div><div class="card-body" id="viewerActions" style="display:flex;justify-content:space-between;align-items:center"><span id="viewerCat" style="font-size:11px;color:var(--rock)">カテゴリ</span><button class="btn btn-primary btn-sm" onclick="completeSlide()">✅ 完了 +10 ALT</button></div></div>
+<div id="screen-viewer" class="screen"><div class="card"><div class="card-header" style="display:flex;justify-content:space-between;align-items:center"><span id="viewerTitle" style="flex:1">タイトル</span><button onclick="closeViewer()" style="background:#ef4444;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer">✕ 閉じる</button></div><div style="position:relative;padding-top:56.25%;background:var(--cloud)" id="viewerFrame"></div><div class="card-body" id="viewerActions" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center"><span id="viewerCat" style="font-size:11px;color:var(--rock)">カテゴリ</span><div style="display:flex;gap:8px"><button id="favBtn" onclick="toggleFavorite(currentSlideIdx)" style="background:linear-gradient(135deg,#6b7280,#4b5563);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:11px;font-weight:700;cursor:pointer">☆ お気に入り</button><button class="btn btn-primary btn-sm" onclick="completeSlide()">✅ 完了 +10 ALT</button></div></div></div>
 <!-- 関連動画エリア -->
 <div id="relatedVideos" style="margin-top:12px">
 <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:8px">🎬 関連動画</div>
@@ -929,6 +963,17 @@ const DEFAULT_STUDENTS=[
 const DEFAULT_TASKS=[{id:1,title:'空の色を観察しよう',deadline:'2026-01-25',submitted:20,total:24,active:true},{id:2,title:'SDGsポスター作成',deadline:'2026-01-20',submitted:24,total:24,active:false}];
 const PINS={parent:'1234',teacher:'5678',sponsor:'9999'};
 const ADMIN_PW='admin';
+const RANKING_TYPES=[
+{k:'alt',n:'⛰️ ALT',field:'alt',unit:' ALT',desc:'累計獲得ALT'},
+{k:'streak',n:'🔥 連続',field:'streak',unit:'日',desc:'連続ログイン日数'},
+{k:'slides',n:'📚 スライド',field:'slides',unit:'枚',desc:'完了スライド数'},
+{k:'climbed',n:'🏔️ 登山',field:'climbed',unit:'座',desc:'登頂した山の数'},
+{k:'diaryStreak',n:'📔 日記',field:'diaryStreak',unit:'日',desc:'日記連続日数'},
+{k:'likes',n:'💜 人気',field:'likes',unit:'いいね',desc:'もらったいいね数'},
+{k:'sponsorMissions',n:'🎗️ スポンサー',field:'sponsorMissions',unit:'回',desc:'スポンサーミッション完了数'},
+{k:'growth',n:'📈 成長率',field:'growth',unit:'%',desc:'今週のALT成長率'}
+];
+const RANKING_PERIODS=[{k:'all',n:'全期間'},{k:'weekly',n:'今週'},{k:'monthly',n:'今月'}];
 let mode='child',cat='all',grade='all',alt=1250,works=3,doneToday=1,selEmoji='🔬',curSlide=null,fmDone=0,authTarget='',curClass=0,likesLeft=10,curSponsor=0;
 let rankingType='alt',rankingGrade='all',rankingPeriod='all';
 let adminSlideCat='all',adminSlideGrade='all';
@@ -1241,7 +1286,7 @@ localStorage.setItem('sherupa_slides_version',SLIDES_VERSION);
 localStorage.removeItem('sherupa_s');
 }
 document.addEventListener('DOMContentLoaded',init);
-function init(){renderNav();renderGrades();renderCats();renderSlides();renderGallery();renderBadges();renderEmojis();renderSlideList();renderUsers();renderFM();updateFMCount();renderClasses();renderStudents();renderTasks();renderMountains();renderClimbBadges();renderCertificates();renderSpecialGalleries();renderAdminGallery();renderParentDash();loadProfile();renderFamilyMissions();renderSponsorMissions();renderSponsorSlides();renderSponsorReport();renderSponsorDash();renderRankings();renderAdminStats();renderReportContent();renderAdminGradeUsers();renderMasterSponsorSelect();renderMasterSponsorSlides();renderDiary();renderChildRanking();renderCompletedSlides();loadApiKey();renderQAReport();renderLinkedChildren();renderBookshelfMain();renderSlideRequests();renderVideoPanel();}
+function init(){renderNav();renderGrades();renderCats();renderSlides();renderGallery();renderBadges();renderEmojis();renderSlideList();renderUsers();renderFM();updateFMCount();renderClasses();renderStudents();renderTasks();renderMountains();renderClimbBadges();renderCertificates();renderSpecialGalleries();renderAdminGallery();renderParentDash();loadProfile();renderFamilyMissions();renderSponsorMissions();renderSponsorSlides();renderSponsorReport();renderSponsorDash();renderRankings();renderAdminStats();renderReportContent();renderAdminGradeUsers();renderMasterSponsorSelect();renderMasterSponsorSlides();renderDiary();renderChildRanking();renderCompletedSlides();loadApiKey();renderQAReport();renderLinkedChildren();renderBookshelfMain();renderSlideRequests();renderVideoPanel();renderFavorites();renderBookshelf();}
 let currentBigCat=null;let currentMidCat=null;
 function renderBookshelfMain(){const el=document.getElementById('bookshelfMain');if(!el)return;
 let html='<div style="background:linear-gradient(180deg,#8B4513 0%,#A0522D 100%);border-radius:16px;padding:16px;box-shadow:inset 0 -4px 8px rgba(0,0,0,.3)">';
@@ -1349,28 +1394,26 @@ function renderCats(){document.getElementById('catFilter').innerHTML=Object.entr
 function renderGrades(){const el=document.getElementById('gradeFilter');if(!el)return;el.innerHTML=Object.entries(GRADES).map(([k,v])=>'<div class="cat-chip'+(k===grade?' active':'')+'" onclick="filterGrade(\''+k+'\',this)">'+v.e+' '+v.n+'</div>').join('');}
 function filterGrade(g,el){grade=g;document.querySelectorAll('#gradeFilter .cat-chip').forEach(x=>x.classList.remove('active'));el.classList.add('active');renderSlides();}
 function filterCat(c,el){cat=c;document.querySelectorAll('#catFilter .cat-chip').forEach(x=>x.classList.remove('active'));el.classList.add('active');renderSlides();}
-function renderSlides(){let f=slides;if(cat!=='all')f=f.filter(s=>s.c===cat);if(grade!=='all')f=f.filter(s=>s.g===grade);document.getElementById('slidesGrid').innerHTML=f.length>0?f.map(s=>'<div class="slide-card'+(s.done?' done':'')+'" onclick="openSlide('+slides.indexOf(s)+')"><div class="slide-visual '+s.c+'" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px;text-align:center"><div style="font-size:28px;margin-bottom:4px">'+s.e+'</div><div style="font-size:9px;font-weight:600;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.4);line-height:1.3;max-height:32px;overflow:hidden;word-break:break-all">'+s.t+'</div></div><div class="slide-body"><div style="display:flex;gap:3px;margin-bottom:4px;flex-wrap:wrap"><span class="slide-cat" style="font-size:9px;padding:2px 4px">'+(CATS[s.c]?.e||'')+(CATS[s.c]?.n||'')+'</span><span class="slide-cat" style="font-size:9px;padding:2px 4px;background:'+(s.g==='lower'?'#22c55e':s.g==='middle'?'#f59e0b':'#ef4444')+';color:#fff">'+(GRADES[s.g]?.e||'')+'</span>'+(s.embed?'<span class="slide-cat" style="font-size:9px;padding:2px 4px;background:#3b82f6;color:#fff">🔗</span>':'')+'</div><div class="slide-title" style="font-size:11px;line-height:1.2;max-height:26px;overflow:hidden">'+s.t+'</div><div class="slide-reward" style="font-size:10px">+10 ALT</div></div></div>').join(''):'<div style="text-align:center;color:rgba(255,255,255,.7);padding:30px;grid-column:span 2"><div style="font-size:40px;margin-bottom:10px">📭</div><div>この条件のスライドはまだありません</div></div>';renderBookshelf();}
+function renderSlides(){let f=slides;if(cat!=='all')f=f.filter(s=>s.c===cat);if(grade!=='all')f=f.filter(s=>s.g===grade);const countEl=document.getElementById('slideCount');if(countEl)countEl.textContent='全'+f.length+'件';const gridEl=document.getElementById('slidesGrid');if(gridEl){gridEl.innerHTML=f.length>0?f.map(s=>'<div class="slide-card'+(s.done?' done':'')+'" onclick="openSlide('+slides.indexOf(s)+')"><div class="slide-visual '+s.c+'" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px;text-align:center"><div style="font-size:28px;margin-bottom:4px">'+s.e+'</div><div style="font-size:9px;font-weight:600;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.4);line-height:1.3;max-height:32px;overflow:hidden;word-break:break-all">'+s.t+'</div></div><div class="slide-body"><div style="display:flex;gap:3px;margin-bottom:4px;flex-wrap:wrap"><span class="slide-cat" style="font-size:9px;padding:2px 4px">'+(CATS[s.c]?.e||'')+(CATS[s.c]?.n||'')+'</span><span class="slide-cat" style="font-size:9px;padding:2px 4px;background:'+(s.g==='lower'?'#22c55e':s.g==='middle'?'#f59e0b':'#ef4444')+';color:#fff">'+(GRADES[s.g]?.e||'')+'</span>'+(s.embed?'<span class="slide-cat" style="font-size:9px;padding:2px 4px;background:#3b82f6;color:#fff">🔗</span>':'')+'</div><div class="slide-title" style="font-size:11px;line-height:1.2;max-height:26px;overflow:hidden">'+s.t+'</div><div class="slide-reward" style="font-size:10px">+10 ALT</div></div></div>').join(''):'<div style="text-align:center;color:rgba(255,255,255,.7);padding:30px;grid-column:span 2"><div style="font-size:40px;margin-bottom:10px">📭</div><div>この条件のスライドはまだありません</div></div>';}renderBookshelf();}
 function renderBookshelf(){const el=document.getElementById('bookshelfView');if(!el)return;
-let html='<div style="display:flex;gap:8px;overflow-x:auto;padding:8px 4px 12px 4px">';
+let html='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:4px">';
 BOOKSHELF_DATA.forEach(big=>{
 const catSlides=slides.filter(s=>s.c===big.id);
 const done=catSlides.filter(s=>s.done).length;
 const total=catSlides.length;
 const isComplete=total>0&&done===total;
-html+='<div onclick="goToBookshelfMid(\''+big.id+'\')" style="flex-shrink:0;width:70px;cursor:pointer;transition:transform .2s" onmouseover="this.style.transform=\'translateY(-4px)\'" onmouseout="this.style.transform=\'translateY(0)\'">';
-html+='<div style="background:'+big.color+';height:90px;border-radius:4px 4px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;box-shadow:2px 2px 8px rgba(0,0,0,.3)">';
-if(isComplete){html+='<div style="position:absolute;top:-8px;right:-8px;background:#22c55e;color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 2px 4px rgba(0,0,0,.3)">✓</div>';}
-html+='<div style="font-size:28px;text-shadow:0 2px 4px rgba(0,0,0,.3)">'+big.e+'</div>';
-html+='<div style="font-size:9px;color:#fff;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.5);margin-top:4px">'+big.n+'</div>';
+html+='<div onclick="goToBookshelfMid(\''+big.id+'\')" style="cursor:pointer;transition:transform .2s" onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'">';
+html+='<div style="background:'+big.color+';height:70px;border-radius:6px 6px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;box-shadow:2px 2px 8px rgba(0,0,0,.3)">';
+if(isComplete){html+='<div style="position:absolute;top:-6px;right:-6px;background:#22c55e;color:#fff;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;box-shadow:0 2px 4px rgba(0,0,0,.3)">✓</div>';}
+html+='<div style="font-size:24px;text-shadow:0 2px 4px rgba(0,0,0,.3)">'+big.e+'</div>';
+html+='<div style="font-size:8px;color:#fff;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.5);margin-top:2px">'+big.n+'</div>';
 html+='</div>';
-html+='<div style="background:linear-gradient(180deg,#DEB887,#D2B48C);height:20px;border-radius:0 0 4px 4px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 2px 4px rgba(0,0,0,.2)">';
+html+='<div style="background:linear-gradient(180deg,#DEB887,#D2B48C);height:16px;border-radius:0 0 6px 6px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 2px 4px rgba(0,0,0,.2)">';
 html+='<div style="font-size:8px;color:#5D4037;font-weight:700">'+done+'/'+total+'</div>';
 html+='</div>';
-html+='<div style="background:#654321;height:6px;border-radius:0 0 2px 2px;box-shadow:0 2px 4px rgba(0,0,0,.4)"></div>';
 html+='</div>';
 });
 html+='</div>';
-html+='<div style="background:#654321;height:8px;border-radius:4px;margin-top:4px;box-shadow:inset 0 2px 4px rgba(0,0,0,.3)"></div>';
 el.innerHTML=html;}
 
 function goToBookshelfMid(bigId){
@@ -1380,6 +1423,54 @@ document.getElementById('bookshelfMid').style.display='block';
 document.getElementById('bookshelfSmall').style.display='none';
 currentBigCat=bigId;
 openBigCategory(bigId);
+}
+
+let favorites=JSON.parse(localStorage.getItem('sherupa_favorites')||'[]');
+function toggleFavorite(idx){
+const i=favorites.indexOf(idx);
+if(i===-1){favorites.push(idx);toast('⭐ お気に入りに追加しました');}
+else{favorites.splice(i,1);toast('お気に入りから削除しました');}
+localStorage.setItem('sherupa_favorites',JSON.stringify(favorites));
+renderFavorites();
+updateFavBtn(idx);
+}
+function updateFavBtn(idx){
+const btn=document.getElementById('favBtn');
+if(btn){btn.textContent=favorites.includes(idx)?'⭐ お気に入り解除':'☆ お気に入りに追加';btn.style.background=favorites.includes(idx)?'linear-gradient(135deg,#fbbf24,#f59e0b)':'linear-gradient(135deg,#6b7280,#4b5563)';}
+}
+function renderFavorites(){
+const el=document.getElementById('favoritesGrid');
+const countEl=document.getElementById('favCount');
+if(!el)return;
+const demoFavorites=[
+{t:'なぜ空は青いの？',e:'🌈',c:'science',done:true},
+{t:'SDGsってなに？',e:'🌍',c:'sdgs',done:true},
+{t:'恐竜の秘密',e:'🦕',c:'nature',done:false},
+{t:'AIの世界',e:'🤖',c:'tech',done:true},
+{t:'アインシュタイン',e:'👨‍🔬',c:'biography',done:false},
+{t:'日本の地理',e:'🗾',c:'geopolitics',done:true},
+{t:'太陽光発電',e:'☀️',c:'energy',done:false},
+{t:'海の生き物',e:'🐠',c:'nature',done:true}
+];
+let favSlides=favorites.map(i=>slides[i]).filter(Boolean);
+const showDemo=favSlides.length===0;
+if(showDemo)favSlides=demoFavorites;
+if(countEl)countEl.textContent=(showDemo?'サンプル':favSlides.length+'件');
+el.innerHTML='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">'+
+favSlides.slice(0,8).map((s,i)=>{
+const idx=showDemo?-1:slides.indexOf(s);
+const colors={science:'#3b82f6',sdgs:'#22c55e',nature:'#84cc16',tech:'#8b5cf6',biography:'#f59e0b',geopolitics:'#ec4899',energy:'#f97316'};
+return '<div onclick="'+(showDemo?'toast(\'スライドの☆ボタンでお気に入り追加できます\')':'openSlide('+idx+')')+'" style="background:#fff;border-radius:10px;overflow:hidden;cursor:pointer;transition:transform .2s;box-shadow:0 2px 6px rgba(0,0,0,.1);opacity:'+(showDemo?'0.7':'1')+'" onmouseover="this.style.transform=\'scale(1.03)\'" onmouseout="this.style.transform=\'scale(1)\'">'+
+'<div style="background:linear-gradient(135deg,'+(colors[s.c]||'#8b5cf6')+','+(colors[s.c]||'#8b5cf6')+'aa);padding:10px;text-align:center;position:relative">'+
+'<div style="font-size:24px">'+s.e+'</div>'+
+(s.done?'<div style="position:absolute;top:2px;right:2px;background:#22c55e;color:#fff;font-size:8px;padding:1px 3px;border-radius:3px">✓</div>':'')+
+'</div>'+
+'<div style="padding:6px;text-align:center">'+
+'<div style="font-size:9px;font-weight:700;color:#1f2937;line-height:1.2;height:22px;overflow:hidden">'+s.t+'</div>'+
+'<div style="font-size:9px;color:#fbbf24;margin-top:2px">⭐</div>'+
+'</div>'+
+'</div>';
+}).join('')+'</div>'+(showDemo?'<div style="text-align:center;font-size:9px;color:rgba(255,255,255,.5);margin-top:6px">↑ サンプル表示 / スライドの☆でお気に入り追加</div>':'');
 }
 
 function scrollToSlides(){const el=document.getElementById('slidesGrid');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
@@ -1410,8 +1501,10 @@ function renderLinkedChildren(){const listEl=document.getElementById('linkedChil
 function removeLinkedChild(childId){if(!confirm('このお子さまの連携を解除しますか？')){return;}let linkedChildren=JSON.parse(localStorage.getItem('sherupa_linked_children')||'[]');linkedChildren=linkedChildren.filter(c=>c.id!==childId);localStorage.setItem('sherupa_linked_children',JSON.stringify(linkedChildren));renderLinkedChildren();toast('連携を解除しました');}
 function saveProfile(){const n=document.getElementById('editName').value.trim();const r=document.getElementById('editRegion').value;const g=document.getElementById('editGrade').value;if(n){userProfile={name:n,region:r,grade:g};localStorage.setItem('sherupa_profile',JSON.stringify(userProfile));document.getElementById('profName').textContent=n;document.getElementById('profAvatar').textContent=n.charAt(0);grade=g;renderGrades();renderSlides();updateRefCode(n);toast('保存しました！');}}
 let slideViewStartTime=null;
+let currentSlideIdx=0;
 function openSlide(i){
 curSlide=i;
+currentSlideIdx=i;
 const s=slides[i];
 if(!s){toast('スライドが見つかりません');return;}
 // 先に画面を表示
@@ -1424,11 +1517,13 @@ const frameEl=document.getElementById('viewerFrame');
 if(!titleEl||!actionsEl||!frameEl){toast('画面の読み込みエラー');return;}
 titleEl.textContent=s.t;
 if(catEl)catEl.textContent=CATS[s.c]?.n||'';
+// お気に入りボタン更新
+updateFavBtn(i);
 if(s.embed){
 // スライドあり
 slideViewStartTime=Date.now();
 frameEl.innerHTML='<iframe src="'+s.embed+'" style="position:absolute;inset:0;width:100%;height:100%;border:none" allowfullscreen></iframe>';
-actionsEl.innerHTML='<span style="font-size:11px;color:var(--rock)">'+(CATS[s.c]?.n||'')+'</span><button class="btn btn-sm" style="background:#9ca3af;color:#fff" disabled id="viewerCompleteBtn">⏳ スライドを見てね</button>';
+actionsEl.innerHTML='<span style="font-size:11px;color:var(--rock)">'+(CATS[s.c]?.n||'')+'</span><div style="display:flex;gap:8px"><button id="favBtn" onclick="toggleFavorite('+i+')" style="background:'+(favorites.includes(i)?'linear-gradient(135deg,#fbbf24,#f59e0b)':'linear-gradient(135deg,#6b7280,#4b5563)')+';color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:11px;font-weight:700;cursor:pointer">'+(favorites.includes(i)?'⭐ お気に入り解除':'☆ お気に入り')+'</button><button class="btn btn-sm" style="background:#9ca3af;color:#fff" disabled id="viewerCompleteBtn">⏳ スライドを見てね</button></div>';
 // 10秒後に完了ボタン有効化
 setTimeout(()=>{
 const btn=document.getElementById('viewerCompleteBtn');
@@ -1438,7 +1533,7 @@ if(btn&&curSlide===i){btn.disabled=false;btn.style.background='linear-gradient(1
 // スライド未実装
 slideViewStartTime=null;
 frameEl.innerHTML='<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#f3f4f6,#e5e7eb);color:#374151"><div style="font-size:60px;margin-bottom:10px">'+s.e+'</div><div style="font-size:18px;font-weight:700;margin-bottom:8px">'+s.t+'</div><div style="background:#fef3c7;border-radius:12px;padding:12px 20px;margin-bottom:16px"><div style="font-size:14px;color:#92400e;font-weight:700">🚧 現在準備中</div><div style="font-size:11px;color:#b45309;margin-top:4px">このスライドは近日公開予定です</div></div></div>';
-actionsEl.innerHTML='<span style="font-size:11px;color:var(--rock)">'+(CATS[s.c]?.n||'')+'</span><button class="btn btn-sm" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff" onclick="requestSlide('+i+')">📝 スライド作成を希望</button>';
+actionsEl.innerHTML='<span style="font-size:11px;color:var(--rock)">'+(CATS[s.c]?.n||'')+'</span><div style="display:flex;gap:8px"><button id="favBtn" onclick="toggleFavorite('+i+')" style="background:'+(favorites.includes(i)?'linear-gradient(135deg,#fbbf24,#f59e0b)':'linear-gradient(135deg,#6b7280,#4b5563)')+';color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:11px;font-weight:700;cursor:pointer">'+(favorites.includes(i)?'⭐ お気に入り解除':'☆ お気に入り')+'</button><button class="btn btn-sm" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff" onclick="requestSlide('+i+')">📝 スライド作成を希望</button></div>';
 }
 // 関連動画を表示
 renderRelatedVideos(s);
@@ -1988,28 +2083,24 @@ function deleteSponsorSlide(i){if(confirm('このスライドを削除します�
 function renderFamilyMissions(){
 const el=document.getElementById('familyMissions');
 if(!el)return;
-// ファミリーミッションのダミーデータ
 const missions=[
-{id:1,title:'今日の夕食を一緒に作ろう',emoji:'🍳',reward:20,theme:'linear-gradient(135deg,#ec4899,#f472b6)',desc:'親子で料理にチャレンジ！',deadline:'今日中'},
-{id:2,title:'お気に入りの本を紹介し合おう',emoji:'📚',reward:15,theme:'linear-gradient(135deg,#8b5cf6,#a78bfa)',desc:'読書感想を共有しよう',deadline:'今週中'},
-{id:3,title:'家族で散歩して写真を撮ろう',emoji:'📸',reward:25,theme:'linear-gradient(135deg,#22c55e,#4ade80)',desc:'季節の風景を見つけよう',deadline:'週末まで'}
+{id:1,title:'今日の夕食を一緒に作ろう',emoji:'🍳',reward:20,theme:'linear-gradient(135deg,#ec4899,#f472b6)',desc:'親子で料理',deadline:'今日'},
+{id:2,title:'お気に入りの本を紹介',emoji:'📚',reward:15,theme:'linear-gradient(135deg,#8b5cf6,#a78bfa)',desc:'読書感想',deadline:'今週'},
+{id:3,title:'家族で散歩＆写真',emoji:'📸',reward:25,theme:'linear-gradient(135deg,#22c55e,#4ade80)',desc:'季節の風景',deadline:'週末'},
+{id:4,title:'一緒に星空観察',emoji:'🌟',reward:30,theme:'linear-gradient(135deg,#3b82f6,#60a5fa)',desc:'星座探し',deadline:'今夜'},
+{id:5,title:'ボードゲーム大会',emoji:'🎲',reward:20,theme:'linear-gradient(135deg,#f59e0b,#fbbf24)',desc:'楽しく勝負',deadline:'週末'},
+{id:6,title:'お掃除チャレンジ',emoji:'🧹',reward:25,theme:'linear-gradient(135deg,#14b8a6,#2dd4bf)',desc:'ピカピカに',deadline:'今日'},
+{id:7,title:'思い出アルバム',emoji:'📷',reward:15,theme:'linear-gradient(135deg,#f97316,#fb923c)',desc:'昔の写真',deadline:'今週'},
+{id:8,title:'植物を育てよう',emoji:'🌱',reward:35,theme:'linear-gradient(135deg,#84cc16,#a3e635)',desc:'観察日記',deadline:'今月'}
 ];
-if(missions.length===0){
-el.innerHTML='<div style="background:linear-gradient(135deg,#fdf2f8,#fce7f3);border-radius:12px;padding:20px;text-align:center"><div style="font-size:32px;margin-bottom:8px">👨‍👩‍👧</div><div style="font-size:12px;color:#be185d">ファミリーミッションは準備中です</div></div>';
-return;
-}
-el.innerHTML='<div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:8px">'+
-missions.map(m=>'<div onclick="openFamilyMission('+m.id+')" style="flex-shrink:0;width:160px;background:#fff;border-radius:12px;overflow:hidden;cursor:pointer;transition:transform .2s;box-shadow:0 2px 8px rgba(0,0,0,.1)" onmouseover="this.style.transform=\'translateY(-4px)\'" onmouseout="this.style.transform=\'translateY(0)\'">'+
-'<div style="background:'+m.theme+';padding:16px;text-align:center">'+
-'<div style="font-size:36px">'+m.emoji+'</div>'+
+el.innerHTML='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">'+
+missions.map(m=>'<div onclick="openFamilyMission('+m.id+')" style="background:#fff;border-radius:10px;overflow:hidden;cursor:pointer;transition:transform .2s;box-shadow:0 2px 6px rgba(0,0,0,.1)" onmouseover="this.style.transform=\'scale(1.03)\'" onmouseout="this.style.transform=\'scale(1)\'">'+
+'<div style="background:'+m.theme+';padding:10px;text-align:center">'+
+'<div style="font-size:24px">'+m.emoji+'</div>'+
 '</div>'+
-'<div style="padding:10px">'+
-'<div style="font-size:11px;font-weight:700;color:#1f2937;margin-bottom:4px;line-height:1.3">'+m.title+'</div>'+
-'<div style="font-size:9px;color:#6b7280;margin-bottom:6px">'+m.desc+'</div>'+
-'<div style="display:flex;justify-content:space-between;align-items:center">'+
-'<div style="font-size:10px;color:#ec4899;font-weight:700">+'+m.reward+' ALT</div>'+
-'<div style="font-size:8px;color:#9ca3af">⏰'+m.deadline+'</div>'+
-'</div>'+
+'<div style="padding:6px;text-align:center">'+
+'<div style="font-size:9px;font-weight:700;color:#1f2937;line-height:1.2;height:22px;overflow:hidden">'+m.title+'</div>'+
+'<div style="font-size:8px;color:#ec4899;font-weight:700;margin-top:2px">+'+m.reward+'</div>'+
 '</div>'+
 '</div>').join('')+
 '</div>';
@@ -2019,11 +2110,22 @@ function openFamilyMission(id){
 toast('👨‍👩‍👧 ファミリーミッション機能は近日公開！');
 }
 
-function renderSponsorMissions(){const el=document.getElementById('sponsorMissions');if(!el)return;const userId=userProfile.name;const allSlides=SPONSORS.flatMap((sp,si)=>sp.slides.map((s,sli)=>({...s,si,sli,sponsor:sp.name,logo:sp.logo,theme:sp.theme,startDate:sp.startDate,message:sp.message})));const available=allSlides.filter(s=>s.remaining>0&&getRemainingDays(s.startDate)>0);if(available.length===0){el.innerHTML='<div style="text-align:center;color:rgba(255,255,255,.7);padding:20px;font-size:12px">現在利用可能なスポンサーミッションはありません</div>';return;}
-const gradeLabels={lower:'🌱低学年',middle:'⭐中学年',upper:'🚀高学年',all:'👥全学年'};
-const diffStars=['','★☆☆','★★☆','★★★'];
-el.innerHTML=available.slice(0,6).map((s,i)=>{const done=s.completed.includes(userId);const days=getRemainingDays(s.startDate);
-return'<div class="slide-card'+(done?' done':'')+'" onclick="openSponsorMission('+s.si+','+s.sli+')"><div class="slide-visual" style="background:linear-gradient(135deg,#f59e0b,#fbbf24);position:relative">'+s.e+'<div style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.3);color:#fff;font-size:8px;padding:2px 5px;border-radius:4px">👁️'+(s.views||0)+'</div></div><div class="slide-body"><div style="display:flex;align-items:center;gap:4px;margin-bottom:4px;flex-wrap:wrap"><span class="slide-cat" style="background:#f59e0b;color:#fff">🎗️ '+s.sponsor+'</span><span style="font-size:8px;background:var(--cloud);padding:1px 4px;border-radius:3px">'+(gradeLabels[s.grade]||'👥全学年')+'</span></div><div class="slide-title">'+s.t+'</div><div style="font-size:9px;color:var(--rock);margin-bottom:4px;line-height:1.3">'+(s.desc||'')+'</div><div style="display:flex;gap:4px;margin-bottom:4px;flex-wrap:wrap"><span style="font-size:8px;background:#fef3c7;color:#92400e;padding:1px 4px;border-radius:3px">'+(diffStars[s.difficulty]||'★☆☆')+'</span><span style="font-size:8px;background:#dbeafe;color:#1e40af;padding:1px 4px;border-radius:3px">⏱️'+(s.time||5)+'分</span><span style="font-size:8px;background:#f3e8ff;color:#7c3aed;padding:1px 4px;border-radius:3px">'+(CATS[s.cat]?.e||'📚')+(CATS[s.cat]?.n||'')+'</span></div><div style="display:flex;justify-content:space-between;align-items:center"><div class="slide-reward" style="color:#f59e0b">+'+s.alt+' ALT</div><div style="font-size:9px;color:'+(s.remaining>50?'var(--meadow)':s.remaining>20?'#f59e0b':'#ef4444')+';font-weight:700">残り'+s.remaining+'名</div></div></div></div>';}).join('');}
+function renderSponsorMissions(){const el=document.getElementById('sponsorMissions');if(!el)return;const userId=userProfile.name;const allSlides=SPONSORS.flatMap((sp,si)=>sp.slides.map((s,sli)=>({...s,si,sli,sponsor:sp.name,logo:sp.logo,theme:sp.theme,startDate:sp.startDate,message:sp.message})));
+// 利用可能なスライドを取得（残り枠があるもの）
+const available=allSlides.filter(s=>s.remaining>0);
+if(available.length===0){el.innerHTML='<div style="text-align:center;color:rgba(255,255,255,.7);padding:20px;font-size:12px">現在利用可能なスポンサーミッションはありません</div>';return;}
+el.innerHTML='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">'+available.slice(0,8).map((s,i)=>{const done=s.completed.includes(userId);
+return'<div onclick="openSponsorMission('+s.si+','+s.sli+')" style="background:#fff;border-radius:10px;overflow:hidden;cursor:pointer;transition:transform .2s;box-shadow:0 2px 6px rgba(0,0,0,.1);opacity:'+(done?'0.6':'1')+'" onmouseover="this.style.transform=\'scale(1.03)\'" onmouseout="this.style.transform=\'scale(1)\'">'+
+'<div style="background:linear-gradient(135deg,#f59e0b,#fbbf24);padding:10px;text-align:center;position:relative">'+
+'<div style="font-size:24px">'+s.e+'</div>'+
+'<div style="position:absolute;top:2px;left:2px;font-size:10px">'+s.logo+'</div>'+
+(done?'<div style="position:absolute;inset:0;background:rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px">✓</div>':'')+
+'</div>'+
+'<div style="padding:6px;text-align:center">'+
+'<div style="font-size:9px;font-weight:700;color:#1f2937;line-height:1.2;height:22px;overflow:hidden">'+s.t+'</div>'+
+'<div style="font-size:8px;color:#f59e0b;font-weight:700;margin-top:2px">+'+s.alt+'</div>'+
+'</div>'+
+'</div>';}).join('')+'</div>';}
 function openSponsorMission(si,sli){const s=SPONSORS[si].slides[sli];const sp=SPONSORS[si];const userId=userProfile.name;if(s.completed.includes(userId)){toast('このミッションは完了済みです');return;}if(s.remaining<=0){toast('このミッションは終了しました');return;}
 const gradeLabels={lower:'🌱 低学年向け',middle:'⭐ 中学年向け',upper:'🚀 高学年向け',all:'👥 全学年OK'};
 const diffStars=['','★☆☆ かんたん','★★☆ ふつう','★★★ チャレンジ'];
@@ -2103,17 +2205,6 @@ function submitDiary(){if(hasDiaryToday()){toast('今日はもう書いたよ！
 function renderDiary(){const streak=getDiaryStreak();document.getElementById('diaryStreak').textContent=streak;document.getElementById('diaryCount').textContent=diaryEntries.length+'件';const wrote=hasDiaryToday();document.getElementById('diaryAlreadyWritten').style.display=wrote?'block':'none';document.getElementById('diaryForm').style.display=wrote?'none':'block';const listEl=document.getElementById('diaryList');if(diaryEntries.length===0){listEl.innerHTML='<div style="text-align:center;color:var(--rock);padding:20px;font-size:12px">まだ日記がありません<br>今日から書いてみよう！</div>';return;}listEl.innerHTML=diaryEntries.slice(0,30).map(d=>{const date=new Date(d.date);const dateStr=(date.getMonth()+1)+'/'+ date.getDate()+'('+['日','月','火','水','木','金','土'][date.getDay()]+')';return'<div class="diary-entry"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-size:11px;color:var(--rock)">📅 '+dateStr+' '+d.time+'</div><div style="font-size:18px">'+d.emoji+'</div></div><div style="font-size:12px;color:var(--summit);line-height:1.5">'+d.content+'</div></div>';}).join('');}
 
 // 子ども向けランキング機能
-const RANKING_TYPES=[
-{k:'alt',n:'⛰️ ALT',field:'alt',unit:' ALT',desc:'累計獲得ALT'},
-{k:'streak',n:'🔥 連続ログイン',field:'streak',unit:'日',desc:'連続ログイン日数'},
-{k:'slides',n:'📚 スライド',field:'slides',unit:'枚',desc:'完了スライド数'},
-{k:'climbed',n:'🏔️ 登山',field:'climbed',unit:'座',desc:'登頂した山の数'},
-{k:'diaryStreak',n:'📔 日記継続',field:'diaryStreak',unit:'日',desc:'日記連続日数'},
-{k:'likes',n:'💜 人気作品',field:'likes',unit:'いいね',desc:'もらったいいね数'},
-{k:'sponsorMissions',n:'🎗️ スポンサー',field:'sponsorMissions',unit:'回',desc:'スポンサーミッション完了数'},
-{k:'growth',n:'📈 成長率',field:'growth',unit:'%',desc:'今週のALT成長率'}
-];
-const RANKING_PERIODS=[{k:'all',n:'全期間'},{k:'weekly',n:'今週'},{k:'monthly',n:'今月'}];
 function renderChildRanking(){renderRankingFilters();renderRankingList();}
 function renderRankingFilters(){
 const typeEl=document.getElementById('rankingTypeFilter');
