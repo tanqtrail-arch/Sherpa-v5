@@ -1467,12 +1467,18 @@ let html='';
 if(smallThemes.length>0){
 html='<div style="background:linear-gradient(180deg,#8B4513 0%,#A0522D 100%);border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:inset 0 -4px 8px rgba(0,0,0,.3)">';
 html+='<div style="font-size:12px;color:#DEB887;margin-bottom:10px;font-weight:600">📕 テーマを選んで学ぼう（'+smallThemes.length+'テーマ）</div>';
-html+='<div style="display:flex;flex-wrap:wrap;gap:8px">';
+html+='<div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:8px">';
 smallThemes.forEach((theme,idx)=>{
 const hasUrl=getThemeNotebookUrl(bigId,midId,idx);
-html+='<div onclick="openTheme(\''+bigId+'\',\''+midId+'\','+idx+')" style="background:'+big.color+';border-radius:8px;padding:8px 12px;font-size:11px;color:#fff;font-weight:600;cursor:pointer;transition:transform .2s;display:flex;align-items:center;gap:4px" onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'">';
-if(hasUrl)html+='<span style="font-size:10px">📓</span>';
-html+=theme;
+html+='<div onclick="openTheme(\''+bigId+'\',\''+midId+'\','+idx+')" style="cursor:pointer;transition:transform .2s;flex-shrink:0;width:100px" onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'">';
+html+='<div style="background:'+big.color+';height:80px;border-radius:6px 6px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:2px 2px 8px rgba(0,0,0,.3);position:relative;padding:6px">';
+if(hasUrl)html+='<div style="position:absolute;top:-6px;right:-6px;background:#3b82f6;color:#fff;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;box-shadow:0 2px 4px rgba(0,0,0,.2)">📓</div>';
+html+='<div style="font-size:28px;text-shadow:0 2px 4px rgba(0,0,0,.3)">📖</div>';
+html+='<div style="font-size:9px;color:#fff;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.5);text-align:center;margin-top:2px;line-height:1.2;max-height:24px;overflow:hidden;padding:0 4px">'+theme+'</div>';
+html+='</div>';
+html+='<div style="background:linear-gradient(180deg,#DEB887,#D2B48C);height:20px;border-radius:0 0 6px 6px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 2px 4px rgba(0,0,0,.2)">';
+html+='<div style="font-size:8px;color:#5D4037;font-weight:600">'+(hasUrl?'📓 準備OK':'未設定')+'</div>';
+html+='</div>';
 html+='</div>';
 });
 html+='</div>';
