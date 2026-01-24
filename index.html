@@ -286,9 +286,9 @@ main{padding:80px 16px 100px;max-width:900px;margin:0 auto}
 </div>
 </div>
 
-<!-- お気に入りのスライド -->
-<div class="section-title">⭐ お気に入りのスライド<span class="free-tag" id="favCount">0件</span></div>
-<div id="favoritesGrid" style="margin-bottom:16px"></div>
+<!-- 新着スライド -->
+<div class="section-title">🆕 新着スライド<span class="free-tag" id="newSlideCount">0件</span></div>
+<div id="newSlidesGrid" style="margin-bottom:16px"></div>
 </div>
 <!-- カリキュラム画面 -->
 <div id="screen-curriculum" class="screen">
@@ -1373,7 +1373,7 @@ localStorage.setItem('sherupa_slides_version',SLIDES_VERSION);
 localStorage.removeItem('sherupa_s');
 }
 document.addEventListener('DOMContentLoaded',init);
-function init(){renderNav();renderGrades();renderCats();renderSlides();renderGallery();renderBadges();renderEmojis();renderSlideList();renderUsers();renderFM();updateFMCount();renderClasses();renderStudents();renderTasks();renderMountains();renderClimbBadges();renderCertificates();renderSpecialGalleries();renderAdminGallery();renderParentDash();loadProfile();renderFamilyMissions();renderSponsorMissions();renderSponsorSlides();renderSponsorReport();renderSponsorDash();renderRankings();renderAdminStats();renderReportContent();renderAdminGradeUsers();renderMasterSponsorSelect();renderMasterSponsorSlides();renderDiary();renderChildRanking();renderCompletedSlides();loadApiKey();renderQAReport();renderLinkedChildren();renderBookshelfMain();renderSlideRequests();renderVideoPanel();renderFavorites();renderBookshelf();}
+function init(){renderNav();renderGrades();renderCats();renderSlides();renderGallery();renderBadges();renderEmojis();renderSlideList();renderUsers();renderFM();updateFMCount();renderClasses();renderStudents();renderTasks();renderMountains();renderClimbBadges();renderCertificates();renderSpecialGalleries();renderAdminGallery();renderParentDash();loadProfile();renderFamilyMissions();renderSponsorMissions();renderSponsorSlides();renderSponsorReport();renderSponsorDash();renderRankings();renderAdminStats();renderReportContent();renderAdminGradeUsers();renderMasterSponsorSelect();renderMasterSponsorSlides();renderDiary();renderChildRanking();renderCompletedSlides();loadApiKey();renderQAReport();renderLinkedChildren();renderBookshelfMain();renderSlideRequests();renderVideoPanel();renderNewSlides();renderBookshelf();}
 let currentBigCat=null;let currentMidCat=null;
 function renderBookshelfMain(){const el=document.getElementById('bookshelfMain');if(!el)return;
 let html='<div style="background:linear-gradient(180deg,#8B4513 0%,#A0522D 100%);border-radius:16px;padding:16px;box-shadow:inset 0 -4px 8px rgba(0,0,0,.3)">';
@@ -1624,46 +1624,33 @@ const i=favorites.indexOf(idx);
 if(i===-1){favorites.push(idx);toast('⭐ お気に入りに追加しました');}
 else{favorites.splice(i,1);toast('お気に入りから削除しました');}
 localStorage.setItem('sherupa_favorites',JSON.stringify(favorites));
-renderFavorites();
 updateFavBtn(idx);
 }
 function updateFavBtn(idx){
 const btn=document.getElementById('favBtn');
 if(btn){btn.textContent=favorites.includes(idx)?'⭐ お気に入り解除':'☆ お気に入りに追加';btn.style.background=favorites.includes(idx)?'linear-gradient(135deg,#fbbf24,#f59e0b)':'linear-gradient(135deg,#6b7280,#4b5563)';}
 }
-function renderFavorites(){
-const el=document.getElementById('favoritesGrid');
-const countEl=document.getElementById('favCount');
+function renderNewSlides(){
+const el=document.getElementById('newSlidesGrid');
+const countEl=document.getElementById('newSlideCount');
 if(!el)return;
-const demoFavorites=[
-{t:'なぜ空は青いの？',e:'🌈',c:'science',done:true},
-{t:'SDGsってなに？',e:'🌍',c:'sdgs',done:true},
-{t:'恐竜の秘密',e:'🦕',c:'nature',done:false},
-{t:'AIの世界',e:'🤖',c:'tech',done:true},
-{t:'アインシュタイン',e:'👨‍🔬',c:'biography',done:false},
-{t:'日本の地理',e:'🗾',c:'geopolitics',done:true},
-{t:'太陽光発電',e:'☀️',c:'energy',done:false},
-{t:'海の生き物',e:'🐠',c:'nature',done:true}
-];
-let favSlides=favorites.map(i=>slides[i]).filter(Boolean);
-const showDemo=favSlides.length===0;
-if(showDemo)favSlides=demoFavorites;
-if(countEl)countEl.textContent=(showDemo?'サンプル':favSlides.length+'件');
+const newSlides=[...slides].sort((a,b)=>b.id-a.id).slice(0,8);
+if(countEl)countEl.textContent=newSlides.length+'件';
+const colors={science:'#3b82f6',sdgs:'#22c55e',nature:'#84cc16',tech:'#8b5cf6',biography:'#f59e0b',geopolitics:'#ec4899',energy:'#f97316',worldhistory:'#6366f1',japanhistory:'#dc2626',japanculture:'#db2777',space:'#0ea5e9',astronomy:'#8b5cf6',scientist:'#14b8a6'};
 el.innerHTML='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">'+
-favSlides.slice(0,8).map((s,i)=>{
-const idx=showDemo?-1:slides.indexOf(s);
-const colors={science:'#3b82f6',sdgs:'#22c55e',nature:'#84cc16',tech:'#8b5cf6',biography:'#f59e0b',geopolitics:'#ec4899',energy:'#f97316'};
-return '<div onclick="'+(showDemo?'toast(\'スライドの☆ボタンでお気に入り追加できます\')':'openSlide('+idx+')')+'" style="background:#fff;border-radius:10px;overflow:hidden;cursor:pointer;transition:transform .2s;box-shadow:0 2px 6px rgba(0,0,0,.1);opacity:'+(showDemo?'0.7':'1')+'" onmouseover="this.style.transform=\'scale(1.03)\'" onmouseout="this.style.transform=\'scale(1)\'">'+
+newSlides.map((s)=>{
+const idx=slides.indexOf(s);
+return '<div onclick="openSlide('+idx+')" style="background:#fff;border-radius:10px;overflow:hidden;cursor:pointer;transition:transform .2s;box-shadow:0 2px 6px rgba(0,0,0,.1)" onmouseover="this.style.transform=\'scale(1.03)\'" onmouseout="this.style.transform=\'scale(1)\'">'+
 '<div style="background:linear-gradient(135deg,'+(colors[s.c]||'#8b5cf6')+','+(colors[s.c]||'#8b5cf6')+'aa);padding:10px;text-align:center;position:relative">'+
 '<div style="font-size:24px">'+s.e+'</div>'+
 (s.done?'<div style="position:absolute;top:2px;right:2px;background:#22c55e;color:#fff;font-size:8px;padding:1px 3px;border-radius:3px">✓</div>':'')+
+'<div style="position:absolute;top:2px;left:2px;background:#ef4444;color:#fff;font-size:7px;padding:1px 4px;border-radius:3px;font-weight:700">NEW</div>'+
 '</div>'+
 '<div style="padding:6px;text-align:center">'+
 '<div style="font-size:9px;font-weight:700;color:#1f2937;line-height:1.2;height:22px;overflow:hidden">'+s.t+'</div>'+
-'<div style="font-size:9px;color:#fbbf24;margin-top:2px">⭐</div>'+
 '</div>'+
 '</div>';
-}).join('')+'</div>'+(showDemo?'<div style="text-align:center;font-size:9px;color:rgba(255,255,255,.5);margin-top:6px">↑ サンプル表示 / スライドの☆でお気に入り追加</div>':'');
+}).join('')+'</div>';
 }
 
 function scrollToSlides(){const el=document.getElementById('slidesGrid');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
