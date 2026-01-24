@@ -339,19 +339,23 @@ main{padding:80px 16px 100px;max-width:900px;margin:0 auto}
 <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
 <button onclick="closeBookshelfSmall()" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:14px;cursor:pointer">←</button>
 <div id="bookshelfSmallTitle" style="font-size:16px;font-weight:700;color:#fff;flex:1">物理学</div>
-<button id="notebookLmBtn" onclick="toggleNotebookLM()" style="display:none;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;color:#fff;padding:6px 12px;border-radius:16px;font-size:11px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(245,158,11,.4)">📓 NotebookLMで学ぶ</button>
 </div>
-<!-- NotebookLM埋め込みエリア -->
-<div id="notebookLmEmbed" style="display:none;margin-bottom:12px">
+<!-- リソースカード -->
+<div id="resourceCards" style="display:none;margin-bottom:12px">
+<div style="font-size:11px;color:#DEB887;margin-bottom:8px;font-weight:600">📚 学習リソース</div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px" id="resourceGrid"></div>
+</div>
+<!-- 埋め込みビューア -->
+<div id="resourceEmbed" style="display:none;margin-bottom:12px">
 <div style="background:linear-gradient(135deg,#1f2937,#111827);border-radius:12px;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,.3)">
-<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:linear-gradient(135deg,#f59e0b,#d97706)">
-<span style="font-size:12px;font-weight:700;color:#fff">📓 NotebookLM</span>
+<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px" id="resourceEmbedHeader">
+<span style="font-size:12px;font-weight:700;color:#fff" id="resourceEmbedTitle">📓 リソース</span>
 <div style="display:flex;gap:8px">
-<button onclick="openNotebookLMNewTab()" style="background:rgba(255,255,255,.2);border:none;color:#fff;padding:4px 8px;border-radius:8px;font-size:10px;cursor:pointer">↗ 新しいタブ</button>
-<button onclick="closeNotebookLM()" style="background:rgba(255,255,255,.2);border:none;color:#fff;padding:4px 8px;border-radius:8px;font-size:10px;cursor:pointer">✕ 閉じる</button>
+<button onclick="openResourceNewTab()" style="background:rgba(255,255,255,.2);border:none;color:#fff;padding:4px 8px;border-radius:8px;font-size:10px;cursor:pointer">↗ 新しいタブ</button>
+<button onclick="closeResourceEmbed()" style="background:rgba(255,255,255,.2);border:none;color:#fff;padding:4px 8px;border-radius:8px;font-size:10px;cursor:pointer">✕ 閉じる</button>
 </div>
 </div>
-<iframe id="notebookLmFrame" style="width:100%;height:500px;border:none" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<iframe id="resourceFrame" style="width:100%;height:450px;border:none" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 </div>
 </div>
 <div id="bookshelfSmallContent"></div>
@@ -787,8 +791,8 @@ main{padding:80px 16px 100px;max-width:900px;margin:0 auto}
 const CATS={all:{n:'全部',e:'✨'},worldhistory:{n:'世界史',e:'🌐'},japanhistory:{n:'日本史',e:'🏯'},japanculture:{n:'日本文化',e:'🎎'},energy:{n:'エネルギー',e:'⚡'},geopolitics:{n:'地政学',e:'🗺️'},tech:{n:'テクノロジー',e:'🤖'},space:{n:'宇宙科学',e:'🚀'},astronomy:{n:'天文学',e:'🔭'},nature:{n:'自然',e:'🌿'},biography:{n:'伝記',e:'📖'},scientist:{n:'科学者',e:'👨‍🔬'}};
 const BOOKSHELF_DATA=[
 {id:'worldhistory',n:'世界史',e:'🌐',color:'linear-gradient(180deg,#6366f1,#4f46e5)',mid:[
-{id:'ancient',n:'古代文明のなぞ',e:'🏛️',notebookUrl:'https://notebooklm.google.com/notebook/59d24cdf-95ca-42aa-8e8c-1b0986e3dff5',small:['ピラミッドのひみつ','ミイラと永遠の命','スフィンクスのなぞ','ヒエログリフを読もう','メソポタミアの発明','バビロンの空中庭園','万里の長城のひみつ','兵馬俑の8000人','インダスの計画都市']},
-{id:'greece',n:'ギリシャ・ローマの世界',e:'🏺',notebookUrl:'https://notebooklm.google.com/notebook/59d24cdf-95ca-42aa-8e8c-1b0986e3dff5',small:['オリンピックの始まり','民主主義の誕生','ローマ帝国のすごさ','コロッセオの真実','ポンペイが消えた日']},
+{id:'ancient',n:'古代文明のなぞ',e:'🏛️',resources:{slides:'',video:'',quiz:'',mindmap:'',infographic:'',audio:''},small:['ピラミッドのひみつ','ミイラと永遠の命','スフィンクスのなぞ','ヒエログリフを読もう','メソポタミアの発明','バビロンの空中庭園','万里の長城のひみつ','兵馬俑の8000人','インダスの計画都市']},
+{id:'greece',n:'ギリシャ・ローマの世界',e:'🏺',resources:{slides:'',video:'',quiz:'',mindmap:'',infographic:'',audio:''},small:['オリンピックの始まり','民主主義の誕生','ローマ帝国のすごさ','コロッセオの真実','ポンペイが消えた日']},
 {id:'medieval',n:'中世の世界',e:'🏰',small:['騎士になるには？','城のひみつ','モンゴル帝国の強さ','シルクロード物語','元寇と神風']},
 {id:'voyage',n:'大航海時代',e:'⛵',small:['コロンブスの大航海','マゼランの世界一周','香辛料は宝物','新大陸との出会い']},
 {id:'revolution',n:'革命の時代',e:'🏭',small:['フランス革命の始まり','蒸気機関が変えた世界','鉄道の誕生','工場で働く子どもたち']},
@@ -822,13 +826,13 @@ const BOOKSHELF_DATA=[
 {id:'world_region',n:'世界の国と地域',e:'🌍',small:['アメリカの強さの理由','ヨーロッパの協力','中東の複雑さ','地球温暖化と国際協力','難民問題','米中の関係']}
 ]},
 {id:'tech',n:'テクノロジー',e:'🤖',color:'linear-gradient(180deg,#8b5cf6,#7c3aed)',mid:[
-{id:'ai_secret',n:'AIのひみつ',e:'🧠',notebookUrl:'https://notebooklm.google.com/notebook/59d24cdf-95ca-42aa-8e8c-1b0986e3dff5',small:['AIって何ができる？','ChatGPTのすごさ','機械が学ぶしくみ','AIが絵を描く']},
+{id:'ai_secret',n:'AIのひみつ',e:'🧠',resources:{slides:'',video:'',quiz:'',mindmap:'',infographic:'',audio:''},small:['AIって何ができる？','ChatGPTのすごさ','機械が学ぶしくみ','AIが絵を描く']},
 {id:'robot',n:'ロボットの世界',e:'🦾',small:['暮らしの中のロボット','自動運転の未来','ロボットの歴史','工場で働くロボット','人を助けるロボット']},
 {id:'life_science',n:'生命の科学',e:'🧬',small:['DNAって何？','iPS細胞のすごさ','遺伝子を調べる','ゲノム編集の可能性']},
 {id:'digital',n:'デジタルと未来技術',e:'💻',small:['インターネットの始まり','サイバーセキュリティ','メタバース','VRとAR','コンピュータの誕生','スマートフォンの歴史','クラウドとは','量子コンピュータ','3Dプリンター','脳とコンピュータ']}
 ]},
 {id:'space',n:'宇宙科学',e:'🚀',color:'linear-gradient(180deg,#1e40af,#1e3a8a)',mid:[
-{id:'rocket',n:'ロケットと月・火星',e:'🚀',notebookUrl:'https://notebooklm.google.com/notebook/59d24cdf-95ca-42aa-8e8c-1b0986e3dff5',small:['ロケットが飛ぶ理由','ロケットの種類','日本のロケット','アポロ計画の偉業','月面基地計画','火星探査の最前線','アルテミス計画']},
+{id:'rocket',n:'ロケットと月・火星',e:'🚀',resources:{slides:'',video:'',quiz:'',mindmap:'',infographic:'',audio:''},small:['ロケットが飛ぶ理由','ロケットの種類','日本のロケット','アポロ計画の偉業','月面基地計画','火星探査の最前線','アルテミス計画']},
 {id:'satellite',n:'人工衛星のはたらき',e:'🛰️',small:['GPS衛星のしくみ','気象衛星ひまわり','通信衛星','地球観測衛星']},
 {id:'solar_explore',n:'太陽系の冒険',e:'🪐',small:['はやぶさの冒険','ボイジャーの旅','太陽系の果て','木星と土星の衛星','宇宙ゴミ問題','宇宙ビジネス']},
 {id:'astronaut',n:'宇宙で暮らす',e:'👨‍🚀',small:['日本人宇宙飛行士','宇宙ステーション','宇宙での生活','宇宙食のひみつ']}
@@ -1414,8 +1418,8 @@ return;
 document.getElementById('bookshelfMid').style.display='none';
 document.getElementById('bookshelfSmall').style.display='block';
 document.getElementById('bookshelfSmallTitle').textContent=mid.e+' '+mid.n;
-const notebookBtn=document.getElementById('notebookLmBtn');
-if(mid.notebookUrl){currentNotebookUrl=mid.notebookUrl;notebookBtn.style.display='inline-block';}else{currentNotebookUrl=null;notebookBtn.style.display='none';}
+currentResources=mid.resources||null;
+renderResourceCards(currentResources);
 const midSlides=slides.filter(s=>s.mid===midId);
 console.log('openMidCategory:', midId, 'slides:', midSlides.length, 'total slides:', slides.length);
 let html='<div style="background:linear-gradient(180deg,#8B4513 0%,#A0522D 100%);border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:inset 0 -4px 8px rgba(0,0,0,.3)">';
@@ -1441,13 +1445,58 @@ html+='</div>';
 html+='<div style="background:#654321;height:6px;border-radius:3px;margin-top:10px;box-shadow:inset 0 2px 4px rgba(0,0,0,.3)"></div>';
 html+='</div>';
 document.getElementById('bookshelfSmallContent').innerHTML=html;}
-function closeBookshelfSmall(){document.getElementById('bookshelfMid').style.display='block';document.getElementById('bookshelfSmall').style.display='none';currentMidCat=null;document.getElementById('notebookLmBtn').style.display='none';closeNotebookLM();}
-let currentNotebookUrl=null;
-let notebookLmOpen=false;
-function toggleNotebookLM(){if(notebookLmOpen){closeNotebookLM();}else{openNotebookLM();}}
-function openNotebookLM(){if(currentNotebookUrl){const embed=document.getElementById('notebookLmEmbed');const frame=document.getElementById('notebookLmFrame');const btn=document.getElementById('notebookLmBtn');frame.src=currentNotebookUrl;embed.style.display='block';btn.textContent='📓 NotebookLMを閉じる';btn.style.background='linear-gradient(135deg,#6b7280,#4b5563)';notebookLmOpen=true;}else{toast('NotebookLMのURLが設定されていません');}}
-function closeNotebookLM(){const embed=document.getElementById('notebookLmEmbed');const frame=document.getElementById('notebookLmFrame');const btn=document.getElementById('notebookLmBtn');frame.src='';embed.style.display='none';btn.textContent='📓 NotebookLMで学ぶ';btn.style.background='linear-gradient(135deg,#f59e0b,#d97706)';notebookLmOpen=false;}
-function openNotebookLMNewTab(){if(currentNotebookUrl){window.open(currentNotebookUrl,'_blank');}}
+function closeBookshelfSmall(){document.getElementById('bookshelfMid').style.display='block';document.getElementById('bookshelfSmall').style.display='none';currentMidCat=null;closeResourceEmbed();document.getElementById('resourceCards').style.display='none';}
+let currentResources=null;
+let currentResourceUrl=null;
+const RESOURCE_TYPES={
+slides:{icon:'📊',name:'スライド',color:'#3b82f6'},
+video:{icon:'🎬',name:'動画',color:'#ef4444'},
+quiz:{icon:'❓',name:'クイズ',color:'#22c55e'},
+mindmap:{icon:'🧠',name:'マインドマップ',color:'#8b5cf6'},
+infographic:{icon:'📈',name:'インフォグラフィック',color:'#f59e0b'},
+audio:{icon:'🎧',name:'音声',color:'#ec4899'}
+};
+function renderResourceCards(resources){
+const grid=document.getElementById('resourceGrid');
+const container=document.getElementById('resourceCards');
+if(!resources){container.style.display='none';return;}
+const hasAny=Object.values(resources).some(v=>v);
+if(!hasAny){container.style.display='none';return;}
+let html='';
+Object.keys(RESOURCE_TYPES).forEach(key=>{
+const url=resources[key];
+const t=RESOURCE_TYPES[key];
+const disabled=!url;
+html+='<div onclick="'+(disabled?'':'openResource(\''+key+'\')')+'" style="background:'+(disabled?'rgba(100,100,100,.3)':'linear-gradient(135deg,'+t.color+','+t.color+'dd)')+';border-radius:10px;padding:10px;text-align:center;cursor:'+(disabled?'not-allowed':'pointer')+';opacity:'+(disabled?'0.4':'1')+';transition:transform .2s" '+(disabled?'':'onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'"')+'>';
+html+='<div style="font-size:24px">'+t.icon+'</div>';
+html+='<div style="font-size:10px;color:#fff;font-weight:600;margin-top:4px">'+t.name+'</div>';
+html+='</div>';
+});
+grid.innerHTML=html;
+container.style.display='block';
+}
+function openResource(type){
+if(!currentResources||!currentResources[type])return;
+const url=currentResources[type];
+const t=RESOURCE_TYPES[type];
+currentResourceUrl=url;
+const embed=document.getElementById('resourceEmbed');
+const frame=document.getElementById('resourceFrame');
+const header=document.getElementById('resourceEmbedHeader');
+const title=document.getElementById('resourceEmbedTitle');
+header.style.background='linear-gradient(135deg,'+t.color+','+t.color+'dd)';
+title.textContent=t.icon+' '+t.name;
+frame.src=url;
+embed.style.display='block';
+}
+function closeResourceEmbed(){
+const embed=document.getElementById('resourceEmbed');
+const frame=document.getElementById('resourceFrame');
+frame.src='';
+embed.style.display='none';
+currentResourceUrl=null;
+}
+function openResourceNewTab(){if(currentResourceUrl){window.open(currentResourceUrl,'_blank');}}
 let bookshelfReturnInfo=null;
 function openTopicSlides(bigId,midId,slideId){
 const s=slides.find(x=>x.id===slideId);
