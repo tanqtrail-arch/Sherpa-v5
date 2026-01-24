@@ -711,8 +711,10 @@ main{padding:80px 16px 100px;max-width:900px;margin:0 auto}
 </main>
 <nav id="nav"><div class="nav-items" id="navItems"></div></nav>
 <!-- Modals -->
-<div class="modal-overlay" id="modeModal"><div class="modal-box"><div class="modal-header success"><h3>🔄 モード切替</h3></div><div class="modal-body"><button class="btn btn-primary" style="margin-bottom:10px" onclick="closeModals();switchMode('child')">👦 子ども<br><small style="font-weight:400;opacity:.8">全機能無料</small></button><button class="btn" style="margin-bottom:10px;background:var(--parent);color:#fff" onclick="openAuth('parent')">👨‍👩‍👧 保護者<br><small style="font-weight:400;opacity:.8">¥2,500/月</small></button><button class="btn btn-teacher" style="margin-bottom:10px" onclick="openAuth('teacher')">🍎 先生・塾</button><button class="btn" style="margin-bottom:10px;background:#f59e0b;color:#fff" onclick="openAuth('sponsor')">🎗️ スポンサー</button><button class="btn btn-danger" onclick="openAuth('admin')">⚙️ 管理者</button></div></div></div>
+<div class="modal-overlay" id="modeModal"><div class="modal-box"><div class="modal-header success"><h3>🔄 モード切替</h3></div><div class="modal-body"><div id="loggedInUserInfo" style="display:none;background:linear-gradient(135deg,#dcfce7,#bbf7d0);border-radius:12px;padding:12px;margin-bottom:12px;text-align:center"><div style="font-size:11px;color:#16a34a">ログイン中</div><div style="font-size:14px;font-weight:700;color:#15803d" id="loggedInUserName"></div><button class="btn btn-sm" style="margin-top:8px;background:#ef4444;color:#fff" onclick="logout()">ログアウト</button></div><button class="btn btn-primary" style="margin-bottom:10px" onclick="closeModals();switchMode('child')">👦 子ども<br><small style="font-weight:400;opacity:.8">全機能無料</small></button><button class="btn" style="margin-bottom:10px;background:var(--parent);color:#fff" onclick="openAuth('parent')">👨‍👩‍👧 保護者<br><small style="font-weight:400;opacity:.8">¥2,500/月</small></button><button class="btn btn-teacher" style="margin-bottom:10px" onclick="openAuth('teacher')">🍎 先生・塾</button><button class="btn" style="margin-bottom:10px;background:#f59e0b;color:#fff" onclick="openAuth('sponsor')">🎗️ スポンサー</button><button class="btn btn-danger" style="margin-bottom:10px" onclick="openAuth('admin')">⚙️ 管理者</button><div style="border-top:1px solid var(--cloud);padding-top:12px;margin-top:4px"><div style="font-size:11px;color:var(--rock);margin-bottom:8px;text-align:center">アカウント</div><div style="display:flex;gap:8px"><button class="btn" style="flex:1;background:var(--premium);color:#fff" onclick="openRegisterModal()">📝 新規登録</button><button class="btn" style="flex:1;background:var(--summit);color:#fff" onclick="openLoginModal()">🔑 ログイン</button></div></div></div></div></div>
 <div class="modal-overlay" id="authModal"><div class="modal-box"><div class="modal-header" id="authHeader"><h3 id="authTitle">認証</h3></div><div class="modal-body"><p style="font-size:12px;color:var(--rock);margin-bottom:16px" id="authDesc">PINを入力</p><div class="modal-error" id="authError">認証エラー</div><div class="pin-inputs" id="pinArea"><input type="password" class="pin-digit" maxlength="1" id="p1" oninput="movePin(1)"><input type="password" class="pin-digit" maxlength="1" id="p2" oninput="movePin(2)"><input type="password" class="pin-digit" maxlength="1" id="p3" oninput="movePin(3)"><input type="password" class="pin-digit" maxlength="1" id="p4" oninput="checkAuth()"></div><input type="password" class="password-input" id="pwInput" placeholder="パスワード" style="display:none"><button class="btn btn-secondary" id="pwBtn" style="display:none;margin-bottom:10px" onclick="checkPw()">ログイン</button><button class="btn btn-secondary" onclick="closeModals()">キャンセル</button></div></div></div>
+<div class="modal-overlay" id="registerModal"><div class="modal-box"><div class="modal-header" style="background:linear-gradient(135deg,var(--premium),#a855f7)"><h3>📝 新規会員登録</h3></div><div class="modal-body"><div class="modal-error" id="registerError" style="display:none">エラー</div><div class="form-group"><label class="form-label">ニックネーム *</label><input type="text" class="form-input" id="regName" placeholder="例：たろう"></div><div class="form-group"><label class="form-label">メールアドレス *</label><input type="email" class="form-input" id="regEmail" placeholder="例：example@mail.com"></div><div class="form-group"><label class="form-label">パスワード *（6文字以上）</label><input type="password" class="form-input" id="regPassword" placeholder="パスワード"></div><div class="form-group"><label class="form-label">パスワード確認 *</label><input type="password" class="form-input" id="regPasswordConfirm" placeholder="パスワード再入力"></div><div class="form-group"><label class="form-label">学年</label><select class="form-select" id="regGrade"><option value="lower">低学年（1〜3年生）</option><option value="middle" selected>中学年（4〜6年生）</option><option value="upper">高学年（中学生以上）</option></select></div><div class="form-group"><label class="form-label">地域</label><select class="form-select" id="regRegion"><option value="北海道">北海道</option><option value="東北">東北</option><option value="関東" selected>関東</option><option value="中部">中部</option><option value="近畿">近畿</option><option value="中国">中国</option><option value="四国">四国</option><option value="九州">九州</option></select></div><div style="display:flex;gap:8px;margin-top:16px"><button class="btn btn-secondary" onclick="closeModals()">キャンセル</button><button class="btn btn-premium" onclick="register()">登録する</button></div><div style="margin-top:12px;text-align:center;font-size:11px;color:var(--rock)">既にアカウントをお持ちの方は<a href="#" onclick="closeModals();openLoginModal();return false" style="color:var(--premium)">ログイン</a></div></div></div></div>
+<div class="modal-overlay" id="loginModal"><div class="modal-box"><div class="modal-header" style="background:linear-gradient(135deg,var(--summit),#334155)"><h3>🔑 ログイン</h3></div><div class="modal-body"><div class="modal-error" id="loginError" style="display:none">エラー</div><div class="form-group"><label class="form-label">メールアドレス</label><input type="email" class="form-input" id="loginEmail" placeholder="メールアドレス"></div><div class="form-group"><label class="form-label">パスワード</label><input type="password" class="form-input" id="loginPassword" placeholder="パスワード"></div><div style="display:flex;gap:8px;margin-top:16px"><button class="btn btn-secondary" onclick="closeModals()">キャンセル</button><button class="btn" style="background:var(--summit);color:#fff" onclick="login()">ログイン</button></div><div style="margin-top:12px;text-align:center;font-size:11px;color:var(--rock)">アカウントをお持ちでない方は<a href="#" onclick="closeModals();openRegisterModal();return false" style="color:var(--premium)">新規登録</a></div></div></div></div>
 <div class="modal-overlay" id="inviteModal"><div class="modal-box"><div class="modal-header teacher"><h3>👥 生徒を招待</h3></div><div class="modal-body"><div class="qr-box"><div class="qr-code">📱</div><div class="class-code" id="inviteCode">ABC123</div><div style="font-size:11px;color:var(--rock);margin-top:4px">クラスコード</div></div><button class="btn btn-teacher" style="margin-top:16px" onclick="closeModals()">閉じる</button></div></div></div>
 <div class="modal-overlay" id="studentModal"><div class="modal-box"><div class="modal-header teacher"><h3>👤 生徒詳細</h3></div><div class="modal-body" id="studentDetail"></div></div></div>
 <div class="modal-overlay" id="successModal"><div class="modal-box"><div class="modal-header success" id="successHeader"><h3>🎉</h3></div><div class="modal-body"><div class="modal-emoji" id="successEmoji">✨</div><div class="modal-title" id="successTitle">完了！</div><div class="modal-sub" id="successSub">よく頑張ったね！</div><div class="modal-reward" id="successReward">+10 ALT</div><button class="btn btn-primary" onclick="closeSuccess()">やったー！</button></div></div></div>
@@ -2254,6 +2256,173 @@ const isMe=s.name==='田中太郎';
 return'<div class="list-item" style="padding:10px;'+(isMe?'background:linear-gradient(135deg,rgba(45,134,89,.1),rgba(45,134,89,.05));border-radius:8px;':'')+'border-bottom:1px solid var(--cloud)"><div style="width:32px;text-align:center;font-size:'+(isTop3?'20px':'12px')+';font-weight:'+(isTop3?'400':'700')+';color:'+(isTop3?'inherit':'var(--rock)')+';">'+(isTop3?medal[i]:rank)+'</div><div class="avatar" style="background:'+(isTop3?'linear-gradient(135deg,#fbbf24,#f59e0b)':(isMe?'var(--meadow)':'var(--cloud)'))+';color:'+(isTop3||isMe?'#fff':'var(--summit)')+'">'+s.a+'</div><div class="list-info" style="flex:1"><div class="list-title" style="display:flex;align-items:center;gap:4px">'+s.name+(isMe?' <span style="font-size:9px;background:var(--meadow);color:#fff;padding:1px 6px;border-radius:4px">あなた</span>':'')+'</div><div class="list-sub">'+(gradeEmoji[s.grade]||'')+' '+(GRADES[s.grade]?.n||'')+' ・ '+s.region+'</div></div><div style="text-align:right"><div style="font-size:16px;font-weight:900;color:'+(isTop3?'var(--sunrise)':'var(--summit)')+'">'+s.rankVal.toLocaleString()+'<span style="font-size:10px;font-weight:400;color:var(--rock)">'+typeInfo.unit+'</span></div></div></div>';
 }).join(''):'<div style="text-align:center;padding:40px;color:var(--rock)"><div style="font-size:40px;margin-bottom:8px">📊</div><div>この条件のデータがありません</div></div>';
 }
+
+// ===== 会員登録・ログイン機能 =====
+let registeredUsers = JSON.parse(localStorage.getItem('sherupa_registered_users')) || [];
+let currentSession = JSON.parse(localStorage.getItem('sherupa_session')) || null;
+
+function openRegisterModal() {
+    closeModals();
+    document.getElementById('regName').value = '';
+    document.getElementById('regEmail').value = '';
+    document.getElementById('regPassword').value = '';
+    document.getElementById('regPasswordConfirm').value = '';
+    document.getElementById('regGrade').value = 'middle';
+    document.getElementById('regRegion').value = '関東';
+    document.getElementById('registerError').style.display = 'none';
+    document.getElementById('registerModal').classList.add('active');
+}
+
+function openLoginModal() {
+    closeModals();
+    document.getElementById('loginEmail').value = '';
+    document.getElementById('loginPassword').value = '';
+    document.getElementById('loginError').style.display = 'none';
+    document.getElementById('loginModal').classList.add('active');
+}
+
+function showRegisterError(msg) {
+    const el = document.getElementById('registerError');
+    el.textContent = msg;
+    el.style.display = 'block';
+}
+
+function showLoginError(msg) {
+    const el = document.getElementById('loginError');
+    el.textContent = msg;
+    el.style.display = 'block';
+}
+
+function register() {
+    const name = document.getElementById('regName').value.trim();
+    const email = document.getElementById('regEmail').value.trim().toLowerCase();
+    const password = document.getElementById('regPassword').value;
+    const passwordConfirm = document.getElementById('regPasswordConfirm').value;
+    const grade = document.getElementById('regGrade').value;
+    const region = document.getElementById('regRegion').value;
+
+    // バリデーション
+    if (!name) { showRegisterError('ニックネームを入力してください'); return; }
+    if (!email) { showRegisterError('メールアドレスを入力してください'); return; }
+    if (!email.includes('@')) { showRegisterError('有効なメールアドレスを入力してください'); return; }
+    if (!password) { showRegisterError('パスワードを入力してください'); return; }
+    if (password.length < 6) { showRegisterError('パスワードは6文字以上で入力してください'); return; }
+    if (password !== passwordConfirm) { showRegisterError('パスワードが一致しません'); return; }
+
+    // 既存ユーザーチェック
+    if (registeredUsers.some(u => u.email === email)) {
+        showRegisterError('このメールアドレスは既に登録されています');
+        return;
+    }
+
+    // 新規ユーザー登録
+    const newUser = {
+        id: Date.now(),
+        name: name,
+        email: email,
+        password: btoa(password), // 簡易エンコード（本番環境では適切なハッシュ化が必要）
+        grade: grade,
+        region: region,
+        alt: 1250,
+        createdAt: new Date().toISOString()
+    };
+
+    registeredUsers.push(newUser);
+    localStorage.setItem('sherupa_registered_users', JSON.stringify(registeredUsers));
+
+    // 自動ログイン
+    currentSession = { userId: newUser.id, name: newUser.name, email: newUser.email };
+    localStorage.setItem('sherupa_session', JSON.stringify(currentSession));
+
+    // プロフィールを更新
+    userProfile.name = name;
+    userProfile.grade = grade;
+    userProfile.region = region;
+    localStorage.setItem('sherupa_profile', JSON.stringify(userProfile));
+
+    closeModals();
+    updateLoginStatus();
+    toast('🎉 会員登録が完了しました！ようこそ、' + name + 'さん！');
+
+    // UI更新
+    if (document.getElementById('profName')) document.getElementById('profName').textContent = name;
+    if (document.getElementById('profAvatar')) document.getElementById('profAvatar').textContent = name.charAt(0);
+}
+
+function login() {
+    const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+    const password = document.getElementById('loginPassword').value;
+
+    if (!email || !password) {
+        showLoginError('メールアドレスとパスワードを入力してください');
+        return;
+    }
+
+    const user = registeredUsers.find(u => u.email === email && u.password === btoa(password));
+
+    if (!user) {
+        showLoginError('メールアドレスまたはパスワードが正しくありません');
+        return;
+    }
+
+    // セッション作成
+    currentSession = { userId: user.id, name: user.name, email: user.email };
+    localStorage.setItem('sherupa_session', JSON.stringify(currentSession));
+
+    // プロフィールを更新
+    userProfile.name = user.name;
+    userProfile.grade = user.grade;
+    userProfile.region = user.region;
+    localStorage.setItem('sherupa_profile', JSON.stringify(userProfile));
+
+    closeModals();
+    updateLoginStatus();
+    toast('👋 おかえりなさい、' + user.name + 'さん！');
+
+    // UI更新
+    if (document.getElementById('profName')) document.getElementById('profName').textContent = user.name;
+    if (document.getElementById('profAvatar')) document.getElementById('profAvatar').textContent = user.name.charAt(0);
+}
+
+function logout() {
+    currentSession = null;
+    localStorage.removeItem('sherupa_session');
+    updateLoginStatus();
+    closeModals();
+    toast('👋 ログアウトしました');
+}
+
+function updateLoginStatus() {
+    const infoEl = document.getElementById('loggedInUserInfo');
+    const nameEl = document.getElementById('loggedInUserName');
+
+    if (currentSession && infoEl && nameEl) {
+        infoEl.style.display = 'block';
+        nameEl.textContent = currentSession.name + 'さん';
+    } else if (infoEl) {
+        infoEl.style.display = 'none';
+    }
+}
+
+// 起動時にセッションを確認
+function initSession() {
+    if (currentSession) {
+        const user = registeredUsers.find(u => u.id === currentSession.userId);
+        if (user) {
+            userProfile.name = user.name;
+            userProfile.grade = user.grade;
+            userProfile.region = user.region;
+            updateLoginStatus();
+        } else {
+            // ユーザーが見つからない場合はセッションをクリア
+            currentSession = null;
+            localStorage.removeItem('sherupa_session');
+        }
+    }
+}
+
+// 初期化時に呼び出し
+initSession();
 
 </script>
 </body>
