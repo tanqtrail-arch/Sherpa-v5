@@ -340,23 +340,13 @@ main{padding:80px 16px 100px;max-width:900px;margin:0 auto}
 <button onclick="closeBookshelfSmall()" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:14px;cursor:pointer">←</button>
 <div id="bookshelfSmallTitle" style="font-size:16px;font-weight:700;color:#fff;flex:1">物理学</div>
 </div>
-<!-- リソースカード -->
-<div id="resourceCards" style="display:none;margin-bottom:12px">
-<div style="font-size:11px;color:#DEB887;margin-bottom:8px;font-weight:600">📚 学習リソース</div>
-<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px" id="resourceGrid"></div>
+<!-- NotebookLM埋め込みエリア -->
+<div id="notebookLmEmbed" style="background:linear-gradient(135deg,#1f2937,#111827);border-radius:12px;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,.3);margin-bottom:12px">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:linear-gradient(135deg,#3b82f6,#2563eb)">
+<span style="font-size:12px;font-weight:700;color:#fff">📓 NotebookLM</span>
+<button onclick="openNotebookLmNewTab()" style="background:rgba(255,255,255,.2);border:none;color:#fff;padding:4px 8px;border-radius:8px;font-size:10px;cursor:pointer">↗ 新しいタブで開く</button>
 </div>
-<!-- 埋め込みビューア -->
-<div id="resourceEmbed" style="display:none;margin-bottom:12px">
-<div style="background:linear-gradient(135deg,#1f2937,#111827);border-radius:12px;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,.3)">
-<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px" id="resourceEmbedHeader">
-<span style="font-size:12px;font-weight:700;color:#fff" id="resourceEmbedTitle">📓 リソース</span>
-<div style="display:flex;gap:8px">
-<button onclick="openResourceNewTab()" style="background:rgba(255,255,255,.2);border:none;color:#fff;padding:4px 8px;border-radius:8px;font-size:10px;cursor:pointer">↗ 新しいタブ</button>
-<button onclick="closeResourceEmbed()" style="background:rgba(255,255,255,.2);border:none;color:#fff;padding:4px 8px;border-radius:8px;font-size:10px;cursor:pointer">✕ 閉じる</button>
-</div>
-</div>
-<iframe id="resourceFrame" style="width:100%;height:450px;border:none" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-</div>
+<iframe id="notebookLmFrame" style="width:100%;height:500px;border:none" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 </div>
 <div id="bookshelfSmallContent"></div>
 </div>
@@ -1418,6 +1408,7 @@ html+='<div style="background:#654321;height:8px;border-radius:4px;margin-top:12
 html+='</div>';
 document.getElementById('bookshelfMidContent').innerHTML=html;}
 function closeBookshelfMid(){document.getElementById('bookshelfMain').style.display='block';document.getElementById('bookshelfMid').style.display='none';currentBigCat=null;}
+let currentNotebookLmUrl=null;
 function openMidCategory(bigId,midId){
 currentMidCat=midId;
 const big=BOOKSHELF_DATA.find(b=>b.id===bigId);
@@ -1429,86 +1420,38 @@ return;
 document.getElementById('bookshelfMid').style.display='none';
 document.getElementById('bookshelfSmall').style.display='block';
 document.getElementById('bookshelfSmallTitle').textContent=mid.e+' '+mid.n;
-currentResources=mid.resources||null;
-console.log('Resources for', midId, ':', currentResources);
-renderResourceCards(currentResources);
-const midSlides=slides.filter(s=>s.mid===midId);
-console.log('openMidCategory:', midId, 'slides:', midSlides.length, 'total slides:', slides.length);
-let html='<div style="background:linear-gradient(180deg,#8B4513 0%,#A0522D 100%);border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:inset 0 -4px 8px rgba(0,0,0,.3)">';
-html+='<div style="font-size:12px;color:#DEB887;margin-bottom:10px;font-weight:600">📕 テーマを選んで学ぼう（'+midSlides.length+'テーマ）</div>';
-html+='<div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:8px">';
-midSlides.forEach(sl=>{
-const done=sl.done;
-html+='<div onclick="openTopicSlides(\''+bigId+'\',\''+midId+'\','+sl.id+')" style="cursor:pointer;transition:transform .2s;flex-shrink:0;width:100px" onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'">';
-html+='<div style="background:'+(done?'linear-gradient(180deg,#22c55e,#16a34a)':big.color)+';height:80px;border-radius:6px 6px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:2px 2px 8px rgba(0,0,0,.3);position:relative;padding:6px">';
-if(done)html+='<div style="position:absolute;top:-6px;right:-6px;background:#fff;color:#22c55e;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;box-shadow:0 2px 4px rgba(0,0,0,.2)">✓</div>';
-html+='<div style="font-size:28px;text-shadow:0 2px 4px rgba(0,0,0,.3)">'+sl.e+'</div>';
-html+='<div style="font-size:9px;color:#fff;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.5);text-align:center;margin-top:2px;line-height:1.2;max-height:24px;overflow:hidden;padding:0 4px">'+sl.t+'</div>';
-html+='</div>';
-html+='<div style="background:linear-gradient(180deg,#DEB887,#D2B48C);height:20px;border-radius:0 0 6px 6px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 2px 4px rgba(0,0,0,.2)">';
-html+='<div style="font-size:8px;color:#5D4037;font-weight:600">'+(done?'✓ 完了':'未完了')+'</div>';
-html+='</div>';
+// NotebookLM埋め込み
+const notebookUrl=mid.resources?.slides||null;
+const embedEl=document.getElementById('notebookLmEmbed');
+const frameEl=document.getElementById('notebookLmFrame');
+if(notebookUrl){
+currentNotebookLmUrl=notebookUrl;
+frameEl.src=notebookUrl;
+embedEl.style.display='block';
+}else{
+currentNotebookLmUrl=null;
+frameEl.src='';
+embedEl.style.display='none';
+}
+// テーマ一覧（小カテゴリ）
+const smallThemes=mid.small||[];
+let html='';
+if(smallThemes.length>0){
+html='<div style="background:linear-gradient(180deg,#8B4513 0%,#A0522D 100%);border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:inset 0 -4px 8px rgba(0,0,0,.3)">';
+html+='<div style="font-size:12px;color:#DEB887;margin-bottom:10px;font-weight:600">📕 テーマ一覧（'+smallThemes.length+'テーマ）</div>';
+html+='<div style="display:flex;flex-wrap:wrap;gap:8px">';
+smallThemes.forEach((theme,idx)=>{
+html+='<div style="background:'+big.color+';border-radius:8px;padding:8px 12px;font-size:11px;color:#fff;font-weight:600">';
+html+=theme;
 html+='</div>';
 });
-if(midSlides.length===0){
-html+='<div style="text-align:center;color:#DEB887;padding:20px;font-size:11px;width:100%">このカテゴリのテーマは準備中です</div>';
-}
 html+='</div>';
 html+='<div style="background:#654321;height:6px;border-radius:3px;margin-top:10px;box-shadow:inset 0 2px 4px rgba(0,0,0,.3)"></div>';
 html+='</div>';
+}
 document.getElementById('bookshelfSmallContent').innerHTML=html;}
-function closeBookshelfSmall(){document.getElementById('bookshelfMid').style.display='block';document.getElementById('bookshelfSmall').style.display='none';currentMidCat=null;closeResourceEmbed();document.getElementById('resourceCards').style.display='none';}
-let currentResources=null;
-let currentResourceUrl=null;
-const RESOURCE_TYPES={
-slides:{icon:'📊',name:'スライド',color:'#3b82f6'},
-video:{icon:'🎬',name:'動画',color:'#ef4444'},
-quiz:{icon:'❓',name:'クイズ',color:'#22c55e'},
-mindmap:{icon:'🧠',name:'マインドマップ',color:'#8b5cf6'},
-infographic:{icon:'📈',name:'インフォグラフィック',color:'#f59e0b'},
-audio:{icon:'🎧',name:'音声',color:'#ec4899'}
-};
-function renderResourceCards(resources){
-const grid=document.getElementById('resourceGrid');
-const container=document.getElementById('resourceCards');
-if(!resources){container.style.display='none';return;}
-const hasAny=Object.values(resources).some(v=>v);
-if(!hasAny){container.style.display='none';return;}
-let html='';
-Object.keys(RESOURCE_TYPES).forEach(key=>{
-const url=resources[key];
-const t=RESOURCE_TYPES[key];
-const disabled=!url;
-html+='<div onclick="'+(disabled?'':'openResource(\''+key+'\')')+'" style="background:'+(disabled?'rgba(100,100,100,.3)':'linear-gradient(135deg,'+t.color+','+t.color+'dd)')+';border-radius:10px;padding:10px;text-align:center;cursor:'+(disabled?'not-allowed':'pointer')+';opacity:'+(disabled?'0.4':'1')+';transition:transform .2s" '+(disabled?'':'onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'"')+'>';
-html+='<div style="font-size:24px">'+t.icon+'</div>';
-html+='<div style="font-size:10px;color:#fff;font-weight:600;margin-top:4px">'+t.name+'</div>';
-html+='</div>';
-});
-grid.innerHTML=html;
-container.style.display='block';
-}
-function openResource(type){
-if(!currentResources||!currentResources[type])return;
-const url=currentResources[type];
-const t=RESOURCE_TYPES[type];
-currentResourceUrl=url;
-const embed=document.getElementById('resourceEmbed');
-const frame=document.getElementById('resourceFrame');
-const header=document.getElementById('resourceEmbedHeader');
-const title=document.getElementById('resourceEmbedTitle');
-header.style.background='linear-gradient(135deg,'+t.color+','+t.color+'dd)';
-title.textContent=t.icon+' '+t.name;
-frame.src=url;
-embed.style.display='block';
-}
-function closeResourceEmbed(){
-const embed=document.getElementById('resourceEmbed');
-const frame=document.getElementById('resourceFrame');
-frame.src='';
-embed.style.display='none';
-currentResourceUrl=null;
-}
-function openResourceNewTab(){if(currentResourceUrl){window.open(currentResourceUrl,'_blank');}}
+function openNotebookLmNewTab(){if(currentNotebookLmUrl){window.open(currentNotebookLmUrl,'_blank');}}
+function closeBookshelfSmall(){document.getElementById('bookshelfMid').style.display='block';document.getElementById('bookshelfSmall').style.display='none';currentMidCat=null;currentNotebookLmUrl=null;document.getElementById('notebookLmFrame').src='';}
 let bookshelfReturnInfo=null;
 function openTopicSlides(bigId,midId,slideId){
 const s=slides.find(x=>x.id===slideId);
