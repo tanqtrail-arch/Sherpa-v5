@@ -338,7 +338,8 @@ main{padding:80px 16px 100px;max-width:900px;margin:0 auto}
 <div id="bookshelfSmall" style="display:none">
 <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
 <button onclick="closeBookshelfSmall()" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:14px;cursor:pointer">←</button>
-<div id="bookshelfSmallTitle" style="font-size:16px;font-weight:700;color:#fff">物理学</div>
+<div id="bookshelfSmallTitle" style="font-size:16px;font-weight:700;color:#fff;flex:1">物理学</div>
+<button id="notebookLmBtn" onclick="openNotebookLM()" style="display:none;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;color:#fff;padding:6px 12px;border-radius:16px;font-size:11px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(245,158,11,.4)">📓 NotebookLMで学ぶ</button>
 </div>
 <div id="bookshelfSmallContent"></div>
 </div>
@@ -773,8 +774,8 @@ main{padding:80px 16px 100px;max-width:900px;margin:0 auto}
 const CATS={all:{n:'全部',e:'✨'},worldhistory:{n:'世界史',e:'🌐'},japanhistory:{n:'日本史',e:'🏯'},japanculture:{n:'日本文化',e:'🎎'},energy:{n:'エネルギー',e:'⚡'},geopolitics:{n:'地政学',e:'🗺️'},tech:{n:'テクノロジー',e:'🤖'},space:{n:'宇宙科学',e:'🚀'},astronomy:{n:'天文学',e:'🔭'},nature:{n:'自然',e:'🌿'},biography:{n:'伝記',e:'📖'},scientist:{n:'科学者',e:'👨‍🔬'}};
 const BOOKSHELF_DATA=[
 {id:'worldhistory',n:'世界史',e:'🌐',color:'linear-gradient(180deg,#6366f1,#4f46e5)',mid:[
-{id:'ancient',n:'古代文明のなぞ',e:'🏛️',small:['ピラミッドのひみつ','ミイラと永遠の命','スフィンクスのなぞ','ヒエログリフを読もう','メソポタミアの発明','バビロンの空中庭園','万里の長城のひみつ','兵馬俑の8000人','インダスの計画都市']},
-{id:'greece',n:'ギリシャ・ローマの世界',e:'🏺',small:['オリンピックの始まり','民主主義の誕生','ローマ帝国のすごさ','コロッセオの真実','ポンペイが消えた日']},
+{id:'ancient',n:'古代文明のなぞ',e:'🏛️',notebookUrl:'https://notebooklm.google.com/notebook/ancient-civilizations',small:['ピラミッドのひみつ','ミイラと永遠の命','スフィンクスのなぞ','ヒエログリフを読もう','メソポタミアの発明','バビロンの空中庭園','万里の長城のひみつ','兵馬俑の8000人','インダスの計画都市']},
+{id:'greece',n:'ギリシャ・ローマの世界',e:'🏺',notebookUrl:'https://notebooklm.google.com/notebook/greece-rome',small:['オリンピックの始まり','民主主義の誕生','ローマ帝国のすごさ','コロッセオの真実','ポンペイが消えた日']},
 {id:'medieval',n:'中世の世界',e:'🏰',small:['騎士になるには？','城のひみつ','モンゴル帝国の強さ','シルクロード物語','元寇と神風']},
 {id:'voyage',n:'大航海時代',e:'⛵',small:['コロンブスの大航海','マゼランの世界一周','香辛料は宝物','新大陸との出会い']},
 {id:'revolution',n:'革命の時代',e:'🏭',small:['フランス革命の始まり','蒸気機関が変えた世界','鉄道の誕生','工場で働く子どもたち']},
@@ -808,13 +809,13 @@ const BOOKSHELF_DATA=[
 {id:'world_region',n:'世界の国と地域',e:'🌍',small:['アメリカの強さの理由','ヨーロッパの協力','中東の複雑さ','地球温暖化と国際協力','難民問題','米中の関係']}
 ]},
 {id:'tech',n:'テクノロジー',e:'🤖',color:'linear-gradient(180deg,#8b5cf6,#7c3aed)',mid:[
-{id:'ai_secret',n:'AIのひみつ',e:'🧠',small:['AIって何ができる？','ChatGPTのすごさ','機械が学ぶしくみ','AIが絵を描く']},
+{id:'ai_secret',n:'AIのひみつ',e:'🧠',notebookUrl:'https://notebooklm.google.com/notebook/ai-secrets',small:['AIって何ができる？','ChatGPTのすごさ','機械が学ぶしくみ','AIが絵を描く']},
 {id:'robot',n:'ロボットの世界',e:'🦾',small:['暮らしの中のロボット','自動運転の未来','ロボットの歴史','工場で働くロボット','人を助けるロボット']},
 {id:'life_science',n:'生命の科学',e:'🧬',small:['DNAって何？','iPS細胞のすごさ','遺伝子を調べる','ゲノム編集の可能性']},
 {id:'digital',n:'デジタルと未来技術',e:'💻',small:['インターネットの始まり','サイバーセキュリティ','メタバース','VRとAR','コンピュータの誕生','スマートフォンの歴史','クラウドとは','量子コンピュータ','3Dプリンター','脳とコンピュータ']}
 ]},
 {id:'space',n:'宇宙科学',e:'🚀',color:'linear-gradient(180deg,#1e40af,#1e3a8a)',mid:[
-{id:'rocket',n:'ロケットと月・火星',e:'🚀',small:['ロケットが飛ぶ理由','ロケットの種類','日本のロケット','アポロ計画の偉業','月面基地計画','火星探査の最前線','アルテミス計画']},
+{id:'rocket',n:'ロケットと月・火星',e:'🚀',notebookUrl:'https://notebooklm.google.com/notebook/space-rockets',small:['ロケットが飛ぶ理由','ロケットの種類','日本のロケット','アポロ計画の偉業','月面基地計画','火星探査の最前線','アルテミス計画']},
 {id:'satellite',n:'人工衛星のはたらき',e:'🛰️',small:['GPS衛星のしくみ','気象衛星ひまわり','通信衛星','地球観測衛星']},
 {id:'solar_explore',n:'太陽系の冒険',e:'🪐',small:['はやぶさの冒険','ボイジャーの旅','太陽系の果て','木星と土星の衛星','宇宙ゴミ問題','宇宙ビジネス']},
 {id:'astronaut',n:'宇宙で暮らす',e:'👨‍🚀',small:['日本人宇宙飛行士','宇宙ステーション','宇宙での生活','宇宙食のひみつ']}
@@ -1400,6 +1401,8 @@ return;
 document.getElementById('bookshelfMid').style.display='none';
 document.getElementById('bookshelfSmall').style.display='block';
 document.getElementById('bookshelfSmallTitle').textContent=mid.e+' '+mid.n;
+const notebookBtn=document.getElementById('notebookLmBtn');
+if(mid.notebookUrl){currentNotebookUrl=mid.notebookUrl;notebookBtn.style.display='inline-block';}else{currentNotebookUrl=null;notebookBtn.style.display='none';}
 const midSlides=slides.filter(s=>s.mid===midId);
 console.log('openMidCategory:', midId, 'slides:', midSlides.length, 'total slides:', slides.length);
 let html='<div style="background:linear-gradient(180deg,#8B4513 0%,#A0522D 100%);border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:inset 0 -4px 8px rgba(0,0,0,.3)">';
@@ -1425,7 +1428,9 @@ html+='</div>';
 html+='<div style="background:#654321;height:6px;border-radius:3px;margin-top:10px;box-shadow:inset 0 2px 4px rgba(0,0,0,.3)"></div>';
 html+='</div>';
 document.getElementById('bookshelfSmallContent').innerHTML=html;}
-function closeBookshelfSmall(){document.getElementById('bookshelfMid').style.display='block';document.getElementById('bookshelfSmall').style.display='none';currentMidCat=null;}
+function closeBookshelfSmall(){document.getElementById('bookshelfMid').style.display='block';document.getElementById('bookshelfSmall').style.display='none';currentMidCat=null;document.getElementById('notebookLmBtn').style.display='none';}
+let currentNotebookUrl=null;
+function openNotebookLM(){if(currentNotebookUrl){window.open(currentNotebookUrl,'_blank');}else{toast('NotebookLMのURLが設定されていません');}}
 let bookshelfReturnInfo=null;
 function openTopicSlides(bigId,midId,slideId){
 const s=slides.find(x=>x.id===slideId);
