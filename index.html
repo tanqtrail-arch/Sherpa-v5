@@ -348,18 +348,16 @@ main{padding:80px 16px 100px;max-width:900px;margin:0 auto}
 <button onclick="closeBookshelfTheme()" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:14px;cursor:pointer">←</button>
 <div id="bookshelfThemeTitle" style="font-size:16px;font-weight:700;color:#fff;flex:1">テーマ名</div>
 </div>
-<div id="themeNotebookEmbed" style="background:linear-gradient(135deg,#1f2937,#111827);border-radius:12px;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,.3)">
-<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:linear-gradient(135deg,#3b82f6,#2563eb)">
-<span style="font-size:12px;font-weight:700;color:#fff">📓 NotebookLM</span>
-<button onclick="openThemeNotebookNewTab()" style="background:rgba(255,255,255,.2);border:none;color:#fff;padding:4px 8px;border-radius:8px;font-size:10px;cursor:pointer">↗ 新しいタブで開く</button>
-</div>
-<iframe id="themeNotebookFrame" style="width:100%;height:500px;border:none" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<div id="themeNotebookCard" style="display:none;background:linear-gradient(135deg,#1e3a8a,#3b82f6);border-radius:16px;padding:24px;text-align:center;box-shadow:0 4px 15px rgba(0,0,0,.3);margin-bottom:16px">
+<div style="font-size:48px;margin-bottom:12px">📓</div>
+<div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:8px">NotebookLMで学習する</div>
+<div style="font-size:11px;color:#bfdbfe;margin-bottom:16px">AIと対話しながら深く学べます</div>
+<button onclick="openThemeNotebookNewTab()" style="background:#fff;color:#1e3a8a;border:none;padding:12px 32px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.2);transition:transform .2s" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">↗ NotebookLMを開く</button>
 </div>
 <div id="noNotebookMessage" style="display:none;background:linear-gradient(135deg,#374151,#1f2937);border-radius:12px;padding:24px;text-align:center">
 <div style="font-size:32px;margin-bottom:8px">📓</div>
 <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:4px">NotebookLMが未設定です</div>
 <div style="font-size:11px;color:#9ca3af">管理者画面でURLを設定してください</div>
-</div>
 </div>
 </div>
 <div id="screen-viewer" class="screen">
@@ -1469,12 +1467,18 @@ let html='';
 if(smallThemes.length>0){
 html='<div style="background:linear-gradient(180deg,#8B4513 0%,#A0522D 100%);border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:inset 0 -4px 8px rgba(0,0,0,.3)">';
 html+='<div style="font-size:12px;color:#DEB887;margin-bottom:10px;font-weight:600">📕 テーマを選んで学ぼう（'+smallThemes.length+'テーマ）</div>';
-html+='<div style="display:flex;flex-wrap:wrap;gap:8px">';
+html+='<div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:8px">';
 smallThemes.forEach((theme,idx)=>{
 const hasUrl=getThemeNotebookUrl(bigId,midId,idx);
-html+='<div onclick="openTheme(\''+bigId+'\',\''+midId+'\','+idx+')" style="background:'+big.color+';border-radius:8px;padding:8px 12px;font-size:11px;color:#fff;font-weight:600;cursor:pointer;transition:transform .2s;display:flex;align-items:center;gap:4px" onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'">';
-if(hasUrl)html+='<span style="font-size:10px">📓</span>';
-html+=theme;
+html+='<div onclick="openTheme(\''+bigId+'\',\''+midId+'\','+idx+')" style="cursor:pointer;transition:transform .2s;flex-shrink:0;width:100px" onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'">';
+html+='<div style="background:'+big.color+';height:80px;border-radius:6px 6px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:2px 2px 8px rgba(0,0,0,.3);position:relative;padding:6px">';
+if(hasUrl)html+='<div style="position:absolute;top:-6px;right:-6px;background:#3b82f6;color:#fff;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;box-shadow:0 2px 4px rgba(0,0,0,.2)">📓</div>';
+html+='<div style="font-size:28px;text-shadow:0 2px 4px rgba(0,0,0,.3)">📖</div>';
+html+='<div style="font-size:9px;color:#fff;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.5);text-align:center;margin-top:2px;line-height:1.2;max-height:24px;overflow:hidden;padding:0 4px">'+theme+'</div>';
+html+='</div>';
+html+='<div style="background:linear-gradient(180deg,#DEB887,#D2B48C);height:20px;border-radius:0 0 6px 6px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 2px 4px rgba(0,0,0,.2)">';
+html+='<div style="font-size:8px;color:#5D4037;font-weight:600">'+(hasUrl?'📓 準備OK':'未設定')+'</div>';
+html+='</div>';
 html+='</div>';
 });
 html+='</div>';
@@ -1495,23 +1499,19 @@ currentThemeUrl=getThemeNotebookUrl(bigId,midId,themeIdx);
 document.getElementById('bookshelfSmall').style.display='none';
 document.getElementById('bookshelfTheme').style.display='block';
 document.getElementById('bookshelfThemeTitle').textContent=theme;
-const embedEl=document.getElementById('themeNotebookEmbed');
-const frameEl=document.getElementById('themeNotebookFrame');
+const cardEl=document.getElementById('themeNotebookCard');
 const noMsgEl=document.getElementById('noNotebookMessage');
 if(currentThemeUrl){
-frameEl.src=currentThemeUrl;
-embedEl.style.display='block';
+cardEl.style.display='block';
 noMsgEl.style.display='none';
 }else{
-frameEl.src='';
-embedEl.style.display='none';
+cardEl.style.display='none';
 noMsgEl.style.display='block';
 }
 }
 function closeBookshelfTheme(){
 document.getElementById('bookshelfTheme').style.display='none';
 document.getElementById('bookshelfSmall').style.display='block';
-document.getElementById('themeNotebookFrame').src='';
 currentThemeUrl=null;
 currentThemeInfo=null;
 }
