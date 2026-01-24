@@ -1419,6 +1419,7 @@ document.getElementById('bookshelfMid').style.display='none';
 document.getElementById('bookshelfSmall').style.display='block';
 document.getElementById('bookshelfSmallTitle').textContent=mid.e+' '+mid.n;
 currentResources=mid.resources||null;
+console.log('Resources for', midId, ':', currentResources);
 renderResourceCards(currentResources);
 const midSlides=slides.filter(s=>s.mid===midId);
 console.log('openMidCategory:', midId, 'slides:', midSlides.length, 'total slides:', slides.length);
