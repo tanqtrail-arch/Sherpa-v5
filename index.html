@@ -362,6 +362,23 @@ main{padding:80px 16px 100px;max-width:900px;margin:0 auto}
 </div>
 </div>
 <div id="screen-viewer" class="screen"><div class="card"><div class="card-header" style="display:flex;justify-content:space-between;align-items:center"><span id="viewerTitle" style="flex:1">タイトル</span><button onclick="closeViewer()" style="background:#ef4444;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer">✕ 閉じる</button></div><div style="position:relative;padding-top:56.25%;background:var(--cloud)" id="viewerFrame"></div><div class="card-body" id="viewerActions" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center"><span id="viewerCat" style="font-size:11px;color:var(--rock)">カテゴリ</span><div style="display:flex;gap:8px"><button id="favBtn" onclick="toggleFavorite(currentSlideIdx)" style="background:linear-gradient(135deg,#6b7280,#4b5563);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:11px;font-weight:700;cursor:pointer">☆ お気に入り</button><button class="btn btn-primary btn-sm" onclick="completeSlide()">✅ 完了 +10 ALT</button></div></div></div>
+<!-- 学習リソースエリア -->
+<div id="learningResources" style="margin-top:12px;display:none">
+<div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:8px">📚 学習リソース</div>
+<div id="learningResourceList" style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:8px"></div>
+<div id="learningResourceEmbed" style="display:none;margin-top:8px">
+<div style="background:linear-gradient(135deg,#1f2937,#111827);border-radius:12px;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,.3)">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px" id="learningResourceHeader">
+<span style="font-size:12px;font-weight:700;color:#fff" id="learningResourceTitle">📓 リソース</span>
+<div style="display:flex;gap:8px">
+<button onclick="openLearningResourceNewTab()" style="background:rgba(255,255,255,.2);border:none;color:#fff;padding:4px 8px;border-radius:8px;font-size:10px;cursor:pointer">↗ 新しいタブ</button>
+<button onclick="closeLearningResourceEmbed()" style="background:rgba(255,255,255,.2);border:none;color:#fff;padding:4px 8px;border-radius:8px;font-size:10px;cursor:pointer">✕ 閉じる</button>
+</div>
+</div>
+<iframe id="learningResourceFrame" style="width:100%;height:400px;border:none" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div>
+</div>
+</div>
 <!-- 関連動画エリア -->
 <div id="relatedVideos" style="margin-top:12px">
 <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:8px">🎬 関連動画</div>
@@ -1419,6 +1436,7 @@ document.getElementById('bookshelfMid').style.display='none';
 document.getElementById('bookshelfSmall').style.display='block';
 document.getElementById('bookshelfSmallTitle').textContent=mid.e+' '+mid.n;
 currentResources=mid.resources||null;
+console.log('Resources for', midId, ':', currentResources);
 renderResourceCards(currentResources);
 const midSlides=slides.filter(s=>s.mid===midId);
 console.log('openMidCategory:', midId, 'slides:', midSlides.length, 'total slides:', slides.length);
@@ -1497,6 +1515,58 @@ embed.style.display='none';
 currentResourceUrl=null;
 }
 function openResourceNewTab(){if(currentResourceUrl){window.open(currentResourceUrl,'_blank');}}
+let currentLearningResources=null;
+let currentLearningResourceUrl=null;
+function renderLearningResources(slide){
+const container=document.getElementById('learningResources');
+const list=document.getElementById('learningResourceList');
+if(!container||!list)return;
+// スライドのmidカテゴリからリソースを取得
+const big=BOOKSHELF_DATA.find(b=>b.mid.some(m=>m.id===slide.mid));
+const mid=big?.mid.find(m=>m.id===slide.mid);
+const resources=mid?.resources;
+if(!resources||!Object.values(resources).some(v=>v)){
+container.style.display='none';
+currentLearningResources=null;
+return;
+}
+currentLearningResources=resources;
+let html='';
+Object.keys(RESOURCE_TYPES).forEach(key=>{
+const url=resources[key];
+const t=RESOURCE_TYPES[key];
+const disabled=!url;
+html+='<div onclick="'+(disabled?'':'openLearningResource(\''+key+'\')')+'" style="background:'+(disabled?'rgba(100,100,100,.3)':'linear-gradient(135deg,'+t.color+','+t.color+'dd)')+';border-radius:8px;padding:8px 4px;text-align:center;cursor:'+(disabled?'not-allowed':'pointer')+';opacity:'+(disabled?'0.4':'1')+';transition:transform .2s" '+(disabled?'':'onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'"')+'>';
+html+='<div style="font-size:20px">'+t.icon+'</div>';
+html+='<div style="font-size:9px;color:#fff;font-weight:600;margin-top:2px">'+t.name+'</div>';
+html+='</div>';
+});
+list.innerHTML=html;
+container.style.display='block';
+closeLearningResourceEmbed();
+}
+function openLearningResource(type){
+if(!currentLearningResources||!currentLearningResources[type])return;
+const url=currentLearningResources[type];
+const t=RESOURCE_TYPES[type];
+currentLearningResourceUrl=url;
+const embed=document.getElementById('learningResourceEmbed');
+const frame=document.getElementById('learningResourceFrame');
+const header=document.getElementById('learningResourceHeader');
+const title=document.getElementById('learningResourceTitle');
+header.style.background='linear-gradient(135deg,'+t.color+','+t.color+'dd)';
+title.textContent=t.icon+' '+t.name;
+frame.src=url;
+embed.style.display='block';
+}
+function closeLearningResourceEmbed(){
+const embed=document.getElementById('learningResourceEmbed');
+const frame=document.getElementById('learningResourceFrame');
+if(frame)frame.src='';
+if(embed)embed.style.display='none';
+currentLearningResourceUrl=null;
+}
+function openLearningResourceNewTab(){if(currentLearningResourceUrl){window.open(currentLearningResourceUrl,'_blank');}}
 let bookshelfReturnInfo=null;
 function openTopicSlides(bigId,midId,slideId){
 const s=slides.find(x=>x.id===slideId);
@@ -1658,6 +1728,8 @@ slideViewStartTime=null;
 frameEl.innerHTML='<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#f3f4f6,#e5e7eb);color:#374151"><div style="font-size:60px;margin-bottom:10px">'+s.e+'</div><div style="font-size:18px;font-weight:700;margin-bottom:8px">'+s.t+'</div><div style="background:#fef3c7;border-radius:12px;padding:12px 20px;margin-bottom:16px"><div style="font-size:14px;color:#92400e;font-weight:700">🚧 現在準備中</div><div style="font-size:11px;color:#b45309;margin-top:4px">このスライドは近日公開予定です</div></div></div>';
 actionsEl.innerHTML='<span style="font-size:11px;color:var(--rock)">'+(CATS[s.c]?.n||'')+'</span><div style="display:flex;gap:8px"><button id="favBtn" onclick="toggleFavorite('+i+')" style="background:'+(favorites.includes(i)?'linear-gradient(135deg,#fbbf24,#f59e0b)':'linear-gradient(135deg,#6b7280,#4b5563)')+';color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:11px;font-weight:700;cursor:pointer">'+(favorites.includes(i)?'⭐ お気に入り解除':'☆ お気に入り')+'</button><button class="btn btn-sm" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff" onclick="requestSlide('+i+')">📝 スライド作成を希望</button></div>';
 }
+// 学習リソースを表示
+renderLearningResources(s);
 // 関連動画を表示
 renderRelatedVideos(s);
 }
