@@ -1950,6 +1950,793 @@ function updateSlidePopularity(slideId) {
 }
 
 // ========================================
+// 管理者ダッシュボード
+// ========================================
+let adminAnalytics = null;
+let currentAdminTab = 'overview';
+
+// 管理者アナリティクスデータを読み込み
+async function loadAdminAnalytics() {
+  try {
+    const response = await fetch('data/admin-analytics.json');
+    adminAnalytics = await response.json();
+    console.log('✅ 管理者アナリティクスデータ読み込み完了');
+    return true;
+  } catch (error) {
+    console.error('❌ 管理者データ読み込みエラー:', error);
+    return false;
+  }
+}
+
+// 管理者ダッシュボードをレンダリング
+async function renderAdminDashboard() {
+  if (!adminAnalytics) {
+    await loadAdminAnalytics();
+  }
+  if (!adminAnalytics) {
+    toast('❌ 管理者データの読み込みに失敗しました');
+    return;
+  }
+
+  renderAdminSummary();
+  showAdminTab(currentAdminTab);
+}
+
+// サマリーカードをレンダリング
+function renderAdminSummary() {
+  const data = adminAnalytics.overview;
+  const container = document.getElementById('adminSummaryGrid');
+  if (!container) return;
+
+  container.innerHTML = `
+    <div class="admin-summary-card">
+      <div class="summary-icon">👥</div>
+      <div class="summary-content">
+        <div class="summary-value">${data.totalRegistrations.toLocaleString()}</div>
+        <div class="summary-label">総登録者数</div>
+      </div>
+    </div>
+    <div class="admin-summary-card">
+      <div class="summary-icon">📈</div>
+      <div class="summary-content">
+        <div class="summary-value">${data.activeUsersToday.toLocaleString()}</div>
+        <div class="summary-label">今日のアクティブ</div>
+      </div>
+    </div>
+    <div class="admin-summary-card">
+      <div class="summary-icon">⛰️</div>
+      <div class="summary-content">
+        <div class="summary-value">${data.totalAltEarned.toLocaleString()}</div>
+        <div class="summary-label">総獲得ALT</div>
+      </div>
+    </div>
+    <div class="admin-summary-card">
+      <div class="summary-icon">💎</div>
+      <div class="summary-content">
+        <div class="summary-value">${data.premiumConversionRate}%</div>
+        <div class="summary-label">有料転換率</div>
+      </div>
+    </div>
+    <div class="admin-summary-card">
+      <div class="summary-icon">📚</div>
+      <div class="summary-content">
+        <div class="summary-value">${data.totalSlidesCompleted.toLocaleString()}</div>
+        <div class="summary-label">完了スライド</div>
+      </div>
+    </div>
+    <div class="admin-summary-card">
+      <div class="summary-icon">⏱️</div>
+      <div class="summary-content">
+        <div class="summary-value">${data.avgSessionDuration}分</div>
+        <div class="summary-label">平均セッション</div>
+      </div>
+    </div>
+  `;
+}
+
+// タブ切り替え
+function showAdminTab(tabId, element) {
+  currentAdminTab = tabId;
+
+  // タブのアクティブ状態を切り替え
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+  if (element) {
+    element.classList.add('active');
+  } else {
+    const tab = document.querySelector(`.admin-tab[data-tab="${tabId}"]`);
+    if (tab) tab.classList.add('active');
+  }
+
+  // コンテンツの表示切り替え
+  document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
+  const content = document.getElementById(`adminTab${tabId.charAt(0).toUpperCase() + tabId.slice(1)}`);
+  if (content) content.classList.add('active');
+
+  // タブごとのレンダリング
+  switch (tabId) {
+    case 'overview':
+      renderOverviewTab();
+      break;
+    case 'registrations':
+      renderRegistrationsTab();
+      break;
+    case 'content':
+      renderContentTab();
+      break;
+    case 'quiz':
+      renderQuizTab();
+      break;
+    case 'engagement':
+      renderEngagementTab();
+      break;
+  }
+}
+
+// 概要タブ
+function renderOverviewTab() {
+  renderRegistrationChart();
+  renderHourlyActivityChart();
+  renderAdminAlerts();
+}
+
+// 登録数推移チャート
+function renderRegistrationChart() {
+  const container = document.getElementById('registrationChart');
+  if (!container) return;
+
+  const data = adminAnalytics.registrationTrends.daily;
+  const maxCount = Math.max(...data.map(d => d.count));
+
+  container.innerHTML = `
+    <div class="bar-chart">
+      ${data.map(d => {
+        const height = (d.count / maxCount) * 100;
+        const date = new Date(d.date);
+        const dayLabel = ['日', '月', '火', '水', '木', '金', '土'][date.getDay()];
+        return `
+          <div class="bar-item">
+            <div class="bar-value">${d.count}</div>
+            <div class="bar" style="height:${height}%">
+              <div class="bar-premium" style="height:${(d.premium / d.count) * 100}%" title="有料:${d.premium}"></div>
+            </div>
+            <div class="bar-label">${dayLabel}</div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+    <div class="chart-legend">
+      <span class="legend-item"><span class="legend-color" style="background:var(--meadow)"></span>無料</span>
+      <span class="legend-item"><span class="legend-color" style="background:var(--premium)"></span>有料</span>
+    </div>
+  `;
+}
+
+// 時間帯別アクティビティ
+function renderHourlyActivityChart() {
+  const container = document.getElementById('hourlyActivityChart');
+  if (!container) return;
+
+  const data = adminAnalytics.learningTimeAnalytics.peakHours;
+  const maxSessions = Math.max(...data.map(d => d.sessions));
+
+  container.innerHTML = `
+    <div class="hourly-chart">
+      ${data.map(d => {
+        const width = (d.sessions / maxSessions) * 100;
+        return `
+          <div class="hourly-row">
+            <div class="hourly-label">${d.hour}時 ${d.label}</div>
+            <div class="hourly-bar-container">
+              <div class="hourly-bar" style="width:${width}%"></div>
+            </div>
+            <div class="hourly-value">${d.sessions}</div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+// アラート
+function renderAdminAlerts() {
+  const container = document.getElementById('adminAlerts');
+  if (!container) return;
+
+  const alerts = adminAnalytics.alerts.active;
+
+  container.innerHTML = alerts.map(alert => {
+    const icon = alert.type === 'warning' ? '⚠️' : alert.type === 'success' ? '✅' : 'ℹ️';
+    const colorClass = alert.type;
+    return `
+      <div class="alert-item ${colorClass}">
+        <div class="alert-icon">${icon}</div>
+        <div class="alert-content">
+          <div class="alert-message">${alert.message}</div>
+          <div class="alert-time">${new Date(alert.timestamp).toLocaleString('ja-JP')}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// 登録タブ
+function renderRegistrationsTab() {
+  renderRegionRegistrations();
+  renderGradeRegistrations();
+  renderRegistrationSources();
+  renderPremiumConversion();
+}
+
+// 都道府県別登録数
+function renderRegionRegistrations() {
+  const container = document.getElementById('regionRegistrations');
+  if (!container) return;
+
+  const data = adminAnalytics.registrationByRegion;
+  const regions = Object.entries(data).sort((a, b) => b[1].total - a[1].total);
+  const maxTotal = Math.max(...regions.map(r => r[1].total));
+
+  container.innerHTML = `
+    <div class="region-chart">
+      ${regions.map(([region, stats]) => {
+        const width = (stats.total / maxTotal) * 100;
+        return `
+          <div class="region-row">
+            <div class="region-name">${region}</div>
+            <div class="region-bar-container">
+              <div class="region-bar" style="width:${width}%">
+                <div class="region-segment lower" style="width:${(stats.lower / stats.total) * 100}%" title="低学年:${stats.lower}"></div>
+                <div class="region-segment middle" style="width:${(stats.middle / stats.total) * 100}%" title="中学年:${stats.middle}"></div>
+                <div class="region-segment upper" style="width:${(stats.upper / stats.total) * 100}%" title="高学年:${stats.upper}"></div>
+              </div>
+            </div>
+            <div class="region-value">${stats.total}</div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+    <div class="chart-legend">
+      <span class="legend-item"><span class="legend-color lower"></span>低学年</span>
+      <span class="legend-item"><span class="legend-color middle"></span>中学年</span>
+      <span class="legend-item"><span class="legend-color upper"></span>高学年</span>
+    </div>
+  `;
+}
+
+// 学年別登録数
+function renderGradeRegistrations() {
+  const container = document.getElementById('gradeRegistrations');
+  if (!container) return;
+
+  const data = adminAnalytics.registrationByGrade;
+  const total = data.lower.total + data.middle.total + data.upper.total;
+
+  container.innerHTML = `
+    <div class="grade-cards">
+      ${Object.entries(data).map(([grade, stats]) => {
+        const percent = ((stats.total / total) * 100).toFixed(1);
+        return `
+          <div class="grade-card ${grade}">
+            <div class="grade-emoji">${stats.emoji}</div>
+            <div class="grade-info">
+              <div class="grade-label">${stats.label}</div>
+              <div class="grade-stats">
+                <div class="grade-count">${stats.total}人</div>
+                <div class="grade-percent">${percent}%</div>
+              </div>
+              <div class="grade-details">
+                <span>平均ALT: ${stats.avgAlt.toLocaleString()}</span>
+                <span>平均スライド: ${stats.avgSlides}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+// 登録経緯（流入元）
+function renderRegistrationSources() {
+  const container = document.getElementById('registrationSources');
+  if (!container) return;
+
+  const data = adminAnalytics.registrationSources;
+
+  container.innerHTML = `
+    <div class="sources-list">
+      ${Object.entries(data).map(([key, stats]) => `
+        <div class="source-row">
+          <div class="source-icon">${stats.emoji}</div>
+          <div class="source-info">
+            <div class="source-label">${stats.label}</div>
+            <div class="source-bar-container">
+              <div class="source-bar" style="width:${stats.percent}%"></div>
+            </div>
+          </div>
+          <div class="source-stats">
+            <div class="source-count">${stats.count}人</div>
+            <div class="source-percent">${stats.percent}%</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+// 有料転換分析
+function renderPremiumConversion() {
+  const container = document.getElementById('premiumConversion');
+  if (!container) return;
+
+  const data = adminAnalytics.premiumConversion;
+
+  container.innerHTML = `
+    <div class="premium-summary">
+      <div class="premium-stat">
+        <div class="premium-value">${data.totalPremiumUsers}</div>
+        <div class="premium-label">有料会員数</div>
+      </div>
+      <div class="premium-stat">
+        <div class="premium-value">${data.conversionRate}%</div>
+        <div class="premium-label">転換率</div>
+      </div>
+      <div class="premium-stat">
+        <div class="premium-value">${data.avgDaysToConvert}日</div>
+        <div class="premium-label">平均転換日数</div>
+      </div>
+      <div class="premium-stat">
+        <div class="premium-value">¥${data.ltv.toLocaleString()}</div>
+        <div class="premium-label">LTV</div>
+      </div>
+    </div>
+
+    <div class="conversion-triggers">
+      <div class="triggers-title">💡 転換トリガー</div>
+      ${data.conversionTriggers.map(t => `
+        <div class="trigger-row">
+          <div class="trigger-label">${t.trigger}</div>
+          <div class="trigger-bar-container">
+            <div class="trigger-bar" style="width:${t.percent}%"></div>
+          </div>
+          <div class="trigger-percent">${t.percent}%</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="revenue-chart">
+      <div class="revenue-title">📈 月次収益推移</div>
+      <div class="revenue-bars">
+        ${data.monthlyRevenue.slice(-6).map(m => {
+          const maxRevenue = Math.max(...data.monthlyRevenue.map(r => r.revenue));
+          const height = (m.revenue / maxRevenue) * 100;
+          return `
+            <div class="revenue-bar-item">
+              <div class="revenue-value">¥${(m.revenue / 1000).toFixed(0)}k</div>
+              <div class="revenue-bar" style="height:${height}%"></div>
+              <div class="revenue-month">${m.month.split('-')[1]}月</div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// コンテンツタブ
+function renderContentTab() {
+  renderCategoryCompletionRates();
+  renderPopularByGrade('lower', 'popularLower');
+  renderPopularByGrade('middle', 'popularMiddle');
+  renderPopularByGrade('upper', 'popularUpper');
+  renderDropoffAnalysis();
+}
+
+// カテゴリ別達成率
+function renderCategoryCompletionRates() {
+  const container = document.getElementById('categoryCompletionRates');
+  if (!container) return;
+
+  const data = adminAnalytics.contentCompletionRates.byCategory;
+
+  container.innerHTML = `
+    <div class="completion-overview">
+      <div class="completion-overall">
+        <div class="overall-value">${adminAnalytics.contentCompletionRates.overallRate}%</div>
+        <div class="overall-label">全体達成率</div>
+      </div>
+    </div>
+    <div class="completion-list">
+      ${data.map(cat => `
+        <div class="completion-row">
+          <div class="completion-category">
+            <span class="cat-emoji">${cat.emoji}</span>
+            <span class="cat-name">${cat.name}</span>
+          </div>
+          <div class="completion-bar-container">
+            <div class="completion-bar" style="width:${cat.rate}%;background:${cat.rate >= 70 ? 'var(--meadow)' : cat.rate >= 60 ? 'var(--sunrise)' : 'var(--sunset)'}"></div>
+          </div>
+          <div class="completion-stats">
+            <div class="completion-rate">${cat.rate}%</div>
+            <div class="completion-count">${cat.completions.toLocaleString()}/${cat.totalViews.toLocaleString()}</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+// 学年別人気コンテンツ
+function renderPopularByGrade(grade, containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  const data = adminAnalytics.contentPopularityByGrade[grade];
+
+  container.innerHTML = `
+    <div class="popular-list">
+      ${data.map((item, index) => `
+        <div class="popular-row">
+          <div class="popular-rank">${index + 1}</div>
+          <div class="popular-info">
+            <div class="popular-title">${item.title}</div>
+            <div class="popular-meta">${item.category}</div>
+          </div>
+          <div class="popular-stats">
+            <div class="popular-completions">${item.completions}人</div>
+            <div class="popular-score">正答率 ${item.avgScore}%</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+// 離脱ポイント分析
+function renderDropoffAnalysis() {
+  const container = document.getElementById('dropoffAnalysis');
+  if (!container) return;
+
+  const data = adminAnalytics.contentCompletionRates.dropoffPoints;
+
+  container.innerHTML = `
+    <div class="funnel-chart">
+      ${data.map((point, index) => {
+        const nextRate = data[index + 1]?.rate || point.rate;
+        const dropoff = point.rate - nextRate;
+        return `
+          <div class="funnel-step">
+            <div class="funnel-bar" style="width:${point.rate}%">
+              <span class="funnel-label">${point.stage}</span>
+              <span class="funnel-rate">${point.rate}%</span>
+            </div>
+            ${dropoff > 0 ? `<div class="funnel-dropoff">-${dropoff}%</div>` : ''}
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+// クイズタブ
+function renderQuizTab() {
+  renderQuizOverallStats();
+  renderDifficultQuestions();
+  renderEasiestQuestions();
+  renderQuizByCategory();
+}
+
+// クイズ全体統計
+function renderQuizOverallStats() {
+  const container = document.getElementById('quizOverallStats');
+  if (!container) return;
+
+  const data = adminAnalytics.quizAnalytics.overallStats;
+
+  container.innerHTML = `
+    <div class="quiz-stats-grid">
+      <div class="quiz-stat-card">
+        <div class="stat-value">${data.totalAttempts.toLocaleString()}</div>
+        <div class="stat-label">総受験回数</div>
+      </div>
+      <div class="quiz-stat-card">
+        <div class="stat-value">${data.passRate}%</div>
+        <div class="stat-label">合格率</div>
+      </div>
+      <div class="quiz-stat-card">
+        <div class="stat-value">${data.avgScore}/8</div>
+        <div class="stat-label">平均正答数</div>
+      </div>
+      <div class="quiz-stat-card">
+        <div class="stat-value">${data.perfectScoreRate}%</div>
+        <div class="stat-label">満点率</div>
+      </div>
+      <div class="quiz-stat-card">
+        <div class="stat-value">${data.retryRate}%</div>
+        <div class="stat-label">再挑戦率</div>
+      </div>
+    </div>
+  `;
+}
+
+// 最も間違いやすい問題
+function renderDifficultQuestions() {
+  const container = document.getElementById('difficultQuestions');
+  if (!container) return;
+
+  const data = adminAnalytics.quizAnalytics.mostDifficultQuestions;
+
+  container.innerHTML = `
+    <div class="difficult-questions-list">
+      ${data.map((q, index) => `
+        <div class="question-row difficult">
+          <div class="question-rank">${index + 1}</div>
+          <div class="question-content">
+            <div class="question-theme">${q.theme}</div>
+            <div class="question-text">${q.question}</div>
+            <div class="question-answer">
+              <span class="correct-answer">正解: ${q.correctAnswer}</span>
+              <span class="wrong-answer">よくある誤答: ${q.commonWrongAnswer}</span>
+            </div>
+          </div>
+          <div class="question-stats">
+            <div class="wrong-rate">${q.wrongRate}%</div>
+            <div class="attempt-count">${q.totalAttempts}回</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+// 正答率が高い問題
+function renderEasiestQuestions() {
+  const container = document.getElementById('easiestQuestions');
+  if (!container) return;
+
+  const data = adminAnalytics.quizAnalytics.easiestQuestions;
+
+  container.innerHTML = `
+    <div class="easy-questions-list">
+      ${data.map((q, index) => `
+        <div class="question-row easy">
+          <div class="question-rank">${index + 1}</div>
+          <div class="question-content">
+            <div class="question-theme">${q.theme}</div>
+            <div class="question-text">${q.question}</div>
+            <div class="question-answer">
+              <span class="correct-answer">正解: ${q.correctAnswer}</span>
+            </div>
+          </div>
+          <div class="question-stats">
+            <div class="correct-rate">${q.correctRate}%</div>
+            <div class="attempt-count">${q.totalAttempts}回</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+// カテゴリ別クイズ成績
+function renderQuizByCategory() {
+  const container = document.getElementById('quizByCategory');
+  if (!container) return;
+
+  const data = adminAnalytics.quizAnalytics.byCategory;
+
+  container.innerHTML = `
+    <div class="category-quiz-list">
+      ${data.sort((a, b) => b.passRate - a.passRate).map(cat => `
+        <div class="category-quiz-row">
+          <div class="category-name">${cat.category}</div>
+          <div class="category-bar-container">
+            <div class="category-bar" style="width:${cat.passRate}%;background:${cat.passRate >= 70 ? 'var(--meadow)' : cat.passRate >= 60 ? 'var(--sunrise)' : 'var(--sunset)'}"></div>
+          </div>
+          <div class="category-stats">
+            <div class="pass-rate">${cat.passRate}%</div>
+            <div class="avg-score">${cat.avgScore}/8</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+// エンゲージメントタブ
+function renderEngagementTab() {
+  renderLearningTimeAnalysis();
+  renderWeekdayAnalysis();
+  renderRetentionAnalysis();
+  renderStreakDistribution();
+}
+
+// 学習時間分析
+function renderLearningTimeAnalysis() {
+  const container = document.getElementById('learningTimeAnalysis');
+  if (!container) return;
+
+  const data = adminAnalytics.learningTimeAnalytics;
+  const byGrade = data.byGrade;
+
+  container.innerHTML = `
+    <div class="time-stats-grid">
+      <div class="time-stat-card">
+        <div class="stat-value">${data.avgSessionMinutes}分</div>
+        <div class="stat-label">平均セッション時間</div>
+      </div>
+      <div class="time-stat-card">
+        <div class="stat-value">${data.avgDailyMinutes}分</div>
+        <div class="stat-label">1日平均学習時間</div>
+      </div>
+      <div class="time-stat-card">
+        <div class="stat-value">${data.avgWeeklyMinutes}分</div>
+        <div class="stat-label">週間平均学習時間</div>
+      </div>
+    </div>
+
+    <div class="grade-time-comparison">
+      <div class="comparison-title">🎓 学年別学習時間</div>
+      <div class="comparison-bars">
+        <div class="comparison-row">
+          <span class="grade-label">🌱 低学年</span>
+          <div class="comparison-bar-container">
+            <div class="comparison-bar lower" style="width:${(byGrade.lower.avgDaily / byGrade.upper.avgDaily) * 100}%"></div>
+          </div>
+          <span class="time-value">${byGrade.lower.avgDaily}分/日</span>
+        </div>
+        <div class="comparison-row">
+          <span class="grade-label">⭐ 中学年</span>
+          <div class="comparison-bar-container">
+            <div class="comparison-bar middle" style="width:${(byGrade.middle.avgDaily / byGrade.upper.avgDaily) * 100}%"></div>
+          </div>
+          <span class="time-value">${byGrade.middle.avgDaily}分/日</span>
+        </div>
+        <div class="comparison-row">
+          <span class="grade-label">🚀 高学年</span>
+          <div class="comparison-bar-container">
+            <div class="comparison-bar upper" style="width:100%"></div>
+          </div>
+          <span class="time-value">${byGrade.upper.avgDaily}分/日</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// 曜日別学習傾向
+function renderWeekdayAnalysis() {
+  const container = document.getElementById('weekdayAnalysis');
+  if (!container) return;
+
+  const data = adminAnalytics.learningTimeAnalytics.byDayOfWeek;
+  const maxMinutes = Math.max(...data.map(d => d.avgMinutes));
+
+  container.innerHTML = `
+    <div class="weekday-chart">
+      ${data.map(d => {
+        const height = (d.avgMinutes / maxMinutes) * 100;
+        const isWeekend = d.day === '土' || d.day === '日';
+        return `
+          <div class="weekday-bar-item">
+            <div class="weekday-value">${d.avgMinutes}分</div>
+            <div class="weekday-bar ${isWeekend ? 'weekend' : ''}" style="height:${height}%"></div>
+            <div class="weekday-label">${d.day}</div>
+            <div class="weekday-sessions">${d.sessions}回</div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+// 継続率分析
+function renderRetentionAnalysis() {
+  const container = document.getElementById('retentionAnalysis');
+  if (!container) return;
+
+  const data = adminAnalytics.loginAnalytics.retentionRates;
+
+  container.innerHTML = `
+    <div class="retention-funnel">
+      <div class="retention-step">
+        <div class="retention-day">Day 1</div>
+        <div class="retention-bar-container">
+          <div class="retention-bar" style="width:${data.day1}%"></div>
+        </div>
+        <div class="retention-rate">${data.day1}%</div>
+      </div>
+      <div class="retention-step">
+        <div class="retention-day">Day 7</div>
+        <div class="retention-bar-container">
+          <div class="retention-bar" style="width:${data.day7}%"></div>
+        </div>
+        <div class="retention-rate">${data.day7}%</div>
+      </div>
+      <div class="retention-step">
+        <div class="retention-day">Day 30</div>
+        <div class="retention-bar-container">
+          <div class="retention-bar" style="width:${data.day30}%"></div>
+        </div>
+        <div class="retention-rate">${data.day30}%</div>
+      </div>
+      <div class="retention-step">
+        <div class="retention-day">Day 90</div>
+        <div class="retention-bar-container">
+          <div class="retention-bar" style="width:${data.day90}%"></div>
+        </div>
+        <div class="retention-rate">${data.day90}%</div>
+      </div>
+    </div>
+  `;
+}
+
+// ログイン連続日数分布
+function renderStreakDistribution() {
+  const container = document.getElementById('streakDistribution');
+  if (!container) return;
+
+  const data = adminAnalytics.loginAnalytics.loginStreak;
+
+  container.innerHTML = `
+    <div class="streak-summary">
+      <div class="streak-stat">
+        <div class="stat-value">${data.avg}</div>
+        <div class="stat-label">平均連続日数</div>
+      </div>
+      <div class="streak-stat">
+        <div class="stat-value">${data.max}</div>
+        <div class="stat-label">最長連続日数</div>
+      </div>
+    </div>
+    <div class="streak-distribution">
+      ${data.distribution.map(d => `
+        <div class="streak-row">
+          <div class="streak-range">${d.range}</div>
+          <div class="streak-bar-container">
+            <div class="streak-bar" style="width:${d.percent}%"></div>
+          </div>
+          <div class="streak-stats">
+            <span class="streak-count">${d.count}人</span>
+            <span class="streak-percent">${d.percent}%</span>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+// モード切り替えを拡張（管理者モードでダッシュボード表示）
+const originalSwitchMode = switchMode;
+switchMode = function(newMode) {
+  mode = newMode;
+  closeModals();
+
+  const bg = document.getElementById('bg');
+  const header = document.getElementById('header');
+  const nav = document.querySelector('nav');
+
+  bg.className = 'bg ' + newMode;
+  header.className = newMode;
+  nav.className = newMode;
+
+  // モードバッジ更新
+  const modeConfig = APP.config.roles[newMode];
+  document.getElementById('modeBadge').innerHTML = `${modeConfig.emoji} ${modeConfig.name}`;
+  document.getElementById('modeBadge').className = `badge ${newMode}`;
+
+  // 管理者モードの場合、ダッシュボードを表示
+  if (newMode === 'admin') {
+    showScreen('admin');
+    renderAdminDashboard();
+  } else {
+    showScreen('home');
+  }
+
+  toast(`${modeConfig.emoji} ${modeConfig.name}モードに切り替えました`);
+};
+
+// ========================================
 // 起動
 // ========================================
 document.addEventListener('DOMContentLoaded', loadData);

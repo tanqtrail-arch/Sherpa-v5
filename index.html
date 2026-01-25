@@ -174,6 +174,128 @@
       <div id="popularContentList" class="popular-content-list"></div>
     </div>
 
+    <!-- 管理者ダッシュボード画面 -->
+    <div id="screen-admin" class="screen">
+      <div class="admin-header">
+        <div class="admin-title">📊 管理者ダッシュボード</div>
+        <div class="admin-subtitle">探究学習インサイトデータ</div>
+      </div>
+
+      <!-- 概要サマリー -->
+      <div class="admin-summary-grid" id="adminSummaryGrid">
+        <!-- JSで動的にレンダリング -->
+      </div>
+
+      <!-- タブナビゲーション -->
+      <div class="admin-tabs" id="adminTabs">
+        <div class="admin-tab active" data-tab="overview" onclick="showAdminTab('overview', this)">📈 概要</div>
+        <div class="admin-tab" data-tab="registrations" onclick="showAdminTab('registrations', this)">👥 登録</div>
+        <div class="admin-tab" data-tab="content" onclick="showAdminTab('content', this)">📚 コンテンツ</div>
+        <div class="admin-tab" data-tab="quiz" onclick="showAdminTab('quiz', this)">📝 クイズ</div>
+        <div class="admin-tab" data-tab="engagement" onclick="showAdminTab('engagement', this)">💡 エンゲージ</div>
+      </div>
+
+      <!-- 概要タブ -->
+      <div id="adminTabOverview" class="admin-tab-content active">
+        <div class="admin-card">
+          <div class="admin-card-header">📊 登録数推移（直近7日間）</div>
+          <div class="admin-card-body" id="registrationChart"></div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-header">⏰ 時間帯別アクティビティ</div>
+          <div class="admin-card-body" id="hourlyActivityChart"></div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-header">🔔 アラート</div>
+          <div class="admin-card-body" id="adminAlerts"></div>
+        </div>
+      </div>
+
+      <!-- 登録タブ -->
+      <div id="adminTabRegistrations" class="admin-tab-content">
+        <div class="admin-card">
+          <div class="admin-card-header">🗾 都道府県別登録数</div>
+          <div class="admin-card-body" id="regionRegistrations"></div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-header">🎓 学年別登録数</div>
+          <div class="admin-card-body" id="gradeRegistrations"></div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-header">📍 登録経緯（流入元）</div>
+          <div class="admin-card-body" id="registrationSources"></div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-header">💎 有料転換分析</div>
+          <div class="admin-card-body" id="premiumConversion"></div>
+        </div>
+      </div>
+
+      <!-- コンテンツタブ -->
+      <div id="adminTabContent" class="admin-tab-content">
+        <div class="admin-card">
+          <div class="admin-card-header">📊 カテゴリ別達成率</div>
+          <div class="admin-card-body" id="categoryCompletionRates"></div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-header">🌱 低学年に人気のコンテンツ</div>
+          <div class="admin-card-body" id="popularLower"></div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-header">⭐ 中学年に人気のコンテンツ</div>
+          <div class="admin-card-body" id="popularMiddle"></div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-header">🚀 高学年に人気のコンテンツ</div>
+          <div class="admin-card-body" id="popularUpper"></div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-header">📉 離脱ポイント分析</div>
+          <div class="admin-card-body" id="dropoffAnalysis"></div>
+        </div>
+      </div>
+
+      <!-- クイズタブ -->
+      <div id="adminTabQuiz" class="admin-tab-content">
+        <div class="admin-card">
+          <div class="admin-card-header">📊 クイズ全体統計</div>
+          <div class="admin-card-body" id="quizOverallStats"></div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-header">❌ 最も間違いやすい問題 TOP10</div>
+          <div class="admin-card-body" id="difficultQuestions"></div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-header">✅ 正答率が高い問題</div>
+          <div class="admin-card-body" id="easiestQuestions"></div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-header">📈 カテゴリ別クイズ成績</div>
+          <div class="admin-card-body" id="quizByCategory"></div>
+        </div>
+      </div>
+
+      <!-- エンゲージメントタブ -->
+      <div id="adminTabEngagement" class="admin-tab-content">
+        <div class="admin-card">
+          <div class="admin-card-header">⏱️ 学習時間分析</div>
+          <div class="admin-card-body" id="learningTimeAnalysis"></div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-header">📅 曜日別学習傾向</div>
+          <div class="admin-card-body" id="weekdayAnalysis"></div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-header">🔄 継続率（リテンション）</div>
+          <div class="admin-card-body" id="retentionAnalysis"></div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-header">🔥 ログイン連続日数分布</div>
+          <div class="admin-card-body" id="streakDistribution"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- プロフィール画面 -->
     <div id="screen-profile" class="screen">
       <div class="profile-card">
