@@ -2296,7 +2296,14 @@ function switchMode(newMode) {
   document.getElementById('modeBadge').innerHTML = `${modeConfig.emoji} ${modeConfig.name}`;
   document.getElementById('modeBadge').className = `badge ${newMode}`;
 
-  showScreen('home');
+  // 管理者モードの場合、ダッシュボードを表示
+  if (newMode === 'admin') {
+    showScreen('admin');
+    renderAdminDashboard();
+  } else {
+    showScreen('home');
+  }
+
   toast(`${modeConfig.emoji} ${modeConfig.name}モードに切り替えました`);
 }
 
@@ -3307,36 +3314,6 @@ function renderStreakDistribution() {
     </div>
   `;
 }
-
-// モード切り替えを拡張（管理者モードでダッシュボード表示）
-const originalSwitchMode = switchMode;
-switchMode = function(newMode) {
-  mode = newMode;
-  closeModals();
-
-  const bg = document.getElementById('bg');
-  const header = document.getElementById('header');
-  const nav = document.querySelector('nav');
-
-  bg.className = 'bg ' + newMode;
-  header.className = newMode;
-  nav.className = newMode;
-
-  // モードバッジ更新
-  const modeConfig = APP.config.roles[newMode];
-  document.getElementById('modeBadge').innerHTML = `${modeConfig.emoji} ${modeConfig.name}`;
-  document.getElementById('modeBadge').className = `badge ${newMode}`;
-
-  // 管理者モードの場合、ダッシュボードを表示
-  if (newMode === 'admin') {
-    showScreen('admin');
-    renderAdminDashboard();
-  } else {
-    showScreen('home');
-  }
-
-  toast(`${modeConfig.emoji} ${modeConfig.name}モードに切り替えました`);
-};
 
 // ========================================
 // 起動
