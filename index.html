@@ -1075,6 +1075,371 @@ const RANKING_TYPES=[
 {k:'growth',n:'📈 成長率',field:'growth',unit:'%',desc:'今週のALT成長率'}
 ];
 const RANKING_PERIODS=[{k:'all',n:'全期間'},{k:'weekly',n:'今週'},{k:'monthly',n:'今月'}];
+
+// ============================================
+// App コアシステム - 中央集権型アーキテクチャ
+// ============================================
+const App = {
+  // バージョン
+  version: '5.0.0',
+
+  // --- 中央状態管理 ---
+  state: {
+    mode: 'child',
+    alt: 1250,
+    streak: 7,
+    currentScreen: 'home',
+    user: { name: '探究者さん', region: '関東', grade: 'middle', familyCode: null, childId: null },
+    bookshelf: { bigCat: null, midCat: null, themeInfo: null, themeUrl: null },
+    slides: { current: null, filter: { cat: 'all', grade: 'all' } },
+    diary: { entries: [], streak: 0, todayWritten: false },
+    gallery: { filter: 'all', likesLeft: 10 },
+    quiz: { current: null, questionIndex: 0, score: 0 },
+    initialized: false
+  },
+
+  // --- イベントシステム（状態変更を全体に通知）---
+  _listeners: {},
+
+  on(event, callback) {
+    if (!this._listeners[event]) this._listeners[event] = [];
+    this._listeners[event].push(callback);
+    return () => this.off(event, callback); // unsubscribe関数を返す
+  },
+
+  off(event, callback) {
+    if (!this._listeners[event]) return;
+    this._listeners[event] = this._listeners[event].filter(cb => cb !== callback);
+  },
+
+  emit(event, data) {
+    const listeners = this._listeners[event] || [];
+    listeners.forEach(cb => {
+      try { cb(data); }
+      catch (e) { console.error(`[App] Event "${event}" handler error:`, e); }
+    });
+    // ワイルドカードリスナー
+    (this._listeners['*'] || []).forEach(cb => {
+      try { cb({ event, data }); }
+      catch (e) { console.error('[App] Wildcard handler error:', e); }
+    });
+  },
+
+  // --- 状態変更（一箇所で管理）---
+  setState(path, value) {
+    const keys = path.split('.');
+    let obj = this.state;
+    for (let i = 0; i < keys.length - 1; i++) {
+      if (obj[keys[i]] === undefined) obj[keys[i]] = {};
+      obj = obj[keys[i]];
+    }
+    const oldValue = obj[keys[keys.length - 1]];
+    obj[keys[keys.length - 1]] = value;
+
+    // 変更をイベントとして通知
+    this.emit('stateChange', { path, value, oldValue });
+    this.emit('state:' + path, { value, oldValue });
+
+    return value;
+  },
+
+  getState(path) {
+    const keys = path.split('.');
+    let obj = this.state;
+    for (const key of keys) {
+      if (obj === undefined || obj === null) return undefined;
+      obj = obj[key];
+    }
+    return obj;
+  },
+
+  // --- 安全なDOM操作（エラーが起きない）---
+  $(id) {
+    const el = document.getElementById(id);
+    if (!el) {
+      // 開発時のみ警告
+      if (this.debug) console.warn(`[App] Element #${id} not found`);
+      // ダミーオブジェクトを返す（エラー防止）
+      return this._createDummyElement(id);
+    }
+    return el;
+  },
+
+  _createDummyElement(id) {
+    return {
+      _isDummy: true,
+      _id: id,
+      innerHTML: '',
+      innerText: '',
+      textContent: '',
+      value: '',
+      style: new Proxy({}, { set: () => true, get: () => '' }),
+      classList: {
+        add() {}, remove() {}, toggle() {}, contains() { return false; }
+      },
+      addEventListener() {},
+      removeEventListener() {},
+      querySelector() { return null; },
+      querySelectorAll() { return []; },
+      appendChild() {},
+      removeChild() {},
+      setAttribute() {},
+      getAttribute() { return null; },
+      focus() {},
+      blur() {},
+      click() {},
+      scrollIntoView() {}
+    };
+  },
+
+  // 複数要素を安全に取得
+  $$(selector) {
+    try {
+      return Array.from(document.querySelectorAll(selector));
+    } catch (e) {
+      console.error('[App] querySelectorAll error:', e);
+      return [];
+    }
+  },
+
+  // --- 安全な関数実行（エラーを隔離）---
+  safe(fn, fallback = null, context = 'unknown') {
+    try {
+      const result = fn();
+      // Promiseの場合も対応
+      if (result instanceof Promise) {
+        return result.catch(e => {
+          console.error(`[App] Async error in ${context}:`, e);
+          this.emit('error', { context, error: e, async: true });
+          return fallback;
+        });
+      }
+      return result;
+    } catch (e) {
+      console.error(`[App] Error in ${context}:`, e);
+      this.emit('error', { context, error: e, async: false });
+      return fallback;
+    }
+  },
+
+  // --- 画面切り替え（中央制御）---
+  showScreen(screenId, navEl = null) {
+    this.safe(() => {
+      // 現在の画面を離れるイベント
+      const prevScreen = this.state.currentScreen;
+      if (prevScreen && Tabs[prevScreen]?.onLeave) {
+        this.safe(() => Tabs[prevScreen].onLeave(), null, `Tab.${prevScreen}.onLeave`);
+      }
+
+      // 画面切り替え
+      this.$$('.screen').forEach(s => s.classList.remove('active'));
+      this.$$('.nav-item').forEach(n => n.classList.remove('active'));
+
+      const screenEl = this.$('screen-' + screenId);
+      if (!screenEl._isDummy) {
+        screenEl.classList.add('active');
+      }
+      if (navEl) navEl.classList.add('active');
+
+      this.setState('currentScreen', screenId);
+
+      // 新しい画面に入るイベント
+      if (Tabs[screenId]?.onEnter) {
+        this.safe(() => Tabs[screenId].onEnter(), null, `Tab.${screenId}.onEnter`);
+      }
+
+      this.emit('screenChange', { from: prevScreen, to: screenId });
+    }, null, 'showScreen');
+  },
+
+  // --- トースト通知 ---
+  toast(msg, duration = 2000) {
+    this.safe(() => {
+      const el = this.$('toast');
+      if (el._isDummy) return;
+      el.textContent = msg;
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), duration);
+    }, null, 'toast');
+  },
+
+  // --- ローカルストレージ（安全なアクセス）---
+  storage: {
+    get(key, defaultValue = null) {
+      try {
+        const item = localStorage.getItem(key);
+        return item ? JSON.parse(item) : defaultValue;
+      } catch (e) {
+        console.error('[App.storage] get error:', key, e);
+        return defaultValue;
+      }
+    },
+    set(key, value) {
+      try {
+        localStorage.setItem(key, JSON.stringify(value));
+        return true;
+      } catch (e) {
+        console.error('[App.storage] set error:', key, e);
+        App.toast('データの保存に失敗しました');
+        return false;
+      }
+    },
+    remove(key) {
+      try {
+        localStorage.removeItem(key);
+        return true;
+      } catch (e) {
+        console.error('[App.storage] remove error:', key, e);
+        return false;
+      }
+    }
+  },
+
+  // --- デバッグモード ---
+  debug: false,
+  enableDebug() {
+    this.debug = true;
+    this.on('*', ({ event, data }) => console.log(`[App Event] ${event}:`, data));
+    console.log('[App] Debug mode enabled');
+  }
+};
+
+// ============================================
+// タブモジュール（各タブは独立・同じインターフェース）
+// ============================================
+const Tabs = {
+  // ホーム画面
+  home: {
+    onEnter() {
+      App.safe(() => {
+        if (typeof renderNewSlides === 'function') renderNewSlides();
+      }, null, 'home.onEnter');
+    },
+    onLeave() {}
+  },
+
+  // 本棚
+  bookshelf: {
+    onEnter() {
+      App.safe(() => {
+        App.$('bookshelfMain').style.display = 'block';
+        App.$('bookshelfMid').style.display = 'none';
+        App.$('bookshelfSmall').style.display = 'none';
+        App.$('bookshelfTheme').style.display = 'none';
+        App.setState('bookshelf.bigCat', null);
+        App.setState('bookshelf.midCat', null);
+        if (typeof renderBookshelfMain === 'function') renderBookshelfMain();
+      }, null, 'bookshelf.onEnter');
+    },
+    onLeave() {
+      App.setState('bookshelf.bigCat', null);
+      App.setState('bookshelf.midCat', null);
+    }
+  },
+
+  // 日記
+  diary: {
+    onEnter() {
+      App.safe(() => {
+        if (typeof renderDiary === 'function') renderDiary();
+      }, null, 'diary.onEnter');
+    },
+    onLeave() {}
+  },
+
+  // ギャラリー
+  gallery: {
+    onEnter() {
+      App.safe(() => {
+        if (typeof renderGallery === 'function') renderGallery();
+      }, null, 'gallery.onEnter');
+    },
+    onLeave() {}
+  },
+
+  // ランキング
+  ranking: {
+    onEnter() {
+      App.safe(() => {
+        if (typeof renderRanking === 'function') renderRanking();
+      }, null, 'ranking.onEnter');
+    },
+    onLeave() {}
+  },
+
+  // 登頂
+  climb: {
+    onEnter() {
+      App.safe(() => {
+        if (typeof renderMountains === 'function') renderMountains();
+      }, null, 'climb.onEnter');
+    },
+    onLeave() {}
+  },
+
+  // プロフィール
+  profile: {
+    onEnter() {
+      App.safe(() => {
+        if (typeof loadProfile === 'function') loadProfile();
+        if (typeof renderCompletedSlides === 'function') renderCompletedSlides();
+      }, null, 'profile.onEnter');
+    },
+    onLeave() {}
+  },
+
+  // 管理画面
+  'admin-home': {
+    onEnter() {
+      App.safe(() => {
+        if (typeof initNotebookAdmin === 'function') initNotebookAdmin();
+      }, null, 'admin-home.onEnter');
+    },
+    onLeave() {}
+  }
+};
+
+// ============================================
+// グローバルイベントリスナー（一箇所の変更が全体に反映）
+// ============================================
+App.on('stateChange', ({ path, value }) => {
+  App.safe(() => {
+    // ALTが変更されたら → ヘッダーを更新
+    if (path === 'alt' || path === 'state.alt') {
+      const altEl = App.$('altVal');
+      if (!altEl._isDummy) altEl.textContent = (value || 0).toLocaleString();
+    }
+
+    // ユーザー名が変更されたら → プロフィール画面を更新
+    if (path === 'user.name') {
+      const nameEl = App.$('profName');
+      const avatarEl = App.$('profAvatar');
+      if (!nameEl._isDummy) nameEl.textContent = value;
+      if (!avatarEl._isDummy) avatarEl.textContent = (value || '探').charAt(0);
+    }
+  }, null, 'stateChange handler');
+});
+
+// エラーハンドラー
+App.on('error', ({ context, error }) => {
+  console.error(`[App Error] ${context}:`, error);
+  // 必要に応じてエラー報告
+});
+
+// ============================================
+// 互換性レイヤー（既存コードとの橋渡し）
+// ============================================
+// 既存のshowScreen関数を安全にラップ
+const _originalShowScreen = typeof showScreen === 'function' ? showScreen : null;
+
+// グローバル関数をApp経由で安全に呼び出すヘルパー
+function safeCall(fn, ...args) {
+  return App.safe(() => fn(...args), null, fn.name || 'anonymous');
+}
+
+// ============================================
+// 既存のグローバル変数（互換性のため維持）
+// ============================================
 let mode='child',cat='all',grade='all',alt=1250,works=3,doneToday=1,selEmoji='🔬',curSlide=null,fmDone=0,authTarget='',curClass=0,likesLeft=10,curSponsor=0;
 let rankingType='alt',rankingGrade='all',rankingPeriod='all';
 let adminSlideCat='all',adminSlideGrade='all';
@@ -1386,57 +1751,155 @@ slides=[...INITIAL_SLIDES];
 localStorage.setItem('sherupa_slides_version',SLIDES_VERSION);
 localStorage.removeItem('sherupa_s');
 }
-document.addEventListener('DOMContentLoaded',init);
-function init(){renderNav();renderGrades();renderCats();renderSlides();renderGallery();renderBadges();renderEmojis();renderSlideList();renderUsers();renderFM();updateFMCount();renderClasses();renderStudents();renderTasks();renderMountains();renderClimbBadges();renderCertificates();renderSpecialGalleries();renderAdminGallery();renderParentDash();loadProfile();renderFamilyMissions();renderSponsorMissions();renderSponsorSlides();renderSponsorReport();renderSponsorDash();renderRankings();renderAdminStats();renderReportContent();renderAdminGradeUsers();renderMasterSponsorSelect();renderMasterSponsorSlides();renderDiary();renderChildRanking();renderCompletedSlides();loadApiKey();renderQAReport();renderLinkedChildren();renderBookshelfMain();renderSlideRequests();renderVideoPanel();renderNewSlides();renderBookshelf();}
+document.addEventListener('DOMContentLoaded', init);
+
+function init() {
+  console.log('[Sherupa] Initializing v' + App.version + '...');
+
+  // 各初期化関数を安全に呼び出す
+  const initFunctions = [
+    'renderNav',
+    'renderGrades',
+    'renderCats',
+    'renderSlides',
+    'renderGallery',
+    'renderBadges',
+    'renderEmojis',
+    'renderSlideList',
+    'renderUsers',
+    'renderFM',
+    'updateFMCount',
+    'renderClasses',
+    'renderStudents',
+    'renderTasks',
+    'renderMountains',
+    'renderClimbBadges',
+    'renderCertificates',
+    'renderSpecialGalleries',
+    'renderAdminGallery',
+    'renderParentDash',
+    'loadProfile',
+    'renderFamilyMissions',
+    'renderSponsorMissions',
+    'renderSponsorSlides',
+    'renderSponsorReport',
+    'renderSponsorDash',
+    'renderRankings',
+    'renderAdminStats',
+    'renderReportContent',
+    'renderAdminGradeUsers',
+    'renderMasterSponsorSelect',
+    'renderMasterSponsorSlides',
+    'renderDiary',
+    'renderChildRanking',
+    'renderCompletedSlides',
+    'loadApiKey',
+    'renderQAReport',
+    'renderLinkedChildren',
+    'renderBookshelfMain',
+    'renderSlideRequests',
+    'renderVideoPanel',
+    'renderNewSlides',
+    'renderBookshelf'
+  ];
+
+  let successCount = 0;
+  let errorCount = 0;
+
+  initFunctions.forEach(fnName => {
+    if (typeof window[fnName] === 'function') {
+      App.safe(() => {
+        window[fnName]();
+        successCount++;
+      }, () => {
+        errorCount++;
+        console.warn('[init] Failed to call:', fnName);
+      }, 'init.' + fnName);
+    }
+  });
+
+  // 初期化完了
+  App.setState('initialized', true);
+  App.emit('initialized', { successCount, errorCount });
+  console.log('[Sherupa] Initialized. Success:', successCount, 'Errors:', errorCount);
+}
 let currentBigCat=null;let currentMidCat=null;
-function renderBookshelfMain(){const el=document.getElementById('bookshelfMain');if(!el)return;
-let html='<div style="background:linear-gradient(180deg,#8B4513 0%,#A0522D 100%);border-radius:16px;padding:16px;box-shadow:inset 0 -4px 8px rgba(0,0,0,.3)">';
-html+='<div style="font-size:12px;color:#DEB887;margin-bottom:10px;font-weight:600">📚 大カテゴリを選ぼう</div>';
-html+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:10px">';
-BOOKSHELF_DATA.forEach(big=>{
-const catSlides=slides.filter(s=>s.c===big.id);
-const done=catSlides.filter(s=>s.done).length;
-const total=catSlides.length;
-html+='<div onclick="openBigCategory(\''+big.id+'\')" style="cursor:pointer;transition:transform .2s" onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'">';
-html+='<div style="background:'+big.color+';height:100px;border-radius:6px 6px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:2px 2px 8px rgba(0,0,0,.3)">';
-html+='<div style="font-size:32px;text-shadow:0 2px 4px rgba(0,0,0,.3)">'+big.e+'</div>';
-html+='<div style="font-size:10px;color:#fff;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.5);margin-top:4px">'+big.n+'</div>';
-html+='</div>';
-html+='<div style="background:linear-gradient(180deg,#DEB887,#D2B48C);height:24px;border-radius:0 0 6px 6px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 2px 4px rgba(0,0,0,.2)">';
-html+='<div style="font-size:9px;color:#5D4037;font-weight:700">'+done+'/'+total+'</div>';
-html+='</div>';
-html+='</div>';
-});
-html+='</div>';
-html+='<div style="background:#654321;height:10px;border-radius:5px;margin-top:12px;box-shadow:inset 0 2px 4px rgba(0,0,0,.3)"></div>';
-html+='</div>';
-el.innerHTML=html;}
-function openBigCategory(bigId){currentBigCat=bigId;const big=BOOKSHELF_DATA.find(b=>b.id===bigId);if(!big)return;
-document.getElementById('bookshelfMain').style.display='none';
-document.getElementById('bookshelfMid').style.display='block';
-document.getElementById('bookshelfSmall').style.display='none';
-document.getElementById('bookshelfMidTitle').textContent=big.e+' '+big.n;
-let html='<div style="background:linear-gradient(180deg,#8B4513 0%,#A0522D 100%);border-radius:16px;padding:16px;box-shadow:inset 0 -4px 8px rgba(0,0,0,.3)">';
-html+='<div style="font-size:12px;color:#DEB887;margin-bottom:10px;font-weight:600">📖 中カテゴリを選ぼう</div>';
-html+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px">';
-big.mid.forEach(mid=>{
-const midSlides=slides.filter(s=>s.mid===mid.id);
-const midDone=midSlides.filter(s=>s.done).length;
-const midTotal=midSlides.length;
-html+='<div onclick="openMidCategory(\''+bigId+'\',\''+mid.id+'\')" style="cursor:pointer;transition:transform .2s" onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'">';
-html+='<div style="background:'+big.color+';height:80px;border-radius:6px 6px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:2px 2px 8px rgba(0,0,0,.3);opacity:.9">';
-html+='<div style="font-size:28px;text-shadow:0 2px 4px rgba(0,0,0,.3)">'+mid.e+'</div>';
-html+='<div style="font-size:9px;color:#fff;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.5);margin-top:2px;text-align:center;padding:0 4px;line-height:1.2">'+mid.n+'</div>';
-html+='</div>';
-html+='<div style="background:linear-gradient(180deg,#DEB887,#D2B48C);height:20px;border-radius:0 0 6px 6px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 2px 4px rgba(0,0,0,.2)">';
-html+='<div style="font-size:8px;color:#5D4037;font-weight:600">'+midDone+'/'+midTotal+'テーマ</div>';
-html+='</div>';
-html+='</div>';
-});
-html+='</div>';
-html+='<div style="background:#654321;height:8px;border-radius:4px;margin-top:12px;box-shadow:inset 0 2px 4px rgba(0,0,0,.3)"></div>';
-html+='</div>';
-document.getElementById('bookshelfMidContent').innerHTML=html;}
+
+function renderBookshelfMain(){
+  return App.safe(() => {
+    const el = App.$('bookshelfMain');
+    if (el._isDummy) return;
+
+    let html = '<div style="background:linear-gradient(180deg,#8B4513 0%,#A0522D 100%);border-radius:16px;padding:16px;box-shadow:inset 0 -4px 8px rgba(0,0,0,.3)">';
+    html += '<div style="font-size:12px;color:#DEB887;margin-bottom:10px;font-weight:600">📚 大カテゴリを選ぼう</div>';
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:10px">';
+
+    BOOKSHELF_DATA.forEach(big => {
+      const catSlides = (slides || []).filter(s => s.c === big.id);
+      const done = catSlides.filter(s => s.done).length;
+      const total = catSlides.length;
+
+      html += '<div onclick="openBigCategory(\'' + big.id + '\')" style="cursor:pointer;transition:transform .2s" onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'">';
+      html += '<div style="background:' + big.color + ';height:100px;border-radius:6px 6px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:2px 2px 8px rgba(0,0,0,.3)">';
+      html += '<div style="font-size:32px;text-shadow:0 2px 4px rgba(0,0,0,.3)">' + (big.e || '📖') + '</div>';
+      html += '<div style="font-size:10px;color:#fff;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.5);margin-top:4px">' + (big.n || '') + '</div>';
+      html += '</div>';
+      html += '<div style="background:linear-gradient(180deg,#DEB887,#D2B48C);height:24px;border-radius:0 0 6px 6px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 2px 4px rgba(0,0,0,.2)">';
+      html += '<div style="font-size:9px;color:#5D4037;font-weight:700">' + done + '/' + total + '</div>';
+      html += '</div>';
+      html += '</div>';
+    });
+
+    html += '</div>';
+    html += '<div style="background:#654321;height:10px;border-radius:5px;margin-top:12px;box-shadow:inset 0 2px 4px rgba(0,0,0,.3)"></div>';
+    html += '</div>';
+
+    el.innerHTML = html;
+  }, null, 'renderBookshelfMain');
+}
+function openBigCategory(bigId){
+  return App.safe(() => {
+    const big = BOOKSHELF_DATA.find(b => b.id === bigId);
+    if (!big) {
+      console.warn('[openBigCategory] Category not found:', bigId);
+      return;
+    }
+
+    currentBigCat = bigId;
+    App.setState('bookshelf.bigCat', bigId);
+
+    // 安全なDOM操作
+    App.$('bookshelfMain').style.display = 'none';
+    App.$('bookshelfMid').style.display = 'block';
+    App.$('bookshelfSmall').style.display = 'none';
+    App.$('bookshelfMidTitle').textContent = big.e + ' ' + big.n;
+
+    let html = '<div style="background:linear-gradient(180deg,#8B4513 0%,#A0522D 100%);border-radius:16px;padding:16px;box-shadow:inset 0 -4px 8px rgba(0,0,0,.3)">';
+    html += '<div style="font-size:12px;color:#DEB887;margin-bottom:10px;font-weight:600">📖 中カテゴリを選ぼう</div>';
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px">';
+
+    (big.mid || []).forEach(mid => {
+      const midSlides = slides.filter(s => s.mid === mid.id);
+      const midDone = midSlides.filter(s => s.done).length;
+      const midTotal = midSlides.length;
+      html += '<div onclick="openMidCategory(\'' + bigId + '\',\'' + mid.id + '\')" style="cursor:pointer;transition:transform .2s" onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'">';
+      html += '<div style="background:' + big.color + ';height:80px;border-radius:6px 6px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:2px 2px 8px rgba(0,0,0,.3);opacity:.9">';
+      html += '<div style="font-size:28px;text-shadow:0 2px 4px rgba(0,0,0,.3)">' + (mid.e || '📖') + '</div>';
+      html += '<div style="font-size:9px;color:#fff;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.5);margin-top:2px;text-align:center;padding:0 4px;line-height:1.2">' + (mid.n || '') + '</div>';
+      html += '</div>';
+      html += '<div style="background:linear-gradient(180deg,#DEB887,#D2B48C);height:20px;border-radius:0 0 6px 6px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 2px 4px rgba(0,0,0,.2)">';
+      html += '<div style="font-size:8px;color:#5D4037;font-weight:600">' + midDone + '/' + midTotal + 'テーマ</div>';
+      html += '</div>';
+      html += '</div>';
+    });
+
+    html += '</div>';
+    html += '<div style="background:#654321;height:8px;border-radius:4px;margin-top:12px;box-shadow:inset 0 2px 4px rgba(0,0,0,.3)"></div>';
+    html += '</div>';
+
+    App.$('bookshelfMidContent').innerHTML = html;
+  }, null, 'openBigCategory');
+}
 function closeBookshelfMid(){document.getElementById('bookshelfMain').style.display='block';document.getElementById('bookshelfMid').style.display='none';currentBigCat=null;}
 // テーマNotebookLM URL管理
 let themeNotebookUrls=JSON.parse(localStorage.getItem('themeNotebookUrls')||'{}');
@@ -1450,44 +1913,58 @@ if(url){themeNotebookUrls[key]=url;}else{delete themeNotebookUrls[key];}
 localStorage.setItem('themeNotebookUrls',JSON.stringify(themeNotebookUrls));
 }
 function openMidCategory(bigId,midId){
-currentMidCat=midId;
-const big=BOOKSHELF_DATA.find(b=>b.id===bigId);
-const mid=big?.mid.find(m=>m.id===midId);
-if(!big||!mid){
-console.error('openMidCategory: big or mid not found', bigId, midId);
-return;
+  return App.safe(() => {
+    const big = BOOKSHELF_DATA.find(b => b.id === bigId);
+    const mid = big?.mid?.find(m => m.id === midId);
+
+    if (!big || !mid) {
+      console.warn('[openMidCategory] Category not found:', bigId, midId);
+      App.toast('カテゴリが見つかりません');
+      return;
+    }
+
+    currentMidCat = midId;
+    App.setState('bookshelf.midCat', midId);
+
+    // 安全なDOM操作
+    App.$('bookshelfMid').style.display = 'none';
+    App.$('bookshelfSmall').style.display = 'block';
+    App.$('bookshelfTheme').style.display = 'none';
+    App.$('bookshelfSmallTitle').textContent = mid.e + ' ' + mid.n;
+
+    // テーマ一覧
+    const smallThemes = mid.small || [];
+    let html = '';
+
+    if (smallThemes.length > 0) {
+      html = '<div style="background:linear-gradient(180deg,#8B4513 0%,#A0522D 100%);border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:inset 0 -4px 8px rgba(0,0,0,.3)">';
+      html += '<div style="font-size:12px;color:#DEB887;margin-bottom:10px;font-weight:600">📕 テーマを選んで学ぼう（' + smallThemes.length + 'テーマ）</div>';
+      html += '<div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:8px">';
+
+      smallThemes.forEach((theme, idx) => {
+        const hasUrl = typeof getThemeNotebookUrl === 'function' ? getThemeNotebookUrl(bigId, midId, idx) : null;
+        html += '<div onclick="openTheme(\'' + bigId + '\',\'' + midId + '\',' + idx + ')" style="cursor:pointer;transition:transform .2s;flex-shrink:0;width:100px" onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'">';
+        html += '<div style="background:' + big.color + ';height:80px;border-radius:6px 6px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:2px 2px 8px rgba(0,0,0,.3);position:relative;padding:6px">';
+        if (hasUrl) html += '<div style="position:absolute;top:-6px;right:-6px;background:#3b82f6;color:#fff;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;box-shadow:0 2px 4px rgba(0,0,0,.2)">📓</div>';
+        html += '<div style="font-size:28px;text-shadow:0 2px 4px rgba(0,0,0,.3)">📖</div>';
+        html += '<div style="font-size:9px;color:#fff;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.5);text-align:center;margin-top:2px;line-height:1.2;max-height:24px;overflow:hidden;padding:0 4px">' + (theme || '') + '</div>';
+        html += '</div>';
+        html += '<div style="background:linear-gradient(180deg,#DEB887,#D2B48C);height:20px;border-radius:0 0 6px 6px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 2px 4px rgba(0,0,0,.2)">';
+        html += '<div style="font-size:8px;color:#5D4037;font-weight:600">' + (hasUrl ? '📓 準備OK' : '未設定') + '</div>';
+        html += '</div>';
+        html += '</div>';
+      });
+
+      html += '</div>';
+      html += '<div style="background:#654321;height:6px;border-radius:3px;margin-top:10px;box-shadow:inset 0 2px 4px rgba(0,0,0,.3)"></div>';
+      html += '</div>';
+    } else {
+      html = '<div style="text-align:center;color:#DEB887;padding:20px;font-size:11px">このカテゴリのテーマは準備中です</div>';
+    }
+
+    App.$('bookshelfSmallContent').innerHTML = html;
+  }, null, 'openMidCategory');
 }
-document.getElementById('bookshelfMid').style.display='none';
-document.getElementById('bookshelfSmall').style.display='block';
-document.getElementById('bookshelfTheme').style.display='none';
-document.getElementById('bookshelfSmallTitle').textContent=mid.e+' '+mid.n;
-// テーマ一覧
-const smallThemes=mid.small||[];
-let html='';
-if(smallThemes.length>0){
-html='<div style="background:linear-gradient(180deg,#8B4513 0%,#A0522D 100%);border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:inset 0 -4px 8px rgba(0,0,0,.3)">';
-html+='<div style="font-size:12px;color:#DEB887;margin-bottom:10px;font-weight:600">📕 テーマを選んで学ぼう（'+smallThemes.length+'テーマ）</div>';
-html+='<div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:8px">';
-smallThemes.forEach((theme,idx)=>{
-const hasUrl=getThemeNotebookUrl(bigId,midId,idx);
-html+='<div onclick="openTheme(\''+bigId+'\',\''+midId+'\','+idx+')" style="cursor:pointer;transition:transform .2s;flex-shrink:0;width:100px" onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'">';
-html+='<div style="background:'+big.color+';height:80px;border-radius:6px 6px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:2px 2px 8px rgba(0,0,0,.3);position:relative;padding:6px">';
-if(hasUrl)html+='<div style="position:absolute;top:-6px;right:-6px;background:#3b82f6;color:#fff;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;box-shadow:0 2px 4px rgba(0,0,0,.2)">📓</div>';
-html+='<div style="font-size:28px;text-shadow:0 2px 4px rgba(0,0,0,.3)">📖</div>';
-html+='<div style="font-size:9px;color:#fff;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.5);text-align:center;margin-top:2px;line-height:1.2;max-height:24px;overflow:hidden;padding:0 4px">'+theme+'</div>';
-html+='</div>';
-html+='<div style="background:linear-gradient(180deg,#DEB887,#D2B48C);height:20px;border-radius:0 0 6px 6px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 2px 4px rgba(0,0,0,.2)">';
-html+='<div style="font-size:8px;color:#5D4037;font-weight:600">'+(hasUrl?'📓 準備OK':'未設定')+'</div>';
-html+='</div>';
-html+='</div>';
-});
-html+='</div>';
-html+='<div style="background:#654321;height:6px;border-radius:3px;margin-top:10px;box-shadow:inset 0 2px 4px rgba(0,0,0,.3)"></div>';
-html+='</div>';
-}else{
-html='<div style="text-align:center;color:#DEB887;padding:20px;font-size:11px">このカテゴリのテーマは準備中です</div>';
-}
-document.getElementById('bookshelfSmallContent').innerHTML=html;}
 function openTheme(bigId,midId,themeIdx){
 const big=BOOKSHELF_DATA.find(b=>b.id===bigId);
 const mid=big?.mid.find(m=>m.id===midId);
@@ -1595,9 +2072,48 @@ function loadApiKey(){const key=localStorage.getItem('sherupa_claude_api_key');i
 function saveApiKey(){const key=document.getElementById('claudeApiKey').value.trim();if(!key){toast('APIキーを入力してください');return;}localStorage.setItem('sherupa_claude_api_key',key);document.getElementById('apiKeyStatus').innerHTML='<div style="font-size:11px;color:var(--meadow)">✅ 保存しました</div>';toast('🔑 APIキーを保存しました');}
 async function testApiKey(){const key=document.getElementById('claudeApiKey').value.trim()||localStorage.getItem('sherupa_claude_api_key');if(!key){toast('APIキーを入力してください');return;}document.getElementById('apiKeyStatus').innerHTML='<div style="font-size:11px;color:var(--rock)">🔄 テスト中...</div>';try{const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:50,messages:[{role:'user',content:'こんにちは'}]})});if(res.ok){document.getElementById('apiKeyStatus').innerHTML='<div style="font-size:11px;color:var(--meadow)">✅ 接続成功！AIが利用可能です</div>';toast('✅ API接続成功！');}else{const err=await res.json();throw new Error(err.error?.message||'接続失敗');}}catch(e){document.getElementById('apiKeyStatus').innerHTML='<div style="font-size:11px;color:#ef4444">❌ エラー: '+e.message+'</div>';}}
 function renderNav(){const items=mode==='child'?[{id:'home',i:'🏠',l:'ホーム'},{id:'bookshelf',i:'📚',l:'本棚'},{id:'diary',i:'📔',l:'日記'},{id:'ranking',i:'🏆',l:'ランキング'},{id:'climb',i:'🏔️',l:'登頂'},{id:'gallery',i:'🖼️',l:'ギャラリー'},{id:'profile',i:'👤',l:'マイページ'}]:mode==='parent'?[{id:'parent-dash',i:'📊',l:'ダッシュボード'},{id:'parent-report',i:'📈',l:'レポート'},{id:'parent-gallery',i:'🖼️',l:'作品応援'},{id:'parent-family',i:'👨‍👩‍👧',l:'ファミリー'},{id:'parent-settings',i:'⚙️',l:'設定'}]:mode==='teacher'?[{id:'teacher-dash',i:'📊',l:'ダッシュボード'},{id:'teacher-ranking',i:'🏆',l:'ランキング'},{id:'teacher-gallery',i:'🖼️',l:'作品応援'},{id:'teacher-class',i:'👥',l:'クラス'},{id:'teacher-tasks',i:'📝',l:'課題'}]:mode==='sponsor'?[{id:'sponsor-dash',i:'🎗️',l:'ダッシュボード'},{id:'sponsor-gallery',i:'💎',l:'作品応援'},{id:'sponsor-report',i:'📊',l:'レポート'},{id:'sponsor-settings',i:'⚙️',l:'設定'}]:[{id:'admin-home',i:'⚙️',l:'管理'}];document.getElementById('navItems').innerHTML=items.map((x,i)=>'<div class="nav-item'+(i===0?' active':'')+'" onclick="showScreen(\''+x.id+'\',this)"><span>'+x.i+'</span><span>'+x.l+'</span></div>').join('');}
-function showScreen(id,el){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));document.getElementById('screen-'+id).classList.add('active');if(el)el.classList.add('active');
-if(id==='bookshelf'){document.getElementById('bookshelfMain').style.display='block';document.getElementById('bookshelfMid').style.display='none';document.getElementById('bookshelfSmall').style.display='none';document.getElementById('bookshelfTheme').style.display='none';currentBigCat=null;currentMidCat=null;renderBookshelfMain();}
-if(id==='admin-home'){initNotebookAdmin();}}
+function showScreen(id,el){
+  return App.safe(() => {
+    // 前の画面を離れるイベント
+    const prevScreen = App.state.currentScreen;
+    if (prevScreen && Tabs[prevScreen]?.onLeave) {
+      App.safe(() => Tabs[prevScreen].onLeave(), null, 'Tab.'+prevScreen+'.onLeave');
+    }
+
+    // 画面とナビの切り替え
+    App.$$('.screen').forEach(s=>s.classList.remove('active'));
+    App.$$('.nav-item').forEach(n=>n.classList.remove('active'));
+
+    const screenEl = App.$('screen-'+id);
+    if(!screenEl._isDummy) screenEl.classList.add('active');
+    if(el) el.classList.add('active');
+
+    App.setState('currentScreen', id);
+
+    // 本棚画面の特別処理
+    if(id==='bookshelf'){
+      App.$('bookshelfMain').style.display='block';
+      App.$('bookshelfMid').style.display='none';
+      App.$('bookshelfSmall').style.display='none';
+      App.$('bookshelfTheme').style.display='none';
+      currentBigCat=null;
+      currentMidCat=null;
+      if(typeof renderBookshelfMain==='function') renderBookshelfMain();
+    }
+
+    // 管理画面の特別処理
+    if(id==='admin-home'){
+      if(typeof initNotebookAdmin==='function') initNotebookAdmin();
+    }
+
+    // 新しい画面に入るイベント
+    if (Tabs[id]?.onEnter) {
+      App.safe(() => Tabs[id].onEnter(), null, 'Tab.'+id+'.onEnter');
+    }
+
+    App.emit('screenChange', { from: prevScreen, to: id });
+  }, null, 'showScreen');
+}
 function goHome(){showScreen(mode==='child'?'home':mode==='parent'?'parent-dash':mode==='teacher'?'teacher-dash':mode==='sponsor'?'sponsor-dash':'admin-home');document.querySelector('.nav-item').click();}
 function renderCats(){document.getElementById('catFilter').innerHTML=Object.entries(CATS).map(([k,v])=>'<div class="cat-chip'+(k===cat?' active':'')+'" onclick="filterCat(\''+k+'\',this)">'+v.e+' '+v.n+'</div>').join('');}
 function renderGrades(){const el=document.getElementById('gradeFilter');if(!el)return;el.innerHTML=Object.entries(GRADES).map(([k,v])=>'<div class="cat-chip'+(k===grade?' active':'')+'" onclick="filterGrade(\''+k+'\',this)">'+v.e+' '+v.n+'</div>').join('');}
@@ -1699,19 +2215,38 @@ function saveProfile(){const n=document.getElementById('editName').value.trim();
 let slideViewStartTime=null;
 let currentSlideIdx=0;
 function openSlide(i){
-curSlide=i;
-currentSlideIdx=i;
-const s=slides[i];
-if(!s){toast('スライドが見つかりません');return;}
-// 先に画面を表示
-showScreen('viewer');
-// タイトルを設定
-const titleEl=document.getElementById('viewerTitle');
-if(titleEl)titleEl.textContent=s.e+' '+s.t;
-// 関連動画を表示
-renderRelatedVideos(s);
-// おすすめ授業を表示
-renderRecommendedLessons(s);
+  return App.safe(() => {
+    // インデックスの検証
+    if(typeof i !== 'number' || i < 0 || i >= slides.length) {
+      App.toast('スライドが見つかりません');
+      return;
+    }
+
+    curSlide=i;
+    currentSlideIdx=i;
+    const s=slides[i];
+
+    if(!s){
+      App.toast('スライドが見つかりません');
+      return;
+    }
+
+    // 状態を更新
+    App.setState('slides.current', i);
+
+    // 画面を表示
+    showScreen('viewer');
+
+    // タイトルを設定（安全なDOM操作）
+    const titleEl = App.$('viewerTitle');
+    if(!titleEl._isDummy) titleEl.textContent = s.e + ' ' + s.t;
+
+    // 関連動画を表示
+    if(typeof renderRelatedVideos === 'function') renderRelatedVideos(s);
+
+    // おすすめ授業を表示
+    if(typeof renderRecommendedLessons === 'function') renderRecommendedLessons(s);
+  }, null, 'openSlide');
 }
 
 function renderRelatedVideos(s){
@@ -2206,7 +2741,15 @@ function switchMode(m){mode=m;const bg=document.getElementById('bg'),hd=document
 function showSuccessModal(e,t,s,r,type){document.getElementById('successEmoji').textContent=e;document.getElementById('successTitle').textContent=t;document.getElementById('successSub').textContent=s;document.getElementById('successReward').textContent=r;document.getElementById('successHeader').className='modal-header '+type;document.getElementById('successModal').classList.add('active');}
 function closeSuccess(){document.getElementById('successModal').classList.remove('active');if(mode==='child')showScreen('challenge');}
 function addAlt(n){alt+=n;document.getElementById('altVal').textContent=alt.toLocaleString();document.getElementById('profAlt').textContent=alt.toLocaleString();}
-function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+function toast(msg){
+  App.safe(() => {
+    const t = App.$('toast');
+    if (t._isDummy) return;
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }, null, 'toast');
+}
 let curMountainTab='japan';
 function renderMountains(){const el=document.getElementById('mountainList');if(!el)return;document.getElementById('climbAlt').textContent=alt.toLocaleString()+' ALT';
 const japanClimbed=MOUNTAINS.japan.mountains.filter(m=>climbedMountains.includes(m.n)).length;
