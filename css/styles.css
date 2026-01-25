@@ -1430,3 +1430,140 @@ main {
 .family-complete-btn:disabled {
   cursor: not-allowed;
 }
+
+/* デイリーファミリーミッション */
+.daily-family-mission {
+  background: linear-gradient(135deg, #fce7f3, #fbcfe8);
+  border-radius: 16px;
+  padding: 16px;
+  cursor: pointer;
+  transition: transform .2s, box-shadow .2s;
+  border: 2px solid rgba(236, 72, 153, .3);
+}
+
+.daily-family-mission:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(236, 72, 153, .2);
+}
+
+.daily-family-mission.completed {
+  opacity: .7;
+  border-color: var(--meadow);
+  background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+}
+
+.dfm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.dfm-badge {
+  background: linear-gradient(135deg, #ec4899, #f472b6);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.dfm-reason {
+  font-size: 10px;
+  color: var(--rock);
+  font-weight: 600;
+}
+
+.dfm-content {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.dfm-emoji {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .15);
+}
+
+.dfm-info {
+  flex: 1;
+}
+
+.dfm-name {
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--summit);
+}
+
+.dfm-reward {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--family);
+  margin-top: 2px;
+}
+
+.dfm-arrow {
+  font-size: 20px;
+  color: var(--family);
+  font-weight: 900;
+}
+
+.dfm-check {
+  width: 32px;
+  height: 32px;
+  background: var(--meadow);
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* ミッション追加カード */
+.mission-card.add-mission-card {
+  border: 2px dashed #9ca3af;
+  background: rgba(255, 255, 255, .5);
+}
+
+.mission-card.add-mission-card:hover {
+  border-color: var(--parent);
+  background: rgba(255, 255, 255, .8);
+}
+
+/* 編集インジケーター */
+.edit-indicator {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  font-size: 10px;
+}
+
+/* ミッションアイコンをrelativeに */
+.mission-icon {
+  position: relative;
+}
+
+/* デイリーミッションバッジ（モーダル内） */
+.daily-mission-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #ec4899, #f472b6);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  margin-bottom: 12px;
+}
+
+/* フォームのtextarea */
+.form-input[rows] {
+  line-height: 1.6;
+}

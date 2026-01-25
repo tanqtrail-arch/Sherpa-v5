@@ -57,6 +57,14 @@ let slideCompletions = JSON.parse(localStorage.getItem('sherupa_slide_completion
 // completedFamilyMissions: [{ missionId, completedAt }]
 let completedFamilyMissions = JSON.parse(localStorage.getItem('sherupa_family_missions')) || [];
 
+// カスタムファミリーミッション（保護者が作成）
+// customFamilyMissions: [{ id, name, emoji, reward, color, description, tips, createdAt }]
+let customFamilyMissions = JSON.parse(localStorage.getItem('sherupa_custom_family_missions')) || [];
+
+// デイリーファミリーミッション履歴
+// dailyFamilyMissionHistory: { date: string, missionId: string, completed: boolean }
+let dailyFamilyMissionHistory = JSON.parse(localStorage.getItem('sherupa_daily_family_history')) || {};
+
 // ユーザーIDの生成・取得
 if (!userProfile.id) {
   userProfile.id = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
@@ -186,16 +194,40 @@ function renderFamilyMissions() {
   const container = document.getElementById('familyMissionsGrid');
   if (!container || !APP.missions) return;
 
-  const missions = APP.missions.familyMissions.slice(0, 4);
-  const completedCount = getCompletedFamilyMissionCount();
+  // デイリーファミリーミッションをレンダリング
+  renderDailyFamilyMission();
 
-  container.innerHTML = missions.map(m => {
+  // 通常のミッションリスト（保護者モードでは編集可能）
+  const allMissions = getAllFamilyMissions();
+  const displayMissions = allMissions.slice(0, 4);
+
+  let html = '';
+
+  // 保護者モードの場合は編集ボタンを表示
+  if (mode === 'parent') {
+    html += `
+      <div class="mission-card add-mission-card" onclick="openFamilyMissionEditor()">
+        <div class="mission-icon" style="background:linear-gradient(135deg,#9ca3af,#6b7280)">
+          <div class="emoji">➕</div>
+        </div>
+        <div class="mission-body">
+          <div class="mission-name">新規作成</div>
+          <div class="mission-reward" style="color:#6b7280">タップして追加</div>
+        </div>
+      </div>
+    `;
+  }
+
+  html += displayMissions.map(m => {
     const isCompleted = isFamilyMissionCompleted(m.id);
+    const isCustom = m.isCustom || m.id.startsWith('custom_');
+
     return `
-      <div class="mission-card ${isCompleted ? 'completed' : ''}" onclick="openFamilyMission('${m.id}')">
+      <div class="mission-card ${isCompleted ? 'completed' : ''}" onclick="${mode === 'parent' && isCustom ? `openFamilyMissionEditor('${m.id}')` : `openFamilyMission('${m.id}')`}">
         <div class="mission-icon" style="background:linear-gradient(135deg,${m.color[0]},${m.color[1]})${isCompleted ? ';opacity:0.6' : ''}">
           <div class="emoji">${m.emoji}</div>
           ${isCompleted ? '<div class="mission-check">✓</div>' : ''}
+          ${mode === 'parent' && isCustom ? '<div class="edit-indicator">✏️</div>' : ''}
         </div>
         <div class="mission-body">
           <div class="mission-name">${m.name}</div>
@@ -204,6 +236,41 @@ function renderFamilyMissions() {
       </div>
     `;
   }).join('');
+
+  container.innerHTML = html;
+}
+
+// デイリーファミリーミッションをレンダリング
+function renderDailyFamilyMission() {
+  const container = document.getElementById('dailyFamilyMission');
+  if (!container || !APP.missions) return;
+
+  const dailyMission = getDailyFamilyMission();
+  if (!dailyMission) {
+    container.style.display = 'none';
+    return;
+  }
+
+  const isCompleted = isDailyFamilyMissionCompleted() || isFamilyMissionCompleted(dailyMission.id);
+  const reason = getMissionRecommendationReason();
+
+  container.style.display = 'block';
+  container.innerHTML = `
+    <div class="daily-family-mission ${isCompleted ? 'completed' : ''}" onclick="openFamilyMission('${dailyMission.id}')">
+      <div class="dfm-header">
+        <div class="dfm-badge">🌟 今日のファミリーミッション</div>
+        <div class="dfm-reason">${reason}</div>
+      </div>
+      <div class="dfm-content">
+        <div class="dfm-emoji" style="background:linear-gradient(135deg,${dailyMission.color[0]},${dailyMission.color[1]})">${dailyMission.emoji}</div>
+        <div class="dfm-info">
+          <div class="dfm-name">${dailyMission.name}</div>
+          <div class="dfm-reward">${isCompleted ? '✓ 達成済み' : `+${dailyMission.reward} ALT`}</div>
+        </div>
+        ${isCompleted ? '<div class="dfm-check">✓</div>' : '<div class="dfm-arrow">→</div>'}
+      </div>
+    </div>
+  `;
 }
 
 function renderSponsorMissions() {
@@ -754,10 +821,19 @@ const familyMissionDescriptions = {
 };
 
 function openFamilyMission(missionId) {
-  const mission = APP.missions.familyMissions.find(m => m.id === missionId);
+  // 標準ミッションとカスタムミッションの両方から検索
+  let mission = APP.missions.familyMissions.find(m => m.id === missionId);
+  if (!mission) {
+    mission = customFamilyMissions.find(m => m.id === missionId);
+  }
   if (!mission) return;
 
   const isCompleted = completedFamilyMissions.some(m => m.missionId === missionId);
+  const isCustom = mission.isCustom || missionId.startsWith('custom_');
+
+  // デイリーミッションかどうかをチェック
+  const dailyMission = getDailyFamilyMission();
+  const isDaily = dailyMission && dailyMission.id === missionId;
 
   // ヘッダー設定
   const header = document.getElementById('familyMissionHeader');
@@ -765,16 +841,23 @@ function openFamilyMission(missionId) {
   document.getElementById('familyMissionEmoji').textContent = mission.emoji;
   document.getElementById('familyMissionTitle').textContent = mission.name;
 
-  // 説明文
+  // デイリーバッジ
+  const dailyBadge = isDaily ? '<span class="daily-mission-badge">🌟 今日のミッション</span>' : '';
+
+  // 説明文（カスタムミッションの場合はmission.descriptionを使用）
+  const description = isCustom ? (mission.description || 'このミッションを家族と一緒にやってみよう！')
+    : (familyMissionDescriptions[missionId] || 'このミッションを家族と一緒にやってみよう！');
+
   document.getElementById('familyMissionDescription').innerHTML = `
-    <p style="font-size:14px;color:var(--summit);line-height:1.6">${familyMissionDescriptions[missionId] || 'このミッションを家族と一緒にやってみよう！'}</p>
+    ${dailyBadge}
+    <p style="font-size:14px;color:var(--summit);line-height:1.6">${description}</p>
   `;
 
   // 報酬
   document.getElementById('familyMissionReward').textContent = `+${mission.reward}`;
 
-  // ヒント
-  const tips = familyMissionTips[missionId] || [];
+  // ヒント（カスタムミッションの場合はmission.tipsを使用）
+  const tips = isCustom ? (mission.tips || []) : (familyMissionTips[missionId] || []);
   document.getElementById('familyMissionTipsList').innerHTML = tips.map(tip =>
     `<li style="font-size:12px;color:var(--rock);margin-bottom:4px">${tip}</li>`
   ).join('');
@@ -801,7 +884,12 @@ function openFamilyMission(missionId) {
 
 function completeFamilyMission() {
   const missionId = document.getElementById('familyMissionId').value;
-  const mission = APP.missions.familyMissions.find(m => m.id === missionId);
+
+  // 標準ミッションとカスタムミッションの両方から検索
+  let mission = APP.missions.familyMissions.find(m => m.id === missionId);
+  if (!mission) {
+    mission = customFamilyMissions.find(m => m.id === missionId);
+  }
 
   if (!mission) return;
 
@@ -817,6 +905,12 @@ function completeFamilyMission() {
     completedAt: new Date().toISOString()
   });
   localStorage.setItem('sherupa_family_missions', JSON.stringify(completedFamilyMissions));
+
+  // デイリーミッションの場合は追加で記録
+  const dailyMission = getDailyFamilyMission();
+  if (dailyMission && dailyMission.id === missionId) {
+    completeDailyFamilyMission();
+  }
 
   // ALTを追加
   userProfile.alt += mission.reward;
@@ -834,7 +928,8 @@ function completeFamilyMission() {
   closeModals();
 
   // 成功メッセージ
-  toast(`👨‍👩‍👧 ${mission.name} 達成！ +${mission.reward} ALT`);
+  const dailyBonus = dailyMission && dailyMission.id === missionId ? ' 🌟今日のミッション達成！' : '';
+  toast(`👨‍👩‍👧 ${mission.name} 達成！ +${mission.reward} ALT${dailyBonus}`);
 }
 
 function isFamilyMissionCompleted(missionId) {
@@ -843,6 +938,264 @@ function isFamilyMissionCompleted(missionId) {
 
 function getCompletedFamilyMissionCount() {
   return completedFamilyMissions.length;
+}
+
+// ========================================
+// デイリーファミリーミッション
+// ========================================
+
+// 学習履歴に基づくミッション提案のマッピング
+const categoryMissionMapping = {
+  science: ['fm4', 'fm3'], // 星空観察、散歩＆写真
+  nature: ['fm3', 'fm4'], // 散歩、星空
+  tech: ['fm6'], // ボードゲーム
+  biography: ['fm2'], // 本を紹介
+  geopolitics: ['fm2', 'fm6'],
+  energy: ['fm1', 'fm5'], // 料理系
+  world_history: ['fm2'],
+  japan_history: ['fm2'],
+  japan_culture: ['fm1', 'fm5'],
+  space: ['fm4'],
+  sdgs: ['fm3', 'fm1']
+};
+
+// 今日の日付文字列を取得
+function getTodayString() {
+  return new Date().toISOString().split('T')[0];
+}
+
+// デイリーファミリーミッションを取得
+function getDailyFamilyMission() {
+  const today = getTodayString();
+
+  // 今日のミッションが既に決まっている場合はそれを返す
+  if (dailyFamilyMissionHistory[today]) {
+    const missionId = dailyFamilyMissionHistory[today].missionId;
+    return getAllFamilyMissions().find(m => m.id === missionId);
+  }
+
+  // 学習履歴からおすすめミッションを決定
+  const recommendedMission = getRecommendedMissionFromHistory();
+
+  // 今日のミッションを記録
+  dailyFamilyMissionHistory[today] = {
+    missionId: recommendedMission.id,
+    completed: false
+  };
+  localStorage.setItem('sherupa_daily_family_history', JSON.stringify(dailyFamilyMissionHistory));
+
+  return recommendedMission;
+}
+
+// 学習履歴からおすすめミッションを取得
+function getRecommendedMissionFromHistory() {
+  // 完了したスライドからカテゴリを集計
+  const categoryCount = {};
+  completedSlides.forEach(slideId => {
+    const slide = APP.slides.find(s => s.id === slideId);
+    if (slide && slide.category) {
+      categoryCount[slide.category] = (categoryCount[slide.category] || 0) + 1;
+    }
+  });
+
+  // 最も多いカテゴリを取得
+  const sortedCategories = Object.entries(categoryCount)
+    .sort((a, b) => b[1] - a[1])
+    .map(([cat]) => cat);
+
+  // カテゴリに基づくミッションを優先的に選択
+  const allMissions = getAllFamilyMissions();
+  const today = new Date();
+  const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+
+  for (const category of sortedCategories) {
+    const mappedMissionIds = categoryMissionMapping[category] || [];
+    if (mappedMissionIds.length > 0) {
+      const missionId = mappedMissionIds[seed % mappedMissionIds.length];
+      const mission = allMissions.find(m => m.id === missionId);
+      if (mission) return mission;
+    }
+  }
+
+  // フォールバック: 日付ベースでローテーション
+  return allMissions[seed % allMissions.length];
+}
+
+// すべてのファミリーミッションを取得（標準 + カスタム）
+function getAllFamilyMissions() {
+  const standardMissions = APP.missions?.familyMissions || [];
+  return [...standardMissions, ...customFamilyMissions];
+}
+
+// デイリーミッションが完了しているかチェック
+function isDailyFamilyMissionCompleted() {
+  const today = getTodayString();
+  return dailyFamilyMissionHistory[today]?.completed || false;
+}
+
+// デイリーミッション完了を記録
+function completeDailyFamilyMission() {
+  const today = getTodayString();
+  if (dailyFamilyMissionHistory[today]) {
+    dailyFamilyMissionHistory[today].completed = true;
+    localStorage.setItem('sherupa_daily_family_history', JSON.stringify(dailyFamilyMissionHistory));
+  }
+}
+
+// 学習履歴に基づく提案理由を取得
+function getMissionRecommendationReason() {
+  const categoryCount = {};
+  completedSlides.forEach(slideId => {
+    const slide = APP.slides.find(s => s.id === slideId);
+    if (slide && slide.category) {
+      categoryCount[slide.category] = (categoryCount[slide.category] || 0) + 1;
+    }
+  });
+
+  const sortedCategories = Object.entries(categoryCount)
+    .sort((a, b) => b[1] - a[1]);
+
+  if (sortedCategories.length === 0) {
+    return '今日のおすすめミッション';
+  }
+
+  const topCategory = APP.categories.find(c => c.id === sortedCategories[0][0]);
+  if (topCategory) {
+    return `${topCategory.emoji} ${topCategory.name}の学習から`;
+  }
+
+  return '学習履歴からおすすめ';
+}
+
+// ========================================
+// 保護者用ミッション編集機能
+// ========================================
+
+// カスタムミッションを追加
+function addCustomFamilyMission(missionData) {
+  const newMission = {
+    id: 'custom_' + Date.now(),
+    name: missionData.name,
+    emoji: missionData.emoji || '⭐',
+    reward: parseInt(missionData.reward) || 20,
+    color: missionData.color || ['#ec4899', '#f472b6'],
+    description: missionData.description || '',
+    tips: missionData.tips || [],
+    createdAt: new Date().toISOString(),
+    isCustom: true
+  };
+
+  customFamilyMissions.push(newMission);
+  localStorage.setItem('sherupa_custom_family_missions', JSON.stringify(customFamilyMissions));
+
+  toast('✅ カスタムミッションを追加しました');
+  renderHome();
+  return newMission;
+}
+
+// カスタムミッションを編集
+function updateCustomFamilyMission(missionId, missionData) {
+  const index = customFamilyMissions.findIndex(m => m.id === missionId);
+  if (index === -1) {
+    toast('❌ ミッションが見つかりません');
+    return false;
+  }
+
+  customFamilyMissions[index] = {
+    ...customFamilyMissions[index],
+    name: missionData.name,
+    emoji: missionData.emoji,
+    reward: parseInt(missionData.reward),
+    description: missionData.description,
+    tips: missionData.tips
+  };
+
+  localStorage.setItem('sherupa_custom_family_missions', JSON.stringify(customFamilyMissions));
+  toast('✅ ミッションを更新しました');
+  renderHome();
+  return true;
+}
+
+// カスタムミッションを削除
+function deleteCustomFamilyMission(missionId) {
+  const index = customFamilyMissions.findIndex(m => m.id === missionId);
+  if (index === -1) return false;
+
+  customFamilyMissions.splice(index, 1);
+  localStorage.setItem('sherupa_custom_family_missions', JSON.stringify(customFamilyMissions));
+  toast('🗑️ ミッションを削除しました');
+  renderHome();
+  return true;
+}
+
+// 保護者用ミッション編集モーダルを開く
+function openFamilyMissionEditor(missionId = null) {
+  const modal = document.getElementById('familyMissionEditorModal');
+  const form = document.getElementById('familyMissionEditorForm');
+
+  if (missionId) {
+    // 編集モード
+    const mission = customFamilyMissions.find(m => m.id === missionId);
+    if (!mission) return;
+
+    document.getElementById('editorMissionId').value = missionId;
+    document.getElementById('editorMissionName').value = mission.name;
+    document.getElementById('editorMissionEmoji').value = mission.emoji;
+    document.getElementById('editorMissionReward').value = mission.reward;
+    document.getElementById('editorMissionDescription').value = mission.description || '';
+    document.getElementById('editorMissionTips').value = (mission.tips || []).join('\n');
+    document.getElementById('editorModalTitle').textContent = '📝 ミッションを編集';
+    document.getElementById('editorDeleteBtn').style.display = 'block';
+  } else {
+    // 新規作成モード
+    document.getElementById('editorMissionId').value = '';
+    document.getElementById('editorMissionName').value = '';
+    document.getElementById('editorMissionEmoji').value = '⭐';
+    document.getElementById('editorMissionReward').value = '20';
+    document.getElementById('editorMissionDescription').value = '';
+    document.getElementById('editorMissionTips').value = '';
+    document.getElementById('editorModalTitle').textContent = '➕ 新しいミッションを作成';
+    document.getElementById('editorDeleteBtn').style.display = 'none';
+  }
+
+  modal.classList.add('active');
+}
+
+// ミッション編集を保存
+function saveFamilyMissionEditor() {
+  const missionId = document.getElementById('editorMissionId').value;
+  const name = document.getElementById('editorMissionName').value.trim();
+  const emoji = document.getElementById('editorMissionEmoji').value.trim() || '⭐';
+  const reward = parseInt(document.getElementById('editorMissionReward').value) || 20;
+  const description = document.getElementById('editorMissionDescription').value.trim();
+  const tipsText = document.getElementById('editorMissionTips').value.trim();
+  const tips = tipsText ? tipsText.split('\n').filter(t => t.trim()) : [];
+
+  if (!name) {
+    toast('❌ ミッション名を入力してください');
+    return;
+  }
+
+  const missionData = { name, emoji, reward, description, tips };
+
+  if (missionId) {
+    updateCustomFamilyMission(missionId, missionData);
+  } else {
+    addCustomFamilyMission(missionData);
+  }
+
+  closeModals();
+}
+
+// ミッションを削除
+function deleteFamilyMissionFromEditor() {
+  const missionId = document.getElementById('editorMissionId').value;
+  if (!missionId) return;
+
+  if (confirm('このミッションを削除しますか？')) {
+    deleteCustomFamilyMission(missionId);
+    closeModals();
+  }
 }
 
 // ========================================
