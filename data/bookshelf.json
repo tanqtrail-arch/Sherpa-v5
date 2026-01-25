@@ -1,0 +1,226 @@
+{
+  "_comment": "本棚データ - カテゴリ > サブカテゴリ > テーマの階層構造",
+  "_updateGuide": "新しいテーマを追加するには、該当カテゴリのthemesに追加してください",
+  "shelves": [
+    {
+      "id": "world_history",
+      "categoryId": "world_history",
+      "name": "世界史",
+      "emoji": "🌐",
+      "subcategories": [
+        {
+          "id": "ancient",
+          "name": "古代文明",
+          "emoji": "🏛️",
+          "notebookUrl": null,
+          "themes": [
+            { "id": "mesopotamia", "name": "メソポタミア文明", "emoji": "🏺" },
+            { "id": "egypt", "name": "エジプト文明", "emoji": "🔺" },
+            { "id": "indus", "name": "インダス文明", "emoji": "🐘" },
+            { "id": "china", "name": "黄河文明", "emoji": "🐉" }
+          ]
+        },
+        {
+          "id": "medieval",
+          "name": "中世",
+          "emoji": "⚔️",
+          "notebookUrl": null,
+          "themes": [
+            { "id": "roman_empire", "name": "ローマ帝国", "emoji": "🦅" },
+            { "id": "crusades", "name": "十字軍", "emoji": "🛡️" },
+            { "id": "vikings", "name": "バイキング", "emoji": "⛵" }
+          ]
+        },
+        {
+          "id": "modern",
+          "name": "近現代",
+          "emoji": "🏭",
+          "notebookUrl": null,
+          "themes": [
+            { "id": "industrial_revolution", "name": "産業革命", "emoji": "🚂" },
+            { "id": "world_wars", "name": "世界大戦", "emoji": "🌍" },
+            { "id": "cold_war", "name": "冷戦", "emoji": "🧊" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "japan_history",
+      "categoryId": "japan_history",
+      "name": "日本史",
+      "emoji": "🏯",
+      "subcategories": [
+        {
+          "id": "jomon_yayoi",
+          "name": "縄文・弥生",
+          "emoji": "🏺",
+          "notebookUrl": null,
+          "themes": [
+            { "id": "jomon", "name": "縄文時代", "emoji": "🦌" },
+            { "id": "yayoi", "name": "弥生時代", "emoji": "🌾" }
+          ]
+        },
+        {
+          "id": "samurai",
+          "name": "武士の時代",
+          "emoji": "⚔️",
+          "notebookUrl": null,
+          "themes": [
+            { "id": "heian", "name": "平安時代", "emoji": "🎎" },
+            { "id": "kamakura", "name": "鎌倉時代", "emoji": "🗡️" },
+            { "id": "sengoku", "name": "戦国時代", "emoji": "🏰" },
+            { "id": "edo", "name": "江戸時代", "emoji": "🏮" }
+          ]
+        },
+        {
+          "id": "modern_japan",
+          "name": "近現代",
+          "emoji": "🚃",
+          "notebookUrl": null,
+          "themes": [
+            { "id": "meiji", "name": "明治維新", "emoji": "🎌" },
+            { "id": "taisho", "name": "大正デモクラシー", "emoji": "🗳️" },
+            { "id": "postwar", "name": "戦後復興", "emoji": "🏗️" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "japan_culture",
+      "categoryId": "japan_culture",
+      "name": "日本文化",
+      "emoji": "🎎",
+      "subcategories": [
+        {
+          "id": "traditional_arts",
+          "name": "伝統芸能",
+          "emoji": "🎭",
+          "notebookUrl": null,
+          "themes": [
+            { "id": "kabuki", "name": "歌舞伎", "emoji": "🎭" },
+            { "id": "noh", "name": "能", "emoji": "👺" },
+            { "id": "rakugo", "name": "落語", "emoji": "🪭" }
+          ]
+        },
+        {
+          "id": "crafts",
+          "name": "工芸",
+          "emoji": "🏺",
+          "notebookUrl": null,
+          "themes": [
+            { "id": "pottery", "name": "陶芸", "emoji": "🫖" },
+            { "id": "origami", "name": "折り紙", "emoji": "🦢" },
+            { "id": "ikebana", "name": "生け花", "emoji": "💐" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "energy",
+      "categoryId": "energy",
+      "name": "エネルギー",
+      "emoji": "⚡",
+      "subcategories": [
+        {
+          "id": "renewable",
+          "name": "再生可能エネルギー",
+          "emoji": "🌱",
+          "notebookUrl": null,
+          "themes": [
+            { "id": "solar", "name": "太陽光発電", "emoji": "☀️" },
+            { "id": "wind", "name": "風力発電", "emoji": "🌬️" },
+            { "id": "hydro", "name": "水力発電", "emoji": "💧" }
+          ]
+        },
+        {
+          "id": "fossil",
+          "name": "化石燃料",
+          "emoji": "🛢️",
+          "notebookUrl": null,
+          "themes": [
+            { "id": "oil", "name": "石油", "emoji": "🛢️" },
+            { "id": "coal", "name": "石炭", "emoji": "⛏️" },
+            { "id": "gas", "name": "天然ガス", "emoji": "🔥" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "geopolitics",
+      "categoryId": "geopolitics",
+      "name": "地政学",
+      "emoji": "🗺️",
+      "subcategories": [
+        {
+          "id": "regions",
+          "name": "地域研究",
+          "emoji": "🌍",
+          "notebookUrl": null,
+          "themes": [
+            { "id": "usa", "name": "アメリカ", "emoji": "🇺🇸" },
+            { "id": "china", "name": "中国", "emoji": "🇨🇳" },
+            { "id": "eu", "name": "EU", "emoji": "🇪🇺" },
+            { "id": "middle_east", "name": "中東", "emoji": "🏜️" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tech",
+      "categoryId": "tech",
+      "name": "テクノロジー",
+      "emoji": "🤖",
+      "subcategories": [
+        {
+          "id": "ai",
+          "name": "AI・人工知能",
+          "emoji": "🧠",
+          "notebookUrl": null,
+          "themes": [
+            { "id": "machine_learning", "name": "機械学習", "emoji": "📊" },
+            { "id": "chatgpt", "name": "生成AI", "emoji": "💬" }
+          ]
+        },
+        {
+          "id": "robotics",
+          "name": "ロボティクス",
+          "emoji": "🤖",
+          "notebookUrl": null,
+          "themes": [
+            { "id": "industrial_robots", "name": "産業用ロボット", "emoji": "🏭" },
+            { "id": "humanoid", "name": "ヒューマノイド", "emoji": "🚶" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "space",
+      "categoryId": "space",
+      "name": "宇宙",
+      "emoji": "🚀",
+      "subcategories": [
+        {
+          "id": "solar_system",
+          "name": "太陽系",
+          "emoji": "☀️",
+          "notebookUrl": null,
+          "themes": [
+            { "id": "planets", "name": "惑星", "emoji": "🪐" },
+            { "id": "moon", "name": "月", "emoji": "🌙" },
+            { "id": "sun", "name": "太陽", "emoji": "☀️" }
+          ]
+        },
+        {
+          "id": "exploration",
+          "name": "宇宙探査",
+          "emoji": "🛸",
+          "notebookUrl": null,
+          "themes": [
+            { "id": "mars", "name": "火星探査", "emoji": "🔴" },
+            { "id": "iss", "name": "国際宇宙ステーション", "emoji": "🛰️" }
+          ]
+        }
+      ]
+    }
+  ]
+}

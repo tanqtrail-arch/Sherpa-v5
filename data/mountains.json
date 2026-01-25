@@ -1,0 +1,34 @@
+{
+  "_comment": "登頂チャレンジ - ALTを消費して山に登る機能",
+  "_updateGuide": "新しい山を追加するには、該当グループのmountainsに追加してください",
+  "groups": [
+    {
+      "id": "japan",
+      "name": "日本編",
+      "emoji": "🗾",
+      "unlockCondition": null,
+      "mountains": [
+        { "id": "takao", "name": "高尾山", "alt": 599, "emoji": "🌲", "badge": "🌲", "certificate": "初めての登頂！" },
+        { "id": "tsukuba", "name": "筑波山", "alt": 877, "emoji": "🗻", "badge": "🗻", "certificate": "関東の名峰制覇！" },
+        { "id": "tanigawa", "name": "谷川岳", "alt": 1977, "emoji": "⛰️", "badge": "⛰️", "certificate": "厳しい山を乗り越えた！" },
+        { "id": "hotaka", "name": "穂高岳", "alt": 3190, "emoji": "🏔️", "badge": "🏔️", "certificate": "北アルプスの雄！" },
+        { "id": "kitadake", "name": "北岳", "alt": 3193, "emoji": "🏔️", "badge": "🏔️", "certificate": "日本第二の高峰！" },
+        { "id": "fuji", "name": "富士山", "alt": 3776, "emoji": "🗻", "badge": "🗻", "certificate": "日本最高峰制覇！" }
+      ]
+    },
+    {
+      "id": "world",
+      "name": "世界編",
+      "emoji": "🌍",
+      "unlockCondition": { "type": "completeGroup", "groupId": "japan" },
+      "mountains": [
+        { "id": "kilimanjaro", "name": "キリマンジャロ", "alt": 5895, "emoji": "🌍", "badge": "🌍", "certificate": "アフリカ最高峰！" },
+        { "id": "elbrus", "name": "エルブルス山", "alt": 5642, "emoji": "🏔️", "badge": "🏔️", "certificate": "ヨーロッパ最高峰！" },
+        { "id": "denali", "name": "デナリ", "alt": 6190, "emoji": "🏔️", "badge": "🏔️", "certificate": "北米最高峰！" },
+        { "id": "aconcagua", "name": "アコンカグア", "alt": 6961, "emoji": "🏔️", "badge": "🏔️", "certificate": "南米最高峰！" },
+        { "id": "k2", "name": "K2", "alt": 8611, "emoji": "🏔️", "badge": "🏔️", "certificate": "世界第二の高峰！" },
+        { "id": "everest", "name": "エベレスト", "alt": 8849, "emoji": "🏔️", "badge": "🏔️", "certificate": "世界最高峰制覇！！" }
+      ]
+    }
+  ]
+}
