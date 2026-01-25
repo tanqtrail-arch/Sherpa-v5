@@ -12,7 +12,7 @@
           "id": "ancient",
           "name": "古代文明",
           "emoji": "🏛️",
-          "notebookUrl": null,
+          "notebookUrl": "https://notebooklm.google.com/",
           "themes": [
             { "id": "mesopotamia", "name": "メソポタミア文明", "emoji": "🏺" },
             { "id": "egypt", "name": "エジプト文明", "emoji": "🔺" },
@@ -24,7 +24,7 @@
           "id": "medieval",
           "name": "中世",
           "emoji": "⚔️",
-          "notebookUrl": null,
+          "notebookUrl": "https://notebooklm.google.com/",
           "themes": [
             { "id": "roman_empire", "name": "ローマ帝国", "emoji": "🦅" },
             { "id": "crusades", "name": "十字軍", "emoji": "🛡️" },
@@ -35,7 +35,7 @@
           "id": "modern",
           "name": "近現代",
           "emoji": "🏭",
-          "notebookUrl": null,
+          "notebookUrl": "https://notebooklm.google.com/",
           "themes": [
             { "id": "industrial_revolution", "name": "産業革命", "emoji": "🚂" },
             { "id": "world_wars", "name": "世界大戦", "emoji": "🌍" },
@@ -54,7 +54,7 @@
           "id": "jomon_yayoi",
           "name": "縄文・弥生",
           "emoji": "🏺",
-          "notebookUrl": null,
+          "notebookUrl": "https://notebooklm.google.com/",
           "themes": [
             { "id": "jomon", "name": "縄文時代", "emoji": "🦌" },
             { "id": "yayoi", "name": "弥生時代", "emoji": "🌾" }
@@ -64,7 +64,7 @@
           "id": "samurai",
           "name": "武士の時代",
           "emoji": "⚔️",
-          "notebookUrl": null,
+          "notebookUrl": "https://notebooklm.google.com/",
           "themes": [
             { "id": "heian", "name": "平安時代", "emoji": "🎎" },
             { "id": "kamakura", "name": "鎌倉時代", "emoji": "🗡️" },
@@ -76,7 +76,7 @@
           "id": "modern_japan",
           "name": "近現代",
           "emoji": "🚃",
-          "notebookUrl": null,
+          "notebookUrl": "https://notebooklm.google.com/",
           "themes": [
             { "id": "meiji", "name": "明治維新", "emoji": "🎌" },
             { "id": "taisho", "name": "大正デモクラシー", "emoji": "🗳️" },
@@ -95,7 +95,7 @@
           "id": "traditional_arts",
           "name": "伝統芸能",
           "emoji": "🎭",
-          "notebookUrl": null,
+          "notebookUrl": "https://notebooklm.google.com/",
           "themes": [
             { "id": "kabuki", "name": "歌舞伎", "emoji": "🎭" },
             { "id": "noh", "name": "能", "emoji": "👺" },
@@ -106,7 +106,7 @@
           "id": "crafts",
           "name": "工芸",
           "emoji": "🏺",
-          "notebookUrl": null,
+          "notebookUrl": "https://notebooklm.google.com/",
           "themes": [
             { "id": "pottery", "name": "陶芸", "emoji": "🫖" },
             { "id": "origami", "name": "折り紙", "emoji": "🦢" },
@@ -125,7 +125,7 @@
           "id": "renewable",
           "name": "再生可能エネルギー",
           "emoji": "🌱",
-          "notebookUrl": null,
+          "notebookUrl": "https://notebooklm.google.com/",
           "themes": [
             { "id": "solar", "name": "太陽光発電", "emoji": "☀️" },
             { "id": "wind", "name": "風力発電", "emoji": "🌬️" },
@@ -136,7 +136,7 @@
           "id": "fossil",
           "name": "化石燃料",
           "emoji": "🛢️",
-          "notebookUrl": null,
+          "notebookUrl": "https://notebooklm.google.com/",
           "themes": [
             { "id": "oil", "name": "石油", "emoji": "🛢️" },
             { "id": "coal", "name": "石炭", "emoji": "⛏️" },
@@ -155,7 +155,7 @@
           "id": "regions",
           "name": "地域研究",
           "emoji": "🌍",
-          "notebookUrl": null,
+          "notebookUrl": "https://notebooklm.google.com/",
           "themes": [
             { "id": "usa", "name": "アメリカ", "emoji": "🇺🇸" },
             { "id": "china", "name": "中国", "emoji": "🇨🇳" },
@@ -175,7 +175,7 @@
           "id": "ai",
           "name": "AI・人工知能",
           "emoji": "🧠",
-          "notebookUrl": null,
+          "notebookUrl": "https://notebooklm.google.com/",
           "themes": [
             { "id": "machine_learning", "name": "機械学習", "emoji": "📊" },
             { "id": "chatgpt", "name": "生成AI", "emoji": "💬" }
@@ -185,7 +185,7 @@
           "id": "robotics",
           "name": "ロボティクス",
           "emoji": "🤖",
-          "notebookUrl": null,
+          "notebookUrl": "https://notebooklm.google.com/",
           "themes": [
             { "id": "industrial_robots", "name": "産業用ロボット", "emoji": "🏭" },
             { "id": "humanoid", "name": "ヒューマノイド", "emoji": "🚶" }
@@ -203,7 +203,7 @@
           "id": "solar_system",
           "name": "太陽系",
           "emoji": "☀️",
-          "notebookUrl": null,
+          "notebookUrl": "https://notebooklm.google.com/",
           "themes": [
             { "id": "planets", "name": "惑星", "emoji": "🪐" },
             { "id": "moon", "name": "月", "emoji": "🌙" },
@@ -214,7 +214,7 @@
           "id": "exploration",
           "name": "宇宙探査",
           "emoji": "🛸",
-          "notebookUrl": null,
+          "notebookUrl": "https://notebooklm.google.com/",
           "themes": [
             { "id": "mars", "name": "火星探査", "emoji": "🔴" },
             { "id": "iss", "name": "国際宇宙ステーション", "emoji": "🛰️" }
