@@ -1344,3 +1344,222 @@ main {
     font-size: 14px;
   }
 }
+
+/* ========================================
+   日記システム
+   ======================================== */
+
+/* 日記入力カード */
+.diary-input-card {
+  margin-bottom: 16px;
+}
+
+.diary-textarea {
+  resize: vertical;
+  min-height: 100px;
+  line-height: 1.6;
+}
+
+/* 日記タグ */
+.diary-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.diary-tag {
+  padding: 8px 12px;
+  background: var(--cloud);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--summit);
+  cursor: pointer;
+  transition: all .2s;
+}
+
+.diary-tag:hover {
+  background: #d1d5db;
+}
+
+.diary-tag.active {
+  background: linear-gradient(135deg, var(--sunrise), var(--sunset));
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(240, 160, 80, .3);
+}
+
+/* 気分選択 */
+.diary-moods {
+  display: flex;
+  gap: 12px;
+}
+
+.diary-mood {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--cloud);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  cursor: pointer;
+  transition: all .2s;
+}
+
+.diary-mood:hover {
+  transform: scale(1.1);
+}
+
+.diary-mood.active {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  box-shadow: 0 4px 12px rgba(251, 191, 36, .4);
+  transform: scale(1.15);
+}
+
+/* 日記一覧 */
+.diary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.diary-entry {
+  background: rgba(255, 255, 255, .95);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.diary-entry-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border-bottom: 1px solid var(--cloud);
+}
+
+.diary-entry-mood {
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.diary-entry-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.diary-entry-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--summit);
+  margin-bottom: 6px;
+}
+
+.diary-entry-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.diary-entry-tag {
+  font-size: 10px;
+  color: #fff;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.diary-entry-date {
+  font-size: 11px;
+  color: var(--rock);
+}
+
+.diary-delete-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: var(--cloud);
+  border-radius: 50%;
+  color: var(--rock);
+  font-size: 16px;
+  cursor: pointer;
+  transition: all .2s;
+  flex-shrink: 0;
+}
+
+.diary-delete-btn:hover {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.diary-entry-content {
+  padding: 14px;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--shadow);
+}
+
+/* 日記が空の場合 */
+.diary-empty {
+  background: rgba(255, 255, 255, .15);
+  border-radius: 16px;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.diary-empty-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.diary-empty-text {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.diary-empty-sub {
+  font-size: 12px;
+  color: rgba(255, 255, 255, .7);
+}
+
+/* レスポンシブ */
+@media (max-width: 600px) {
+  .diary-tags {
+    gap: 6px;
+  }
+
+  .diary-tag {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  .diary-moods {
+    gap: 8px;
+  }
+
+  .diary-mood {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+
+  .diary-entry-mood {
+    width: 38px;
+    height: 38px;
+    font-size: 20px;
+  }
+
+  .diary-entry-title {
+    font-size: 14px;
+  }
+}

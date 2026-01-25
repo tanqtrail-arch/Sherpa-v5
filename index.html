@@ -223,6 +223,55 @@
         </div>
       </div>
     </div>
+
+    <!-- 日記画面 -->
+    <div id="screen-diary" class="screen">
+      <div class="section-title" style="color:#fff">📔 探究日記<span class="free-tag">学びを記録しよう</span></div>
+
+      <!-- 日記入力エリア -->
+      <div class="card diary-input-card">
+        <div class="card-header">
+          <span>✏️ 今日の発見を書こう</span>
+          <span id="diaryDate" style="font-size:11px;color:var(--rock);font-weight:400"></span>
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <label class="form-label">📝 タイトル</label>
+            <input type="text" class="form-input" id="diaryTitle" placeholder="今日学んだことは...">
+          </div>
+          <div class="form-group">
+            <label class="form-label">💭 内容</label>
+            <textarea class="form-input diary-textarea" id="diaryContent" placeholder="発見したこと、感じたこと、もっと知りたいことを書いてみよう！" rows="4"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">🏷️ カテゴリ</label>
+            <div class="diary-tags" id="diaryTags">
+              <span class="diary-tag" data-tag="science" onclick="selectDiaryTag(this)">🔬 理科</span>
+              <span class="diary-tag" data-tag="nature" onclick="selectDiaryTag(this)">🌿 自然</span>
+              <span class="diary-tag" data-tag="sdgs" onclick="selectDiaryTag(this)">🌍 SDGs</span>
+              <span class="diary-tag" data-tag="tech" onclick="selectDiaryTag(this)">💻 技術</span>
+              <span class="diary-tag" data-tag="life" onclick="selectDiaryTag(this)">💡 生活</span>
+              <span class="diary-tag" data-tag="other" onclick="selectDiaryTag(this)">📌 その他</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">😊 今日の気分</label>
+            <div class="diary-moods" id="diaryMoods">
+              <span class="diary-mood" data-mood="excited" onclick="selectDiaryMood(this)">🤩</span>
+              <span class="diary-mood" data-mood="happy" onclick="selectDiaryMood(this)">😊</span>
+              <span class="diary-mood" data-mood="thinking" onclick="selectDiaryMood(this)">🤔</span>
+              <span class="diary-mood" data-mood="surprised" onclick="selectDiaryMood(this)">😲</span>
+              <span class="diary-mood" data-mood="curious" onclick="selectDiaryMood(this)">🧐</span>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="saveDiaryEntry()">💾 保存する</button>
+        </div>
+      </div>
+
+      <!-- 日記一覧 -->
+      <div class="section-title" style="color:#fff;margin-top:20px">📚 これまでの記録<span class="free-tag" id="diaryCount">0件</span></div>
+      <div id="diaryList" class="diary-list"></div>
+    </div>
   </main>
 
   <!-- ナビゲーション -->
@@ -239,6 +288,9 @@
       </div>
       <div class="nav-item" data-screen="ranking" onclick="showScreen('ranking'); renderRanking()">
         <span>🏆</span><span>ランキング</span>
+      </div>
+      <div class="nav-item" data-screen="diary" onclick="showScreen('diary'); renderDiary()">
+        <span>📔</span><span>日記</span>
       </div>
       <div class="nav-item" data-screen="profile" onclick="showScreen('profile')">
         <span>👤</span><span>マイ</span>

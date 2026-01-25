@@ -53,6 +53,12 @@ let currentRankingCategory = 'total';
 // slideCompletions: { slideId: count }
 let slideCompletions = JSON.parse(localStorage.getItem('sherupa_slide_completions')) || {};
 
+// 日記システム
+// diaryEntries: [{ id, title, content, tag, mood, createdAt }]
+let diaryEntries = JSON.parse(localStorage.getItem('sherupa_diary')) || [];
+let selectedDiaryTag = null;
+let selectedDiaryMood = null;
+
 // ユーザーIDの生成・取得
 if (!userProfile.id) {
   userProfile.id = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
@@ -1453,6 +1459,153 @@ function renderPopularContent() {
 function updateSlidePopularity(slideId) {
   slideCompletions[slideId] = (slideCompletions[slideId] || 0) + 1;
   localStorage.setItem('sherupa_slide_completions', JSON.stringify(slideCompletions));
+}
+
+// ========================================
+// 日記システム
+// ========================================
+
+// 日記画面をレンダリング
+function renderDiary() {
+  // 今日の日付を表示
+  const today = new Date();
+  const dateStr = today.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
+  document.getElementById('diaryDate').textContent = dateStr;
+
+  // 入力フォームをリセット
+  document.getElementById('diaryTitle').value = '';
+  document.getElementById('diaryContent').value = '';
+  selectedDiaryTag = null;
+  selectedDiaryMood = null;
+  document.querySelectorAll('.diary-tag').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.diary-mood').forEach(m => m.classList.remove('active'));
+
+  // 日記一覧をレンダリング
+  renderDiaryList();
+}
+
+// 日記タグを選択
+function selectDiaryTag(element) {
+  document.querySelectorAll('.diary-tag').forEach(t => t.classList.remove('active'));
+  element.classList.add('active');
+  selectedDiaryTag = element.dataset.tag;
+}
+
+// 日記の気分を選択
+function selectDiaryMood(element) {
+  document.querySelectorAll('.diary-mood').forEach(m => m.classList.remove('active'));
+  element.classList.add('active');
+  selectedDiaryMood = element.dataset.mood;
+}
+
+// 日記エントリーを保存
+function saveDiaryEntry() {
+  const title = document.getElementById('diaryTitle').value.trim();
+  const content = document.getElementById('diaryContent').value.trim();
+
+  if (!title) {
+    toast('📝 タイトルを入力してください');
+    return;
+  }
+
+  if (!content) {
+    toast('💭 内容を入力してください');
+    return;
+  }
+
+  const entry = {
+    id: 'diary_' + Date.now(),
+    title: title,
+    content: content,
+    tag: selectedDiaryTag || 'other',
+    mood: selectedDiaryMood || 'happy',
+    createdAt: new Date().toISOString()
+  };
+
+  diaryEntries.unshift(entry);
+  localStorage.setItem('sherupa_diary', JSON.stringify(diaryEntries));
+
+  // ALT報酬を付与（日記を書くと+5 ALT）
+  userProfile.alt += 5;
+  localStorage.setItem('sherupa_profile', JSON.stringify(userProfile));
+  updateHeader();
+
+  toast('📔 日記を保存しました！ +5 ALT');
+
+  // フォームをリセットして一覧を更新
+  renderDiary();
+}
+
+// 日記一覧をレンダリング
+function renderDiaryList() {
+  const container = document.getElementById('diaryList');
+  const countEl = document.getElementById('diaryCount');
+
+  countEl.textContent = `${diaryEntries.length}件`;
+
+  if (diaryEntries.length === 0) {
+    container.innerHTML = `
+      <div class="diary-empty">
+        <div class="diary-empty-icon">📔</div>
+        <div class="diary-empty-text">まだ日記がありません</div>
+        <div class="diary-empty-sub">今日学んだことを記録してみよう！</div>
+      </div>
+    `;
+    return;
+  }
+
+  const tagConfig = {
+    science: { emoji: '🔬', name: '理科', color: '#059669' },
+    nature: { emoji: '🌿', name: '自然', color: '#65a30d' },
+    sdgs: { emoji: '🌍', name: 'SDGs', color: '#0891b2' },
+    tech: { emoji: '💻', name: '技術', color: '#7c3aed' },
+    life: { emoji: '💡', name: '生活', color: '#f59e0b' },
+    other: { emoji: '📌', name: 'その他', color: '#6b7280' }
+  };
+
+  const moodEmojis = {
+    excited: '🤩',
+    happy: '😊',
+    thinking: '🤔',
+    surprised: '😲',
+    curious: '🧐'
+  };
+
+  container.innerHTML = diaryEntries.map(entry => {
+    const date = new Date(entry.createdAt);
+    const dateStr = date.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
+    const timeStr = date.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+    const tag = tagConfig[entry.tag] || tagConfig.other;
+    const moodEmoji = moodEmojis[entry.mood] || '😊';
+
+    return `
+      <div class="diary-entry">
+        <div class="diary-entry-header">
+          <div class="diary-entry-mood">${moodEmoji}</div>
+          <div class="diary-entry-meta">
+            <div class="diary-entry-title">${entry.title}</div>
+            <div class="diary-entry-info">
+              <span class="diary-entry-tag" style="background:${tag.color}">${tag.emoji} ${tag.name}</span>
+              <span class="diary-entry-date">${dateStr} ${timeStr}</span>
+            </div>
+          </div>
+          <button class="diary-delete-btn" onclick="deleteDiaryEntry('${entry.id}')" title="削除">×</button>
+        </div>
+        <div class="diary-entry-content">${entry.content.replace(/\n/g, '<br>')}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// 日記エントリーを削除
+function deleteDiaryEntry(entryId) {
+  if (!confirm('この日記を削除しますか？')) return;
+
+  diaryEntries = diaryEntries.filter(e => e.id !== entryId);
+  localStorage.setItem('sherupa_diary', JSON.stringify(diaryEntries));
+
+  toast('🗑️ 日記を削除しました');
+  renderDiaryList();
 }
 
 // ========================================
