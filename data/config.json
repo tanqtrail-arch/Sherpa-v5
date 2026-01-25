@@ -47,6 +47,24 @@
     "referrerReward": 100,
     "refereeReward": 50
   },
+  "ranking": {
+    "enabled": true,
+    "categories": [
+      { "id": "total", "name": "総合", "emoji": "🏆", "metric": "alt", "description": "累計ALTランキング" },
+      { "id": "learning", "name": "学習", "emoji": "📚", "metric": "slides", "description": "完了スライド数ランキング" },
+      { "id": "climbing", "name": "登頂", "emoji": "🏔️", "metric": "mountains", "description": "登頂した山の数ランキング" },
+      { "id": "trending", "name": "急上昇", "emoji": "🔥", "metric": "weeklyAlt", "description": "週間ALT獲得量ランキング" },
+      { "id": "streak", "name": "連続", "emoji": "⚡", "metric": "streak", "description": "連続学習日数ランキング" }
+    ],
+    "contentRanking": {
+      "enabled": true,
+      "name": "人気コンテンツ",
+      "emoji": "📈",
+      "description": "みんなが学んでいるスライド"
+    },
+    "displayLimit": 10,
+    "updateInterval": 60000
+  },
   "roles": {
     "child": { "name": "子ども", "emoji": "👦", "color": "meadow" },
     "parent": { "name": "保護者", "emoji": "👨‍👩‍👧", "color": "parent" },
