@@ -101,10 +101,13 @@
 
     <!-- 登頂チャレンジ画面 -->
     <div id="screen-climb" class="screen">
-      <div class="section-title" style="color:#fff">🏔️ 登頂チャレンジ<span class="free-tag">証明書100枚限定</span></div>
-      <div style="background:rgba(255,255,255,.15);border-radius:12px;padding:12px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+      <div class="section-title" style="color:#fff">🏔️ 登頂チャレンジ<span class="free-tag">段階的発行</span></div>
+      <div style="background:rgba(255,255,255,.15);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
         <div style="color:#fff;font-size:12px;font-weight:600">⛰️ 現在のALT</div>
         <div style="color:#fff;font-size:18px;font-weight:900" id="climbAlt">0 ALT</div>
+      </div>
+      <div style="background:rgba(255,255,255,.1);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:10px;color:rgba(255,255,255,.8)">
+        📊 学習で山が解禁！ 初期20枚 → 80%売れたら+20枚（最大100枚）
       </div>
 
       <!-- タブ切り替え -->
@@ -180,6 +183,13 @@
           <div><div class="stat-val" id="profAlt">0</div><div class="stat-label">ALT</div></div>
           <div><div class="stat-val" id="profClimbed">0</div><div class="stat-label">登頂</div></div>
           <div><div class="stat-val" id="profWorks">0</div><div class="stat-label">作品</div></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:12px">
+        <div class="card-header">📜 登頂証明書 <span id="profileCertCount" style="font-size:11px;color:var(--rock);font-weight:400">0枚</span></div>
+        <div class="card-body">
+          <div id="profileCertificatesList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px"></div>
         </div>
       </div>
 
@@ -356,15 +366,38 @@
     <div class="modal-body">
       <div style="text-align:center;margin-bottom:16px">
         <div style="font-size:18px;font-weight:700;color:var(--summit)" id="sellMountainName">富士山</div>
-        <div style="font-size:12px;color:var(--rock)">証明書 #<span id="sellCertNumber">1</span>/100</div>
+        <div style="font-size:12px;color:var(--rock)">証明書 #<span id="sellCertNumber">1</span>/<span id="sellCertLimit">20</span></div>
       </div>
       <input type="hidden" id="sellCertId">
       <input type="hidden" id="sellMountainId">
+
       <div class="form-group">
-        <label class="form-label">💰 販売価格（ALT）</label>
+        <label class="form-label">📋 出品方法</label>
+        <select class="form-select" id="sellType" onchange="toggleSellType()">
+          <option value="fixed">💵 即決価格で販売</option>
+          <option value="auction">🔨 オークションで販売</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" id="priceLabel">💰 販売価格（ALT）</label>
         <input type="number" class="form-input" id="sellPrice" min="1" value="100" style="font-size:20px;text-align:center;font-weight:700">
         <div style="font-size:11px;color:var(--rock);margin-top:4px;text-align:center">価格はあなたが自由に設定できます</div>
       </div>
+
+      <div id="auctionOptions" style="display:none">
+        <div class="form-group">
+          <label class="form-label">⏰ オークション期間</label>
+          <select class="form-select" id="auctionDuration">
+            <option value="6">6時間</option>
+            <option value="12">12時間</option>
+            <option value="24" selected>24時間</option>
+            <option value="48">48時間</option>
+            <option value="72">72時間（3日間）</option>
+          </select>
+        </div>
+      </div>
+
       <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="confirmSell()">📦 出品する</button>
       <button class="btn btn-secondary" style="width:100%;margin-top:8px" onclick="closeModals()">キャンセル</button>
     </div>
