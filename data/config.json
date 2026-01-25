@@ -1,0 +1,57 @@
+{
+  "site": {
+    "name": "Sherupa",
+    "version": "5.0",
+    "title": "Sherupa - 探究学習プラットフォーム",
+    "tagline": "山を登るように、知識を高めよう"
+  },
+  "theme": {
+    "colors": {
+      "summit": "#1a2f4e",
+      "meadow": "#2d8659",
+      "sunrise": "#f0a050",
+      "sunset": "#e85d45",
+      "cloud": "#e8eef4",
+      "rock": "#64748b",
+      "shadow": "#334155",
+      "premium": "#9333ea",
+      "parent": "#3b82f6",
+      "teacher": "#10b981",
+      "admin": "#dc2626",
+      "family": "#ec4899"
+    },
+    "font": "Zen Maru Gothic"
+  },
+  "grades": [
+    { "id": "lower", "name": "低学年", "emoji": "🌱", "range": "小1〜小2" },
+    { "id": "middle", "name": "中学年", "emoji": "⭐", "range": "小3〜小4" },
+    { "id": "upper", "name": "高学年", "emoji": "🚀", "range": "小5〜中学" }
+  ],
+  "regions": [
+    "北海道", "東北", "関東", "中部", "近畿", "中国", "四国", "九州・沖縄"
+  ],
+  "gamification": {
+    "dailyMission": {
+      "target": 2,
+      "reward": 30,
+      "description": "スライドを2つ見よう！"
+    },
+    "streakBonus": {
+      "enabled": true,
+      "multiplier": 1.1
+    },
+    "reactions": ["🏔️", "💡", "👏", "❤️"],
+    "dailyLikesLimit": 10
+  },
+  "referral": {
+    "referrerReward": 100,
+    "refereeReward": 50
+  },
+  "roles": {
+    "child": { "name": "子ども", "emoji": "👦", "color": "meadow" },
+    "parent": { "name": "保護者", "emoji": "👨‍👩‍👧", "color": "parent" },
+    "teacher": { "name": "先生", "emoji": "🏫", "color": "teacher" },
+    "sponsor": { "name": "スポンサー", "emoji": "🎗️", "color": "sunrise" },
+    "admin": { "name": "管理者", "emoji": "⚙️", "color": "admin" }
+  }
+}
