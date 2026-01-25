@@ -77,6 +77,47 @@ let customFamilyMissions = JSON.parse(localStorage.getItem('sherupa_custom_famil
 // dailyFamilyMissionHistory: { date: string, missionId: string, completed: boolean }
 let dailyFamilyMissionHistory = JSON.parse(localStorage.getItem('sherupa_daily_family_history')) || {};
 
+// ========================================
+// スポンサーシステム
+// ========================================
+
+// スポンサープロフィール
+let sponsorProfile = JSON.parse(localStorage.getItem('sherupa_sponsor_profile')) || {
+  id: 'sponsor_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+  name: 'スポンサー企業',
+  logo: '🏢',
+  message: 'こどもたちの学習を応援しています！',
+  altBalance: 0,
+  sponsorLikes: 0,
+  totalAltDistributed: 0,
+  totalLikesGiven: 0,
+  totalChildrenSupported: 0
+};
+
+// スポンサースライド
+// sponsorSlides: [{ id, sponsorId, sponsorName, title, emoji, reward, description, pages, qa, status, createdAt, completions }]
+let sponsorSlides = JSON.parse(localStorage.getItem('sherupa_sponsor_slides')) || [];
+
+// スポンサーいいね送信履歴
+// sponsorLikesSent: [{ id, sponsorId, childId, childName, slideId?, timestamp, message }]
+let sponsorLikesSent = JSON.parse(localStorage.getItem('sherupa_sponsor_likes_sent')) || [];
+
+// スポンサーいいね受取履歴（こども側）
+// sponsorLikesReceived: [{ id, sponsorId, sponsorName, sponsorLogo, timestamp, message }]
+let sponsorLikesReceived = JSON.parse(localStorage.getItem('sherupa_sponsor_likes_received')) || [];
+
+// ALT購入履歴
+// altPurchases: [{ id, amount, price, likes, timestamp }]
+let altPurchases = JSON.parse(localStorage.getItem('sherupa_alt_purchases')) || [];
+
+// スポンサースライド完了記録
+// sponsorSlideCompletions: [{ slideId, odId, childName, timestamp, reward }]
+let sponsorSlideCompletions = JSON.parse(localStorage.getItem('sherupa_sponsor_slide_completions')) || [];
+
+// 現在編集中のスポンサースライド
+let currentSponsorSlidePages = [];
+let currentSponsorSlideQuizzes = [];
+
 // ユーザーIDの生成・取得
 if (!userProfile.id) {
   userProfile.id = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
@@ -303,6 +344,43 @@ function renderSponsorMissions() {
       </div>
     </div>
   `).join('');
+
+  // スポンサースライドを表示
+  renderSponsorSlidesForChild();
+}
+
+// こども向けスポンサースライド表示
+function renderSponsorSlidesForChild() {
+  const container = document.getElementById('sponsorSlidesSection');
+  if (!container) return;
+
+  const activeSlides = sponsorSlides.filter(s => s.status === 'active');
+
+  if (activeSlides.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="section-title" style="color:#fff;font-size:13px;margin-bottom:8px">📚 スポンサースライド<span class="free-tag" style="background:var(--sponsor)">企業提供</span></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px">
+      ${activeSlides.map(slide => {
+        const isCompleted = completedSlides.includes(slide.id);
+        return `
+          <div class="card" style="cursor:pointer;${isCompleted ? 'opacity:.6' : ''}" onclick="openSponsorSlideForChild('${slide.id}')">
+            <div style="display:flex;align-items:center;gap:10px;padding:12px">
+              <div style="font-size:28px;width:44px;height:44px;background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:10px;display:flex;align-items:center;justify-content:center">${slide.emoji}</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:12px;font-weight:700;color:var(--summit);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${slide.title}</div>
+                <div style="font-size:10px;color:var(--rock)">${slide.sponsorName}</div>
+                <div style="font-size:11px;font-weight:700;color:var(--sponsor)">+${slide.reward} ALT${isCompleted ? ' ✓' : ''}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
 }
 
 function renderHomeBookshelf() {
@@ -665,26 +743,63 @@ function showQuizResult() {
   const total = currentQuiz.questions.length;
   const slide = currentQuiz.slide;
 
-  // 報酬計算: 5問以上正解で20ALT、全問正解で50ALT
+  // スポンサースライドかどうかチェック
+  const isSponsorSlide = slide.isSponsorSlide || slide.sponsorId;
+
+  // 報酬計算
   let reward = 0;
   let emoji = '😊';
   let title = 'がんばったね！';
   let headerColor = '#f59e0b';
 
-  if (correct === total) {
-    reward = 50;
-    emoji = '🎉';
-    title = 'パーフェクト！';
-    headerColor = '#10b981';
-  } else if (correct >= 5) {
-    reward = 20;
-    emoji = '👏';
-    title = '合格！';
-    headerColor = '#3b82f6';
+  if (isSponsorSlide) {
+    // スポンサースライドの場合：60%以上正解で報酬
+    const passThreshold = Math.ceil(total * 0.6);
+    if (correct >= passThreshold) {
+      reward = slide.reward || 30;
+      if (correct === total) {
+        emoji = '🎉';
+        title = 'パーフェクト！';
+        headerColor = '#10b981';
+      } else {
+        emoji = '👏';
+        title = '合格！';
+        headerColor = '#f59e0b';
+      }
+
+      // スポンサースライド完了記録
+      if (!completedSlides.includes(slide.id)) {
+        sponsorSlideCompletions.push({
+          slideId: slide.id,
+          childId: userProfile.id,
+          childName: userProfile.name,
+          timestamp: new Date().toISOString(),
+          reward: reward
+        });
+        localStorage.setItem('sherupa_sponsor_slide_completions', JSON.stringify(sponsorSlideCompletions));
+      }
+    } else {
+      emoji = '💪';
+      title = 'もう一度チャレンジ！';
+      headerColor = '#ef4444';
+    }
   } else {
-    emoji = '💪';
-    title = 'もう一度チャレンジ！';
-    headerColor = '#ef4444';
+    // 通常スライド：5問以上正解で20ALT、全問正解で50ALT
+    if (correct === total) {
+      reward = 50;
+      emoji = '🎉';
+      title = 'パーフェクト！';
+      headerColor = '#10b981';
+    } else if (correct >= 5) {
+      reward = 20;
+      emoji = '👏';
+      title = '合格！';
+      headerColor = '#3b82f6';
+    } else {
+      emoji = '💪';
+      title = 'もう一度チャレンジ！';
+      headerColor = '#ef4444';
+    }
   }
 
   // 結果表示
@@ -705,7 +820,9 @@ function showQuizResult() {
       completedSlides.push(slide.id);
       localStorage.setItem('sherupa_s', JSON.stringify(completedSlides));
       // 人気度を更新
-      updateSlidePopularity(slide.id);
+      if (!isSponsorSlide) {
+        updateSlidePopularity(slide.id);
+      }
     }
     userProfile.alt += reward;
     localStorage.setItem('sherupa_profile', JSON.stringify(userProfile));
@@ -1359,13 +1476,63 @@ function renderProfile() {
     noCompleted.style.display = 'none';
     completedList.innerHTML = completedSlides.map(id => {
       const slide = APP.slides.find(s => s.id === id);
-      if (!slide) return '';
-      return `<div style="background:var(--cloud);border-radius:8px;padding:8px;text-align:center"><div style="font-size:24px">${slide.emoji}</div><div style="font-size:9px;color:var(--summit)">${slide.title}</div></div>`;
+      // スポンサースライドも含める
+      const sponsorSlide = sponsorSlides.find(s => s.id === id);
+      if (!slide && !sponsorSlide) return '';
+      const displaySlide = slide || sponsorSlide;
+      return `<div style="background:var(--cloud);border-radius:8px;padding:8px;text-align:center"><div style="font-size:24px">${displaySlide.emoji}</div><div style="font-size:9px;color:var(--summit)">${displaySlide.title}</div></div>`;
     }).join('');
   } else {
     noCompleted.style.display = 'block';
     completedList.innerHTML = '';
   }
+
+  // スポンサーからの応援履歴を表示
+  renderSponsorLikesReceived();
+}
+
+// スポンサーからの応援履歴を表示
+function renderSponsorLikesReceived() {
+  const container = document.getElementById('sponsorLikesList');
+  const noLikes = document.getElementById('noSponsorLikes');
+  const countEl = document.getElementById('sponsorLikesCount');
+  const card = document.getElementById('sponsorLikesCard');
+
+  if (!container || !card) return;
+
+  if (sponsorLikesReceived.length === 0) {
+    noLikes.style.display = 'block';
+    container.innerHTML = '';
+    countEl.textContent = '0件';
+    return;
+  }
+
+  noLikes.style.display = 'none';
+  countEl.textContent = `${sponsorLikesReceived.length}件`;
+
+  // スポンサーごとにグループ化
+  const sponsorMap = {};
+  sponsorLikesReceived.forEach(like => {
+    if (!sponsorMap[like.sponsorId]) {
+      sponsorMap[like.sponsorId] = {
+        name: like.sponsorName,
+        logo: like.sponsorLogo || '🏢',
+        count: 1
+      };
+    } else {
+      sponsorMap[like.sponsorId].count++;
+    }
+  });
+
+  container.innerHTML = Object.values(sponsorMap).map(sponsor => `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--cloud);border-radius:8px;margin-bottom:8px">
+      <div style="font-size:24px;width:40px;height:40px;background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:8px;display:flex;align-items:center;justify-content:center">${sponsor.logo}</div>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:700;color:var(--summit)">${sponsor.name}</div>
+        <div style="font-size:11px;color:var(--rock)">❤️ ${sponsor.count}回応援</div>
+      </div>
+    </div>
+  `).join('');
 }
 
 function renderProfileCertificates() {
@@ -3331,12 +3498,768 @@ switchMode = function(newMode) {
   if (newMode === 'admin') {
     showScreen('admin');
     renderAdminDashboard();
+  } else if (newMode === 'sponsor') {
+    showScreen('sponsor');
+    renderSponsorDashboard();
   } else {
     showScreen('home');
   }
 
   toast(`${modeConfig.emoji} ${modeConfig.name}モードに切り替えました`);
 };
+
+// ========================================
+// スポンサーシステム
+// ========================================
+
+// スポンサーダッシュボードのレンダリング
+function renderSponsorDashboard() {
+  // サマリー更新
+  document.getElementById('sponsorAltBalance').textContent = sponsorProfile.altBalance.toLocaleString();
+  document.getElementById('sponsorLikesBalance').textContent = sponsorProfile.sponsorLikes;
+  document.getElementById('sponsorTotalDistributed').textContent = sponsorProfile.totalAltDistributed.toLocaleString();
+  document.getElementById('sponsorTotalChildren').textContent = sponsorProfile.totalChildrenSupported + '人';
+
+  // スライド一覧を表示
+  renderSponsorSlidesList();
+  renderSponsorChildrenList();
+  renderSponsorHistoryList();
+}
+
+// スポンサータブ切り替え
+function showSponsorTab(tabName, element) {
+  document.querySelectorAll('#sponsorTabs .admin-tab').forEach(t => {
+    t.classList.remove('active');
+    t.style.color = 'rgba(255,255,255,.6)';
+  });
+  element.classList.add('active');
+  element.style.color = '#fff';
+
+  document.querySelectorAll('#screen-sponsor .admin-tab-content').forEach(c => c.classList.remove('active'));
+  const tabContent = document.getElementById('sponsorTab' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
+  if (tabContent) tabContent.classList.add('active');
+}
+
+// スポンサースライド一覧表示
+function renderSponsorSlidesList() {
+  const container = document.getElementById('sponsorSlidesList');
+  const mySlides = sponsorSlides.filter(s => s.sponsorId === sponsorProfile.id);
+
+  if (mySlides.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:30px;color:var(--rock)">
+        <div style="font-size:48px;margin-bottom:12px">📝</div>
+        <div style="font-size:14px;font-weight:700">まだスライドがありません</div>
+        <div style="font-size:12px;margin-top:4px">「新規作成」からスライドを作成しましょう</div>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = mySlides.map(slide => {
+    const completions = sponsorSlideCompletions.filter(c => c.slideId === slide.id).length;
+    return `
+      <div class="sponsor-slide-card">
+        <div class="sponsor-slide-emoji">${slide.emoji}</div>
+        <div class="sponsor-slide-info">
+          <div class="sponsor-slide-title">${slide.title}</div>
+          <div class="sponsor-slide-meta">完了: ${completions}人 ・ ページ: ${slide.pages?.length || 0}</div>
+          <div class="sponsor-slide-reward">報酬: ${slide.reward} ALT</div>
+        </div>
+        <div class="sponsor-slide-actions">
+          <button class="sponsor-slide-action-btn edit" onclick="editSponsorSlide('${slide.id}')">✏️</button>
+          <button class="sponsor-slide-action-btn delete" onclick="confirmDeleteSponsorSlide('${slide.id}')">🗑️</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// スポンサースライドを完了したこども一覧
+function renderSponsorChildrenList() {
+  const container = document.getElementById('sponsorChildrenList');
+  const myCompletions = sponsorSlideCompletions.filter(c => {
+    const slide = sponsorSlides.find(s => s.id === c.slideId);
+    return slide && slide.sponsorId === sponsorProfile.id;
+  });
+
+  if (myCompletions.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:30px;color:var(--rock)">
+        <div style="font-size:48px;margin-bottom:12px">👦</div>
+        <div style="font-size:12px">まだ学習者がいません</div>
+      </div>
+    `;
+    return;
+  }
+
+  // 重複を除いてこども一覧を作成
+  const childrenMap = {};
+  myCompletions.forEach(c => {
+    if (!childrenMap[c.childId]) {
+      childrenMap[c.childId] = { ...c, count: 1 };
+    } else {
+      childrenMap[c.childId].count++;
+    }
+  });
+
+  container.innerHTML = Object.values(childrenMap).map(child => `
+    <div class="like-target-item">
+      <div class="like-target-avatar">${child.childName?.charAt(0) || '?'}</div>
+      <div class="like-target-info">
+        <div class="like-target-name">${child.childName || '名無し'}</div>
+        <div class="like-target-detail">完了スライド: ${child.count}個</div>
+      </div>
+      <button class="like-target-btn" onclick="sendSponsorLike('${child.childId}', '${child.childName}')" ${sponsorProfile.sponsorLikes <= 0 ? 'disabled' : ''}>
+        ❤️ いいね
+      </button>
+    </div>
+  `).join('');
+}
+
+// スポンサー履歴表示
+function renderSponsorHistoryList() {
+  const container = document.getElementById('sponsorHistoryList');
+
+  // 購入履歴といいね履歴を統合
+  const history = [
+    ...altPurchases.map(p => ({ ...p, type: 'purchase' })),
+    ...sponsorLikesSent.filter(l => l.sponsorId === sponsorProfile.id).map(l => ({ ...l, type: 'like' })),
+    ...sponsorSlideCompletions.filter(c => {
+      const slide = sponsorSlides.find(s => s.id === c.slideId);
+      return slide && slide.sponsorId === sponsorProfile.id;
+    }).map(c => ({ ...c, type: 'reward' }))
+  ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 20);
+
+  if (history.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:30px;color:var(--rock)">
+        <div style="font-size:48px;margin-bottom:12px">📜</div>
+        <div style="font-size:12px">まだ履歴がありません</div>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = history.map(item => {
+    const date = new Date(item.timestamp).toLocaleDateString('ja-JP');
+    if (item.type === 'purchase') {
+      return `
+        <div style="padding:10px;background:var(--cloud);border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between">
+          <div>
+            <div style="font-size:12px;font-weight:700">💳 ALT購入</div>
+            <div style="font-size:11px;color:var(--rock)">${date}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:14px;font-weight:700;color:var(--sponsor)">+${item.amount} ALT</div>
+            <div style="font-size:11px;color:var(--rock)">¥${item.price.toLocaleString()}</div>
+          </div>
+        </div>
+      `;
+    } else if (item.type === 'like') {
+      return `
+        <div style="padding:10px;background:#fce7f3;border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between">
+          <div>
+            <div style="font-size:12px;font-weight:700">❤️ いいね送信</div>
+            <div style="font-size:11px;color:var(--rock)">${item.childName}さんへ</div>
+          </div>
+          <div style="font-size:11px;color:var(--rock)">${date}</div>
+        </div>
+      `;
+    } else {
+      return `
+        <div style="padding:10px;background:#dcfce7;border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between">
+          <div>
+            <div style="font-size:12px;font-weight:700">⛰️ 報酬配布</div>
+            <div style="font-size:11px;color:var(--rock)">${item.childName}さんへ</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:14px;font-weight:700;color:var(--meadow)">-${item.reward} ALT</div>
+            <div style="font-size:11px;color:var(--rock)">${date}</div>
+          </div>
+        </div>
+      `;
+    }
+  }).join('');
+}
+
+// ========================================
+// ALT購入機能
+// ========================================
+
+function openAltPurchaseModal() {
+  document.getElementById('altPurchaseModal').style.display = 'flex';
+  document.getElementById('customAltAmount').value = '';
+  updateCustomAltCalculation();
+}
+
+// カスタムALT計算
+function updateCustomAltCalculation() {
+  const amount = parseInt(document.getElementById('customAltAmount').value) || 0;
+  const price = Math.ceil(amount / 30) * 1500;
+  const likes = Math.floor(amount / 30);
+
+  document.getElementById('customAltPrice').textContent = '¥' + price.toLocaleString();
+  document.getElementById('customAltLikes').textContent = likes;
+}
+
+// カスタムALT入力時のイベント
+document.addEventListener('DOMContentLoaded', () => {
+  const customInput = document.getElementById('customAltAmount');
+  if (customInput) {
+    customInput.addEventListener('input', updateCustomAltCalculation);
+  }
+});
+
+// プラン選択
+function selectAltPlan(amount, price, likes) {
+  if (confirm(`${amount} ALT（+ ${likes} いいね）を¥${price.toLocaleString()}で購入しますか？`)) {
+    purchaseAlt(amount, price, likes);
+  }
+}
+
+// カスタム購入
+function purchaseCustomAlt() {
+  const amount = parseInt(document.getElementById('customAltAmount').value) || 0;
+  if (amount < 30) {
+    toast('最低30ALTから購入できます');
+    return;
+  }
+
+  const price = Math.ceil(amount / 30) * 1500;
+  const likes = Math.floor(amount / 30);
+
+  if (confirm(`${amount} ALT（+ ${likes} いいね）を¥${price.toLocaleString()}で購入しますか？`)) {
+    purchaseAlt(amount, price, likes);
+  }
+}
+
+// ALT購入処理
+function purchaseAlt(amount, price, likes) {
+  // 残高に追加
+  sponsorProfile.altBalance += amount;
+  sponsorProfile.sponsorLikes += likes;
+
+  // 購入履歴に追加
+  altPurchases.push({
+    id: 'purchase_' + Date.now(),
+    amount: amount,
+    price: price,
+    likes: likes,
+    timestamp: new Date().toISOString()
+  });
+
+  // 保存
+  localStorage.setItem('sherupa_sponsor_profile', JSON.stringify(sponsorProfile));
+  localStorage.setItem('sherupa_alt_purchases', JSON.stringify(altPurchases));
+
+  // 画面更新
+  renderSponsorDashboard();
+  closeModals();
+
+  toast(`💳 ${amount} ALTを購入しました！（+ ${likes} いいね）`);
+}
+
+// ========================================
+// スポンサースライド管理
+// ========================================
+
+function openSponsorSlideManager() {
+  showSponsorTab('myslides', document.querySelector('[data-tab="myslides"]'));
+}
+
+function openSponsorSlideEditor(slideId = null) {
+  document.getElementById('sponsorSlideEditorModal').style.display = 'flex';
+  document.getElementById('editSponsorSlideId').value = slideId || '';
+
+  // 初期化
+  currentSponsorSlidePages = [];
+  currentSponsorSlideQuizzes = [];
+
+  if (slideId) {
+    // 編集モード
+    const slide = sponsorSlides.find(s => s.id === slideId);
+    if (slide) {
+      document.getElementById('sponsorSlideEditorTitle').textContent = 'スライド編集';
+      document.getElementById('sponsorSlideTitle').value = slide.title;
+      document.getElementById('sponsorSlideEmoji').value = slide.emoji;
+      document.getElementById('sponsorSlideReward').value = slide.reward;
+      document.getElementById('sponsorSlideDescription').value = slide.description || '';
+      currentSponsorSlidePages = [...(slide.pages || [])];
+      currentSponsorSlideQuizzes = [...(slide.qa || [])];
+      document.getElementById('sponsorSlideDeleteBtn').style.display = 'block';
+    }
+  } else {
+    // 新規作成モード
+    document.getElementById('sponsorSlideEditorTitle').textContent = '新規スポンサースライド';
+    document.getElementById('sponsorSlideTitle').value = '';
+    document.getElementById('sponsorSlideEmoji').value = '🌟';
+    document.getElementById('sponsorSlideReward').value = '30';
+    document.getElementById('sponsorSlideDescription').value = '';
+    document.getElementById('sponsorSlideDeleteBtn').style.display = 'none';
+
+    // デフォルトで1ページと1クイズを追加
+    currentSponsorSlidePages = [{ title: '', content: '', emoji: '📖' }];
+    currentSponsorSlideQuizzes = [{ q: '', choices: ['', '', '', ''], answer: 0 }];
+  }
+
+  renderSponsorSlidePages();
+  renderSponsorSlideQuizzes();
+}
+
+function editSponsorSlide(slideId) {
+  openSponsorSlideEditor(slideId);
+}
+
+// ページエディタのレンダリング
+function renderSponsorSlidePages() {
+  const container = document.getElementById('sponsorSlidePages');
+  container.innerHTML = currentSponsorSlidePages.map((page, idx) => `
+    <div class="sponsor-page-editor">
+      <div class="sponsor-page-editor-header">
+        <span class="sponsor-page-number">ページ ${idx + 1}</span>
+        <button type="button" class="sponsor-page-delete" onclick="removeSponsorSlidePage(${idx})">削除</button>
+      </div>
+      <div class="form-group" style="margin-bottom:8px">
+        <input type="text" class="form-input" placeholder="ページタイトル" value="${page.title || ''}" onchange="updateSponsorPage(${idx}, 'title', this.value)">
+      </div>
+      <div class="form-group">
+        <textarea class="form-input" rows="3" placeholder="ページ内容" style="resize:none" onchange="updateSponsorPage(${idx}, 'content', this.value)">${page.content || ''}</textarea>
+      </div>
+    </div>
+  `).join('');
+}
+
+function addSponsorSlidePage() {
+  currentSponsorSlidePages.push({ title: '', content: '', emoji: '📖' });
+  renderSponsorSlidePages();
+}
+
+function removeSponsorSlidePage(idx) {
+  if (currentSponsorSlidePages.length <= 1) {
+    toast('最低1ページは必要です');
+    return;
+  }
+  currentSponsorSlidePages.splice(idx, 1);
+  renderSponsorSlidePages();
+}
+
+function updateSponsorPage(idx, field, value) {
+  currentSponsorSlidePages[idx][field] = value;
+}
+
+// クイズエディタのレンダリング
+function renderSponsorSlideQuizzes() {
+  const container = document.getElementById('sponsorSlideQuizzes');
+  container.innerHTML = currentSponsorSlideQuizzes.map((quiz, idx) => `
+    <div class="sponsor-quiz-editor">
+      <div class="sponsor-quiz-header">
+        <span class="sponsor-quiz-number">問題 ${idx + 1}</span>
+        <button type="button" class="sponsor-quiz-delete" onclick="removeSponsorSlideQuiz(${idx})">削除</button>
+      </div>
+      <div class="form-group" style="margin-bottom:8px">
+        <input type="text" class="form-input" placeholder="問題文" value="${quiz.q || ''}" onchange="updateSponsorQuiz(${idx}, 'q', this.value)">
+      </div>
+      <div class="sponsor-quiz-choices">
+        ${quiz.choices.map((choice, cIdx) => `
+          <div class="sponsor-quiz-choice">
+            <input type="radio" name="quiz_${idx}_answer" ${quiz.answer === cIdx ? 'checked' : ''} onchange="updateSponsorQuizAnswer(${idx}, ${cIdx})">
+            <input type="text" class="form-input" placeholder="選択肢 ${cIdx + 1}" value="${choice || ''}" onchange="updateSponsorQuizChoice(${idx}, ${cIdx}, this.value)">
+          </div>
+        `).join('')}
+      </div>
+      <div style="font-size:10px;color:var(--rock);margin-top:4px">※ラジオボタンで正解を選択</div>
+    </div>
+  `).join('');
+}
+
+function addSponsorSlideQuiz() {
+  currentSponsorSlideQuizzes.push({ q: '', choices: ['', '', '', ''], answer: 0 });
+  renderSponsorSlideQuizzes();
+}
+
+function removeSponsorSlideQuiz(idx) {
+  if (currentSponsorSlideQuizzes.length <= 1) {
+    toast('最低1問は必要です');
+    return;
+  }
+  currentSponsorSlideQuizzes.splice(idx, 1);
+  renderSponsorSlideQuizzes();
+}
+
+function updateSponsorQuiz(idx, field, value) {
+  currentSponsorSlideQuizzes[idx][field] = value;
+}
+
+function updateSponsorQuizChoice(idx, choiceIdx, value) {
+  currentSponsorSlideQuizzes[idx].choices[choiceIdx] = value;
+}
+
+function updateSponsorQuizAnswer(idx, answerIdx) {
+  currentSponsorSlideQuizzes[idx].answer = answerIdx;
+}
+
+// スポンサースライド保存
+function saveSponsorSlide() {
+  const title = document.getElementById('sponsorSlideTitle').value.trim();
+  const emoji = document.getElementById('sponsorSlideEmoji').value || '🌟';
+  const reward = parseInt(document.getElementById('sponsorSlideReward').value) || 30;
+  const description = document.getElementById('sponsorSlideDescription').value.trim();
+  const slideId = document.getElementById('editSponsorSlideId').value;
+
+  // バリデーション
+  if (!title) {
+    toast('タイトルを入力してください');
+    return;
+  }
+
+  if (reward < 10 || reward > 100) {
+    toast('報酬ALTは10〜100の範囲で設定してください');
+    return;
+  }
+
+  if (currentSponsorSlidePages.length < 1 || !currentSponsorSlidePages[0].title) {
+    toast('最低1ページのコンテンツが必要です');
+    return;
+  }
+
+  if (currentSponsorSlideQuizzes.length < 1 || !currentSponsorSlideQuizzes[0].q) {
+    toast('最低1問のクイズが必要です');
+    return;
+  }
+
+  const slideData = {
+    id: slideId || 'sponsor_slide_' + Date.now(),
+    sponsorId: sponsorProfile.id,
+    sponsorName: sponsorProfile.name,
+    sponsorLogo: sponsorProfile.logo,
+    title: title,
+    emoji: emoji,
+    reward: reward,
+    description: description,
+    pages: currentSponsorSlidePages,
+    qa: currentSponsorSlideQuizzes.map(q => ({
+      q: q.q,
+      choices: q.choices,
+      a: q.choices[q.answer]
+    })),
+    status: 'active',
+    createdAt: new Date().toISOString(),
+    completions: 0
+  };
+
+  if (slideId) {
+    // 更新
+    const idx = sponsorSlides.findIndex(s => s.id === slideId);
+    if (idx !== -1) {
+      slideData.completions = sponsorSlides[idx].completions || 0;
+      sponsorSlides[idx] = slideData;
+    }
+    toast('スライドを更新しました');
+  } else {
+    // 新規追加
+    sponsorSlides.push(slideData);
+    toast('スライドを作成しました');
+  }
+
+  localStorage.setItem('sherupa_sponsor_slides', JSON.stringify(sponsorSlides));
+  renderSponsorDashboard();
+  closeModals();
+}
+
+function confirmDeleteSponsorSlide(slideId) {
+  if (confirm('このスライドを削除しますか？')) {
+    deleteSponsorSlideById(slideId);
+  }
+}
+
+function deleteSponsorSlide() {
+  const slideId = document.getElementById('editSponsorSlideId').value;
+  if (slideId && confirm('このスライドを削除しますか？')) {
+    deleteSponsorSlideById(slideId);
+    closeModals();
+  }
+}
+
+function deleteSponsorSlideById(slideId) {
+  sponsorSlides = sponsorSlides.filter(s => s.id !== slideId);
+  localStorage.setItem('sherupa_sponsor_slides', JSON.stringify(sponsorSlides));
+  renderSponsorDashboard();
+  toast('スライドを削除しました');
+}
+
+// ========================================
+// スポンサーいいね機能
+// ========================================
+
+function openSponsorLikePanel() {
+  document.getElementById('sponsorLikeModal').style.display = 'flex';
+  document.getElementById('likesRemaining').textContent = sponsorProfile.sponsorLikes;
+  updateLikeTargets();
+}
+
+function updateLikeTargets() {
+  const container = document.getElementById('likeTargetsList');
+  const targetType = document.getElementById('likeTargetType').value;
+
+  let targets = [];
+
+  if (targetType === 'slide_completers') {
+    // スライド完了者
+    const myCompletions = sponsorSlideCompletions.filter(c => {
+      const slide = sponsorSlides.find(s => s.id === c.slideId);
+      return slide && slide.sponsorId === sponsorProfile.id;
+    });
+
+    const childrenMap = {};
+    myCompletions.forEach(c => {
+      if (!childrenMap[c.childId]) {
+        childrenMap[c.childId] = { id: c.childId, name: c.childName, detail: '完了スライド: 1個' };
+      }
+    });
+    targets = Object.values(childrenMap);
+  } else if (targetType === 'ranking_top') {
+    // ランキング上位者
+    targets = allUsers.slice(0, 10).map(u => ({
+      id: u.id,
+      name: u.name,
+      detail: `${u.alt.toLocaleString()} ALT`
+    }));
+  } else if (targetType === 'streak_achievers') {
+    // 連続学習達成者
+    targets = allUsers.filter(u => u.streak >= 7).map(u => ({
+      id: u.id,
+      name: u.name,
+      detail: `${u.streak}日連続`
+    }));
+  }
+
+  if (targets.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:20px;color:var(--rock)">
+        <div style="font-size:12px">対象者がいません</div>
+      </div>
+    `;
+    return;
+  }
+
+  // 既にいいねを送った人を除外
+  const sentIds = sponsorLikesSent.filter(l => l.sponsorId === sponsorProfile.id).map(l => l.childId);
+
+  container.innerHTML = targets.map(t => {
+    const alreadySent = sentIds.includes(t.id);
+    return `
+      <div class="like-target-item">
+        <div class="like-target-avatar">${t.name?.charAt(0) || '?'}</div>
+        <div class="like-target-info">
+          <div class="like-target-name">${t.name || '名無し'}</div>
+          <div class="like-target-detail">${t.detail}</div>
+        </div>
+        <button class="like-target-btn" onclick="sendSponsorLike('${t.id}', '${t.name}')" ${sponsorProfile.sponsorLikes <= 0 || alreadySent ? 'disabled' : ''}>
+          ${alreadySent ? '送信済' : '❤️ いいね'}
+        </button>
+      </div>
+    `;
+  }).join('');
+}
+
+function sendSponsorLike(childId, childName) {
+  if (sponsorProfile.sponsorLikes <= 0) {
+    toast('いいねがありません。ALTを購入してください');
+    return;
+  }
+
+  // いいね送信処理
+  sponsorProfile.sponsorLikes--;
+  sponsorProfile.totalLikesGiven++;
+
+  const likeRecord = {
+    id: 'like_' + Date.now(),
+    sponsorId: sponsorProfile.id,
+    sponsorName: sponsorProfile.name,
+    sponsorLogo: sponsorProfile.logo,
+    childId: childId,
+    childName: childName,
+    timestamp: new Date().toISOString(),
+    message: 'がんばって学習してるね！応援してるよ！'
+  };
+
+  sponsorLikesSent.push(likeRecord);
+
+  // こども側にいいねを追加（デモ用：現在のユーザーがいいねを受け取る場合）
+  if (childId === userProfile.id) {
+    sponsorLikesReceived.push({
+      id: likeRecord.id,
+      sponsorId: sponsorProfile.id,
+      sponsorName: sponsorProfile.name,
+      sponsorLogo: sponsorProfile.logo,
+      timestamp: likeRecord.timestamp,
+      message: likeRecord.message
+    });
+
+    // こどもに100ALT付与
+    userProfile.alt += 100;
+    localStorage.setItem('sherupa_profile', JSON.stringify(userProfile));
+    localStorage.setItem('sherupa_sponsor_likes_received', JSON.stringify(sponsorLikesReceived));
+
+    // 演出表示
+    showSponsorLikeReceivedModal(sponsorProfile.name, sponsorProfile.logo);
+  }
+
+  localStorage.setItem('sherupa_sponsor_profile', JSON.stringify(sponsorProfile));
+  localStorage.setItem('sherupa_sponsor_likes_sent', JSON.stringify(sponsorLikesSent));
+
+  document.getElementById('likesRemaining').textContent = sponsorProfile.sponsorLikes;
+  updateLikeTargets();
+  renderSponsorDashboard();
+
+  toast(`❤️ ${childName}さんにいいねを送りました！`);
+}
+
+function showSponsorLikeReceivedModal(sponsorName, sponsorLogo) {
+  document.getElementById('likeReceivedSponsor').textContent = `${sponsorLogo} ${sponsorName} から`;
+  document.getElementById('sponsorLikeReceivedModal').style.display = 'flex';
+  updateHeader();
+}
+
+// スポンサー統計表示
+function showSponsorStats() {
+  toast('📊 統計機能は準備中です');
+}
+
+// ========================================
+// こども向けスポンサー機能
+// ========================================
+
+// スポンサー一覧を開く
+function openSponsorList() {
+  const container = document.getElementById('sponsorListContent');
+
+  // ユニークなスポンサーを取得
+  const sponsorMap = {};
+  sponsorSlides.filter(s => s.status === 'active').forEach(s => {
+    if (!sponsorMap[s.sponsorId]) {
+      sponsorMap[s.sponsorId] = {
+        id: s.sponsorId,
+        name: s.sponsorName,
+        logo: s.sponsorLogo || '🏢',
+        slideCount: 1
+      };
+    } else {
+      sponsorMap[s.sponsorId].slideCount++;
+    }
+  });
+
+  const sponsors = Object.values(sponsorMap);
+
+  if (sponsors.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:30px;color:var(--rock)">
+        <div style="font-size:48px;margin-bottom:12px">🎗️</div>
+        <div style="font-size:12px">まだスポンサーがいません</div>
+      </div>
+    `;
+  } else {
+    container.innerHTML = sponsors.map(s => `
+      <div class="sponsor-list-item" onclick="openSponsorDetail('${s.id}')">
+        <div class="sponsor-list-header">
+          <div class="sponsor-list-logo">${s.logo}</div>
+          <div>
+            <div class="sponsor-list-name">${s.name}</div>
+            <div class="sponsor-list-message">📚 スライド: ${s.slideCount}本</div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  document.getElementById('sponsorListModal').style.display = 'flex';
+}
+
+// スポンサー詳細を開く
+function openSponsorDetail(sponsorId) {
+  const slides = sponsorSlides.filter(s => s.sponsorId === sponsorId && s.status === 'active');
+  if (slides.length === 0) return;
+
+  const sponsor = slides[0];
+
+  // 統計計算
+  const completions = sponsorSlideCompletions.filter(c => {
+    const slide = sponsorSlides.find(s => s.id === c.slideId);
+    return slide && slide.sponsorId === sponsorId;
+  });
+
+  const totalAlt = completions.reduce((sum, c) => sum + (c.reward || 0), 0);
+  const uniqueChildren = new Set(completions.map(c => c.childId)).size;
+  const likesGiven = sponsorLikesSent.filter(l => l.sponsorId === sponsorId).length;
+
+  document.getElementById('sponsorDetailLogo').textContent = sponsor.sponsorLogo || '🏢';
+  document.getElementById('sponsorDetailName').textContent = sponsor.sponsorName;
+  document.getElementById('sponsorDetailMessage').textContent = '「こどもたちの学習を応援しています！」';
+  document.getElementById('sponsorDetailAlt').textContent = totalAlt.toLocaleString();
+  document.getElementById('sponsorDetailChildren').textContent = uniqueChildren;
+  document.getElementById('sponsorDetailLikes').textContent = likesGiven;
+
+  document.getElementById('sponsorDetailSlides').innerHTML = slides.map(s => `
+    <div class="sponsor-slide-card" style="cursor:pointer" onclick="openSponsorSlideForChild('${s.id}')">
+      <div class="sponsor-slide-emoji">${s.emoji}</div>
+      <div class="sponsor-slide-info">
+        <div class="sponsor-slide-title">${s.title}</div>
+        <div class="sponsor-slide-reward">報酬: ${s.reward} ALT</div>
+      </div>
+    </div>
+  `).join('');
+
+  closeModals();
+  document.getElementById('sponsorDetailModal').style.display = 'flex';
+}
+
+// こどもがスポンサースライドを開く
+function openSponsorSlideForChild(slideId) {
+  const slide = sponsorSlides.find(s => s.id === slideId);
+  if (!slide) return;
+
+  // 通常のスライドとして開く（報酬付き）
+  currentSlide = {
+    ...slide,
+    isSponsorSlide: true,
+    category: 'sponsor'
+  };
+  currentSlideIndex = 0;
+
+  closeModals();
+  renderSlideModal();
+  document.getElementById('slideModal').style.display = 'flex';
+}
+
+// スポンサースライド完了処理（既存のスライド完了処理を拡張）
+function completeSponsorSlide(slide, correctCount) {
+  const sponsor = sponsorSlides.find(s => s.id === slide.id);
+  if (!sponsor) return 0;
+
+  // 5問以上正解で報酬を付与
+  if (correctCount >= Math.min(5, sponsor.qa.length * 0.6)) {
+    const reward = sponsor.reward;
+
+    // スポンサーのALT残高から差し引く（実際の実装では）
+    // ここではデモのため、こどもに直接ALTを付与
+
+    // 完了記録を追加
+    sponsorSlideCompletions.push({
+      slideId: slide.id,
+      childId: userProfile.id,
+      childName: userProfile.name,
+      timestamp: new Date().toISOString(),
+      reward: reward
+    });
+
+    localStorage.setItem('sherupa_sponsor_slide_completions', JSON.stringify(sponsorSlideCompletions));
+
+    return reward;
+  }
+
+  return 0;
+}
 
 // ========================================
 // 起動
