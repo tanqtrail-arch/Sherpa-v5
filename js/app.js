@@ -36,6 +36,20 @@ let completedSlides = JSON.parse(localStorage.getItem('sherupa_s')) || [];
 let climbedMountains = JSON.parse(localStorage.getItem('sherupa_climbed')) || [];
 let mode = 'child';
 
+// 証明書システム（各山100枚限定）
+// certificates: { mountainId: [{ id, owner, ownerName, issuedAt, certNumber }] }
+let certificates = JSON.parse(localStorage.getItem('sherupa_certs')) || {};
+
+// マーケットプレイス（出品中の証明書）
+// marketplace: [{ certId, mountainId, sellerName, price, listedAt }]
+let marketplace = JSON.parse(localStorage.getItem('sherupa_market')) || [];
+
+// ユーザーIDの生成・取得
+if (!userProfile.id) {
+  userProfile.id = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  localStorage.setItem('sherupa_profile', JSON.stringify(userProfile));
+}
+
 // スライド・クイズ状態
 let currentSlide = null;
 let currentSlideIndex = 0;
@@ -748,7 +762,38 @@ function saveProfile() {
 // ========================================
 function renderClimb() {
   document.getElementById('climbAlt').textContent = `${userProfile.alt.toLocaleString()} ALT`;
+  showClimbTab('mountains');
   showMountainTab('japan');
+}
+
+function showClimbTab(tabId, element) {
+  // タブ切り替え
+  document.querySelectorAll('.climb-tab').forEach(t => {
+    t.classList.remove('active');
+    t.style.color = 'rgba(255,255,255,.6)';
+  });
+  if (element) {
+    element.classList.add('active');
+    element.style.color = '#fff';
+  } else {
+    const tab = document.querySelector(`.climb-tab[data-tab="${tabId}"]`);
+    if (tab) {
+      tab.classList.add('active');
+      tab.style.color = '#fff';
+    }
+  }
+
+  // コンテンツ切り替え
+  document.getElementById('mountainsTab').style.display = tabId === 'mountains' ? 'block' : 'none';
+  document.getElementById('marketTab').style.display = tabId === 'market' ? 'block' : 'none';
+  document.getElementById('myCertsTab').style.display = tabId === 'mycerts' ? 'block' : 'none';
+
+  // レンダリング
+  if (tabId === 'market') {
+    renderMarketplace();
+  } else if (tabId === 'mycerts') {
+    renderMyCertificates();
+  }
 }
 
 function showMountainTab(groupId, element) {
@@ -756,24 +801,37 @@ function showMountainTab(groupId, element) {
   if (!group) return;
 
   // タブ切り替え
-  document.querySelectorAll('#screen-climb .admin-tab').forEach(t => t.classList.remove('active'));
-  if (element) element.classList.add('active');
+  document.querySelectorAll('#mountainsTab .admin-tab').forEach(t => {
+    t.classList.remove('active');
+    t.style.color = 'rgba(255,255,255,.6)';
+  });
+  if (element) {
+    element.classList.add('active');
+    element.style.color = '#fff';
+  }
 
   const container = document.getElementById('mountainList');
   container.innerHTML = group.mountains.map(m => {
     const isClimbed = climbedMountains.includes(m.id);
     const canClimb = userProfile.alt >= m.alt && !isClimbed;
+    const certCount = getCertificateCount(m.id);
+    const isSoldOut = certCount >= (m.maxCerts || 100);
 
     return `
       <div class="card" style="margin-bottom:10px">
         <div class="card-body" style="display:flex;align-items:center;gap:12px">
-          <div style="font-size:36px">${m.emoji}</div>
+          <div style="font-size:36px;cursor:pointer" onclick="renderCertificateOwners('${m.id}')">${m.emoji}</div>
           <div style="flex:1">
             <div style="font-size:14px;font-weight:700;color:var(--summit)">${m.name}</div>
             <div style="font-size:12px;color:var(--rock)">${m.alt.toLocaleString()} ALT必要</div>
+            <div style="font-size:10px;color:${isSoldOut ? 'var(--sunset)' : 'var(--meadow)'};cursor:pointer;text-decoration:underline" onclick="renderCertificateOwners('${m.id}')">
+              📜 ${certCount}/${m.maxCerts || 100}枚発行済${isSoldOut ? '（完売）' : ''}
+            </div>
           </div>
           ${isClimbed ?
             `<div style="background:var(--meadow);color:#fff;padding:8px 16px;border-radius:10px;font-size:12px;font-weight:700">✓ 登頂済</div>` :
+            isSoldOut ?
+            `<div style="background:var(--rock);color:#fff;padding:8px 16px;border-radius:10px;font-size:12px;font-weight:700">完売</div>` :
             `<button onclick="climbMountain('${m.id}')" style="background:${canClimb ? 'linear-gradient(135deg,var(--sunrise),var(--sunset))' : 'var(--cloud)'};color:${canClimb ? '#fff' : 'var(--rock)'};border:none;padding:8px 16px;border-radius:10px;font-size:12px;font-weight:700;cursor:${canClimb ? 'pointer' : 'not-allowed'}" ${canClimb ? '' : 'disabled'}>挑戦</button>`
           }
         </div>
@@ -791,17 +849,304 @@ function climbMountain(mountainId) {
 
   if (!mountain || userProfile.alt < mountain.alt) return;
 
+  // 証明書の発行チェック（100枚限定）
+  if (!certificates[mountainId]) {
+    certificates[mountainId] = [];
+  }
+
+  if (certificates[mountainId].length >= (mountain.maxCerts || 100)) {
+    toast(`❌ ${mountain.name}の証明書は完売しました（100枚限定）`);
+    return;
+  }
+
+  // 証明書発行
+  const certNumber = certificates[mountainId].length + 1;
+  const newCert = {
+    id: `cert_${mountainId}_${Date.now()}`,
+    owner: userProfile.id,
+    ownerName: userProfile.name,
+    issuedAt: new Date().toISOString(),
+    certNumber: certNumber
+  };
+  certificates[mountainId].push(newCert);
+
   userProfile.alt -= mountain.alt;
   climbedMountains.push(mountainId);
 
   localStorage.setItem('sherupa_profile', JSON.stringify(userProfile));
   localStorage.setItem('sherupa_climbed', JSON.stringify(climbedMountains));
+  localStorage.setItem('sherupa_certs', JSON.stringify(certificates));
 
   updateHeader();
   renderClimb();
   renderProfile();
 
-  toast(`🏔️ ${mountain.name} 登頂成功！ ${mountain.certificate}`);
+  toast(`🏔️ ${mountain.name} 登頂成功！ 証明書 #${certNumber}/100 ${mountain.certificate}`);
+}
+
+// ========================================
+// 証明書マーケットプレイス
+// ========================================
+function getCertificateCount(mountainId) {
+  return certificates[mountainId]?.length || 0;
+}
+
+function getUserCertificates() {
+  const userCerts = [];
+  for (const [mountainId, certs] of Object.entries(certificates)) {
+    for (const cert of certs) {
+      if (cert.owner === userProfile.id) {
+        userCerts.push({ ...cert, mountainId });
+      }
+    }
+  }
+  return userCerts;
+}
+
+function getMountainCertificateOwners(mountainId) {
+  return certificates[mountainId] || [];
+}
+
+function listCertificateForSale(certId, mountainId, price) {
+  const cert = certificates[mountainId]?.find(c => c.id === certId);
+  if (!cert || cert.owner !== userProfile.id) {
+    toast('❌ この証明書を出品する権限がありません');
+    return false;
+  }
+
+  // すでに出品中かチェック
+  if (marketplace.find(m => m.certId === certId)) {
+    toast('❌ この証明書は既に出品中です');
+    return false;
+  }
+
+  if (price < 1) {
+    toast('❌ 価格は1 ALT以上に設定してください');
+    return false;
+  }
+
+  marketplace.push({
+    certId,
+    mountainId,
+    sellerId: userProfile.id,
+    sellerName: userProfile.name,
+    price: parseInt(price),
+    listedAt: new Date().toISOString()
+  });
+
+  localStorage.setItem('sherupa_market', JSON.stringify(marketplace));
+  toast(`📦 証明書を${price} ALTで出品しました`);
+  renderMarketplace();
+  return true;
+}
+
+function cancelListing(certId) {
+  const index = marketplace.findIndex(m => m.certId === certId && m.sellerId === userProfile.id);
+  if (index === -1) {
+    toast('❌ この出品をキャンセルする権限がありません');
+    return false;
+  }
+
+  marketplace.splice(index, 1);
+  localStorage.setItem('sherupa_market', JSON.stringify(marketplace));
+  toast('🔄 出品をキャンセルしました');
+  renderMarketplace();
+  return true;
+}
+
+function buyCertificate(certId) {
+  const listing = marketplace.find(m => m.certId === certId);
+  if (!listing) {
+    toast('❌ この出品は存在しません');
+    return false;
+  }
+
+  if (listing.sellerId === userProfile.id) {
+    toast('❌ 自分の出品は購入できません');
+    return false;
+  }
+
+  if (userProfile.alt < listing.price) {
+    toast('❌ ALTが足りません');
+    return false;
+  }
+
+  // 証明書の所有権を移転
+  const cert = certificates[listing.mountainId]?.find(c => c.id === certId);
+  if (!cert) {
+    toast('❌ 証明書が見つかりません');
+    return false;
+  }
+
+  // 支払い処理
+  userProfile.alt -= listing.price;
+  cert.owner = userProfile.id;
+  cert.ownerName = userProfile.name;
+
+  // 登頂リストに追加（まだ持っていない場合）
+  if (!climbedMountains.includes(listing.mountainId)) {
+    climbedMountains.push(listing.mountainId);
+  }
+
+  // 出品リストから削除
+  marketplace = marketplace.filter(m => m.certId !== certId);
+
+  localStorage.setItem('sherupa_profile', JSON.stringify(userProfile));
+  localStorage.setItem('sherupa_climbed', JSON.stringify(climbedMountains));
+  localStorage.setItem('sherupa_certs', JSON.stringify(certificates));
+  localStorage.setItem('sherupa_market', JSON.stringify(marketplace));
+
+  updateHeader();
+  renderMarketplace();
+  renderClimb();
+  renderProfile();
+
+  const mountain = findMountain(listing.mountainId);
+  toast(`🎉 ${mountain?.name || '山'}の証明書 #${cert.certNumber}を購入しました！`);
+  return true;
+}
+
+function findMountain(mountainId) {
+  for (const group of APP.mountains) {
+    const mountain = group.mountains.find(m => m.id === mountainId);
+    if (mountain) return mountain;
+  }
+  return null;
+}
+
+function renderMarketplace() {
+  const container = document.getElementById('marketplaceList');
+  if (!container) return;
+
+  if (marketplace.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center;color:#fff;padding:40px">
+        <div style="font-size:48px;margin-bottom:12px">🏪</div>
+        <div style="font-size:14px">出品中の証明書はありません</div>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = marketplace.map(listing => {
+    const mountain = findMountain(listing.mountainId);
+    const cert = certificates[listing.mountainId]?.find(c => c.id === listing.certId);
+    const isOwn = listing.sellerId === userProfile.id;
+    const canBuy = !isOwn && userProfile.alt >= listing.price;
+
+    return `
+      <div class="card" style="margin-bottom:10px">
+        <div class="card-body" style="display:flex;align-items:center;gap:12px">
+          <div style="font-size:36px">${mountain?.emoji || '🏔️'}</div>
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:700;color:var(--summit)">${mountain?.name || '不明'}</div>
+            <div style="font-size:11px;color:var(--rock)">証明書 #${cert?.certNumber || '?'}/100</div>
+            <div style="font-size:11px;color:var(--rock)">出品者: ${listing.sellerName}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:16px;font-weight:900;color:var(--sunrise)">${listing.price.toLocaleString()} ALT</div>
+            ${isOwn
+              ? `<button onclick="cancelListing('${listing.certId}')" style="background:var(--sunset);color:#fff;border:none;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;margin-top:4px">キャンセル</button>`
+              : `<button onclick="buyCertificate('${listing.certId}')" style="background:${canBuy ? 'linear-gradient(135deg,var(--meadow),#34d399)' : 'var(--cloud)'};color:${canBuy ? '#fff' : 'var(--rock)'};border:none;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;cursor:${canBuy ? 'pointer' : 'not-allowed'};margin-top:4px" ${canBuy ? '' : 'disabled'}>購入</button>`
+            }
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderMyCertificates() {
+  const container = document.getElementById('myCertificatesList');
+  if (!container) return;
+
+  const userCerts = getUserCertificates();
+
+  if (userCerts.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center;color:var(--rock);padding:20px">
+        まだ証明書を持っていません<br>山に登頂して証明書を取得しよう！
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = userCerts.map(cert => {
+    const mountain = findMountain(cert.mountainId);
+    const isListed = marketplace.find(m => m.certId === cert.id);
+
+    return `
+      <div class="card" style="margin-bottom:10px">
+        <div class="card-body" style="display:flex;align-items:center;gap:12px">
+          <div style="font-size:32px">${mountain?.emoji || '🏔️'}</div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:700;color:var(--summit)">${mountain?.name || '不明'}</div>
+            <div style="font-size:10px;color:var(--rock)">証明書 #${cert.certNumber}/100</div>
+          </div>
+          ${isListed
+            ? `<div style="font-size:11px;color:var(--sunrise);font-weight:700">出品中</div>`
+            : `<button onclick="openSellModal('${cert.id}', '${cert.mountainId}')" style="background:linear-gradient(135deg,var(--sunrise),var(--sunset));color:#fff;border:none;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer">売る</button>`
+          }
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function openSellModal(certId, mountainId) {
+  const mountain = findMountain(mountainId);
+  const cert = certificates[mountainId]?.find(c => c.id === certId);
+
+  document.getElementById('sellMountainName').textContent = mountain?.name || '不明';
+  document.getElementById('sellCertNumber').textContent = cert?.certNumber || '?';
+  document.getElementById('sellCertId').value = certId;
+  document.getElementById('sellMountainId').value = mountainId;
+  document.getElementById('sellPrice').value = mountain?.alt || 100;
+
+  document.getElementById('sellModal').classList.add('active');
+}
+
+function confirmSell() {
+  const certId = document.getElementById('sellCertId').value;
+  const mountainId = document.getElementById('sellMountainId').value;
+  const price = parseInt(document.getElementById('sellPrice').value);
+
+  if (listCertificateForSale(certId, mountainId, price)) {
+    closeModals();
+    renderMyCertificates();
+  }
+}
+
+function renderCertificateOwners(mountainId) {
+  const owners = getMountainCertificateOwners(mountainId);
+  const mountain = findMountain(mountainId);
+
+  document.getElementById('ownersMountainName').textContent = mountain?.name || '不明';
+  document.getElementById('ownersMountainEmoji').textContent = mountain?.emoji || '🏔️';
+  document.getElementById('ownersCount').textContent = `${owners.length}/100`;
+
+  const container = document.getElementById('ownersList');
+
+  if (owners.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center;color:var(--rock);padding:20px">
+        まだ誰も登頂していません<br>最初の登頂者になろう！
+      </div>
+    `;
+  } else {
+    container.innerHTML = owners.map((cert, i) => `
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--cloud)">
+        <div style="width:24px;height:24px;background:linear-gradient(135deg,var(--sunrise),var(--sunset));border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700">${cert.certNumber}</div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600;color:var(--summit)">${cert.ownerName}</div>
+          <div style="font-size:10px;color:var(--rock)">${new Date(cert.issuedAt).toLocaleDateString('ja-JP')}</div>
+        </div>
+        ${cert.owner === userProfile.id ? '<div style="font-size:10px;color:var(--meadow);font-weight:700">あなた</div>' : ''}
+      </div>
+    `).join('');
+  }
+
+  document.getElementById('ownersModal').classList.add('active');
 }
 
 // ========================================

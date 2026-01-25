@@ -101,16 +101,39 @@
 
     <!-- 登頂チャレンジ画面 -->
     <div id="screen-climb" class="screen">
-      <div class="section-title" style="color:#fff">🏔️ 登頂チャレンジ<span class="free-tag">全機能無料</span></div>
+      <div class="section-title" style="color:#fff">🏔️ 登頂チャレンジ<span class="free-tag">証明書100枚限定</span></div>
       <div style="background:rgba(255,255,255,.15);border-radius:12px;padding:12px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
         <div style="color:#fff;font-size:12px;font-weight:600">⛰️ 現在のALT</div>
         <div style="color:#fff;font-size:18px;font-weight:900" id="climbAlt">0 ALT</div>
       </div>
+
+      <!-- タブ切り替え -->
       <div style="display:flex;gap:4px;margin-bottom:14px;background:rgba(255,255,255,.15);border-radius:10px;padding:3px">
-        <div class="admin-tab active" onclick="showMountainTab('japan', this)" style="flex:1;padding:10px;text-align:center;color:#fff;font-size:11px;font-weight:600;cursor:pointer;border-radius:8px">🗾 日本編</div>
-        <div class="admin-tab" onclick="showMountainTab('world', this)" style="flex:1;padding:10px;text-align:center;color:rgba(255,255,255,.6);font-size:11px;font-weight:600;cursor:pointer;border-radius:8px">🌍 世界編</div>
+        <div class="climb-tab active" data-tab="mountains" onclick="showClimbTab('mountains', this)" style="flex:1;padding:10px;text-align:center;color:#fff;font-size:11px;font-weight:600;cursor:pointer;border-radius:8px">🏔️ 山一覧</div>
+        <div class="climb-tab" data-tab="market" onclick="showClimbTab('market', this)" style="flex:1;padding:10px;text-align:center;color:rgba(255,255,255,.6);font-size:11px;font-weight:600;cursor:pointer;border-radius:8px">🏪 マーケット</div>
+        <div class="climb-tab" data-tab="mycerts" onclick="showClimbTab('mycerts', this)" style="flex:1;padding:10px;text-align:center;color:rgba(255,255,255,.6);font-size:11px;font-weight:600;cursor:pointer;border-radius:8px">📜 証明書</div>
       </div>
-      <div id="mountainList"></div>
+
+      <!-- 山一覧 -->
+      <div id="mountainsTab">
+        <div style="display:flex;gap:4px;margin-bottom:14px;background:rgba(255,255,255,.1);border-radius:10px;padding:3px">
+          <div class="admin-tab active" onclick="showMountainTab('japan', this)" style="flex:1;padding:10px;text-align:center;color:#fff;font-size:11px;font-weight:600;cursor:pointer;border-radius:8px">🗾 日本編</div>
+          <div class="admin-tab" onclick="showMountainTab('world', this)" style="flex:1;padding:10px;text-align:center;color:rgba(255,255,255,.6);font-size:11px;font-weight:600;cursor:pointer;border-radius:8px">🌍 世界編</div>
+        </div>
+        <div id="mountainList"></div>
+      </div>
+
+      <!-- マーケットプレイス -->
+      <div id="marketTab" style="display:none">
+        <div class="section-title" style="color:#fff;font-size:13px;margin-bottom:10px">📦 出品中の証明書</div>
+        <div id="marketplaceList"></div>
+      </div>
+
+      <!-- 自分の証明書 -->
+      <div id="myCertsTab" style="display:none">
+        <div class="section-title" style="color:#fff;font-size:13px;margin-bottom:10px">📜 あなたの証明書</div>
+        <div id="myCertificatesList"></div>
+      </div>
     </div>
 
     <!-- ギャラリー画面 -->
@@ -299,6 +322,48 @@
       </div>
 
       <button class="btn btn-primary" style="width:100%;margin-top:16px" onclick="closeModals()">ホームに戻る</button>
+    </div>
+  </div>
+</div>
+
+<!-- 証明書売却モーダル -->
+<div class="modal-overlay" id="sellModal" onclick="if(event.target===this)closeModals()">
+  <div class="modal-box">
+    <div class="modal-header" style="background:linear-gradient(135deg,var(--sunrise),var(--sunset))">
+      <div style="font-size:32px">💰</div>
+      <div style="font-weight:700;margin-top:4px">証明書を出品</div>
+    </div>
+    <div class="modal-body">
+      <div style="text-align:center;margin-bottom:16px">
+        <div style="font-size:18px;font-weight:700;color:var(--summit)" id="sellMountainName">富士山</div>
+        <div style="font-size:12px;color:var(--rock)">証明書 #<span id="sellCertNumber">1</span>/100</div>
+      </div>
+      <input type="hidden" id="sellCertId">
+      <input type="hidden" id="sellMountainId">
+      <div class="form-group">
+        <label class="form-label">💰 販売価格（ALT）</label>
+        <input type="number" class="form-input" id="sellPrice" min="1" value="100" style="font-size:20px;text-align:center;font-weight:700">
+        <div style="font-size:11px;color:var(--rock);margin-top:4px;text-align:center">価格はあなたが自由に設定できます</div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="confirmSell()">📦 出品する</button>
+      <button class="btn btn-secondary" style="width:100%;margin-top:8px" onclick="closeModals()">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<!-- 登頂者一覧モーダル -->
+<div class="modal-overlay" id="ownersModal" onclick="if(event.target===this)closeModals()">
+  <div class="modal-box">
+    <div class="modal-header" style="background:linear-gradient(135deg,var(--summit),#334155)">
+      <div style="font-size:40px" id="ownersMountainEmoji">🏔️</div>
+      <div style="font-weight:700;margin-top:4px" id="ownersMountainName">富士山</div>
+      <div style="font-size:12px;opacity:.8;margin-top:4px">登頂者 <span id="ownersCount">0/100</span></div>
+    </div>
+    <div class="modal-body" style="max-height:400px;overflow-y:auto">
+      <div id="ownersList"></div>
+    </div>
+    <div style="padding:0 16px 16px">
+      <button class="btn btn-secondary" style="width:100%" onclick="closeModals()">閉じる</button>
     </div>
   </div>
 </div>
