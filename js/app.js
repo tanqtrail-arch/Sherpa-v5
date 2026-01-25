@@ -857,12 +857,36 @@ function showMountainTab(groupId, element) {
 
   const container = document.getElementById('mountainList');
   container.innerHTML = group.mountains.map(m => {
+    const unlockStatus = getMountainUnlockStatus(m.id);
+    const isUnlocked = unlockStatus.unlocked;
     const isClimbed = climbedMountains.includes(m.id);
     const certCount = getCertificateCount(m.id);
-    const currentLimit = getCertificateLimit(m.id);
+    const currentLimit = isUnlocked ? getCertificateLimit(m.id) : 0;
     const maxLimit = APP.mountainData?.certificateRelease?.max || 100;
-    const isSoldOut = certCount >= currentLimit;
-    const canClimb = userProfile.alt >= m.alt && !isClimbed && !isSoldOut;
+    const isSoldOut = isUnlocked && certCount >= currentLimit && currentLimit > 0;
+    const canClimb = isUnlocked && userProfile.alt >= m.alt && !isClimbed && !isSoldOut;
+
+    // ロック中の表示
+    if (!isUnlocked) {
+      return `
+        <div class="card" style="margin-bottom:10px;opacity:.7">
+          <div class="card-body" style="display:flex;align-items:center;gap:12px">
+            <div style="font-size:36px;filter:grayscale(1)">🔒</div>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:700;color:var(--rock)">${m.name}</div>
+              <div style="font-size:12px;color:var(--rock)">${m.alt.toLocaleString()} ALT必要</div>
+              <div style="font-size:10px;color:var(--rock)">
+                ${unlockStatus.prevMountainName ? `🔓 ${unlockStatus.prevMountainName}が${Math.floor((APP.mountainData?.unlockThresholds?.previousMountainSoldPercent || 0.8) * 100)}%売れる` : ''}
+                ${unlockStatus.prevMountainName && unlockStatus.slidesNeeded > 0 ? ' または ' : ''}
+                ${unlockStatus.slidesNeeded > 0 ? `📚 ${unlockStatus.slidesNeeded}スライド完了` : ''}
+              </div>
+              ${unlockStatus.prevMountainName ? `<div style="font-size:9px;color:var(--rock);margin-top:2px">前の山: ${unlockStatus.prevProgress}%</div>` : ''}
+            </div>
+            <div style="background:var(--rock);color:#fff;padding:8px 16px;border-radius:10px;font-size:12px;font-weight:700">🔒 未解禁</div>
+          </div>
+        </div>
+      `;
+    }
 
     return `
       <div class="card" style="margin-bottom:10px">
@@ -891,6 +915,11 @@ function showMountainTab(groupId, element) {
 function getCertificateLimit(mountainId) {
   const release = APP.mountainData?.certificateRelease || { initial: 20, increment: 20, max: 100, incrementThreshold: 0.8 };
 
+  // 山がまだ解禁されていない場合は0
+  if (!isMountainUnlocked(mountainId)) {
+    return 0;
+  }
+
   if (!certLimits[mountainId]) {
     certLimits[mountainId] = release.initial;
     localStorage.setItem('sherupa_certlimits', JSON.stringify(certLimits));
@@ -909,6 +938,78 @@ function getCertificateLimit(mountainId) {
   return certLimits[mountainId];
 }
 
+// 山が解禁されているかチェック（ハイブリッド型）
+function isMountainUnlocked(mountainId) {
+  const mountain = findMountain(mountainId);
+  if (!mountain) return false;
+
+  // 最初の山（高尾山）は常に解禁
+  if (!mountain.previousMountain && mountain.unlockSlides === 0) {
+    return true;
+  }
+
+  const thresholds = APP.mountainData?.unlockThresholds || { previousMountainSoldPercent: 0.8 };
+
+  // 条件1: 全ユーザーの学習活動が閾値を超えた
+  const totalSlidesCompleted = getTotalSlidesCompleted();
+  const slidesUnlocked = totalSlidesCompleted >= (mountain.unlockSlides || 0);
+
+  // 条件2: 前の山が80%売れた
+  let previousMountainSold = false;
+  if (mountain.previousMountain) {
+    const prevCerts = certificates[mountain.previousMountain]?.length || 0;
+    const prevLimit = certLimits[mountain.previousMountain] || 20;
+    previousMountainSold = prevCerts >= prevLimit * thresholds.previousMountainSoldPercent;
+  }
+
+  // どちらかの条件を満たせば解禁
+  return slidesUnlocked || previousMountainSold;
+}
+
+// 全体のスライド完了数を取得（デモ用にローカルストレージから）
+function getTotalSlidesCompleted() {
+  // 実際のシステムではサーバーから全ユーザーの合計を取得
+  // デモ用にローカルの値を使用
+  return completedSlides.length;
+}
+
+// 山の解禁状態の詳細を取得
+function getMountainUnlockStatus(mountainId) {
+  const mountain = findMountain(mountainId);
+  if (!mountain) return { unlocked: false, reason: 'not_found' };
+
+  if (!mountain.previousMountain && mountain.unlockSlides === 0) {
+    return { unlocked: true, reason: 'first_mountain' };
+  }
+
+  const thresholds = APP.mountainData?.unlockThresholds || { previousMountainSoldPercent: 0.8 };
+  const totalSlides = getTotalSlidesCompleted();
+  const slidesNeeded = mountain.unlockSlides || 0;
+  const slidesUnlocked = totalSlides >= slidesNeeded;
+
+  let previousMountainSold = false;
+  let prevProgress = 0;
+  if (mountain.previousMountain) {
+    const prevCerts = certificates[mountain.previousMountain]?.length || 0;
+    const prevLimit = certLimits[mountain.previousMountain] || 20;
+    prevProgress = Math.floor((prevCerts / prevLimit) * 100);
+    previousMountainSold = prevCerts >= prevLimit * thresholds.previousMountainSoldPercent;
+  }
+
+  const unlocked = slidesUnlocked || previousMountainSold;
+
+  return {
+    unlocked,
+    slidesUnlocked,
+    previousMountainSold,
+    slidesNeeded,
+    currentSlides: totalSlides,
+    prevMountainName: findMountain(mountain.previousMountain)?.name,
+    prevProgress,
+    reason: unlocked ? (slidesUnlocked ? 'slides' : 'previous_sold') : 'locked'
+  };
+}
+
 function climbMountain(mountainId) {
   let mountain = null;
   for (const group of APP.mountains) {
@@ -917,6 +1018,12 @@ function climbMountain(mountainId) {
   }
 
   if (!mountain || userProfile.alt < mountain.alt) return;
+
+  // 山が解禁されているかチェック
+  if (!isMountainUnlocked(mountainId)) {
+    toast(`🔒 ${mountain.name}はまだ解禁されていません`);
+    return;
+  }
 
   // 証明書の発行チェック（段階的発行）
   if (!certificates[mountainId]) {

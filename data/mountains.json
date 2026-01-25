@@ -1,11 +1,15 @@
 {
-  "_comment": "登頂チャレンジ - ALTを消費して山に登る機能。証明書は段階的発行",
-  "_updateGuide": "新しい山を追加するには、該当グループのmountainsに追加してください",
+  "_comment": "登頂チャレンジ - 段階的発行システム（ハイブリッド型）",
+  "_design": "下位山の売れ行き OR 学習活動で解禁。初級から順に発行開始",
   "certificateRelease": {
     "initial": 20,
     "increment": 20,
     "max": 100,
     "incrementThreshold": 0.8
+  },
+  "unlockThresholds": {
+    "slidesCompleted": [0, 30, 60, 100, 150, 200, 300, 400, 500, 600, 800, 1000],
+    "previousMountainSoldPercent": 0.8
   },
   "groups": [
     {
@@ -14,12 +18,71 @@
       "emoji": "🗾",
       "unlockCondition": null,
       "mountains": [
-        { "id": "takao", "name": "高尾山", "alt": 599, "emoji": "🌲", "badge": "🌲", "certificate": "初めての登頂！" },
-        { "id": "tsukuba", "name": "筑波山", "alt": 877, "emoji": "🗻", "badge": "🗻", "certificate": "関東の名峰制覇！" },
-        { "id": "tanigawa", "name": "谷川岳", "alt": 1977, "emoji": "⛰️", "badge": "⛰️", "certificate": "厳しい山を乗り越えた！" },
-        { "id": "hotaka", "name": "穂高岳", "alt": 3190, "emoji": "🏔️", "badge": "🏔️", "certificate": "北アルプスの雄！" },
-        { "id": "kitadake", "name": "北岳", "alt": 3193, "emoji": "🏔️", "badge": "🏔️", "certificate": "日本第二の高峰！" },
-        { "id": "fuji", "name": "富士山", "alt": 3776, "emoji": "🗻", "badge": "🗻", "certificate": "日本最高峰制覇！" }
+        {
+          "id": "takao",
+          "name": "高尾山",
+          "alt": 599,
+          "emoji": "🌲",
+          "badge": "🌲",
+          "certificate": "初めての登頂！",
+          "order": 1,
+          "unlockSlides": 0
+        },
+        {
+          "id": "tsukuba",
+          "name": "筑波山",
+          "alt": 877,
+          "emoji": "🗻",
+          "badge": "🗻",
+          "certificate": "関東の名峰制覇！",
+          "order": 2,
+          "unlockSlides": 30,
+          "previousMountain": "takao"
+        },
+        {
+          "id": "tanigawa",
+          "name": "谷川岳",
+          "alt": 1977,
+          "emoji": "⛰️",
+          "badge": "⛰️",
+          "certificate": "厳しい山を乗り越えた！",
+          "order": 3,
+          "unlockSlides": 60,
+          "previousMountain": "tsukuba"
+        },
+        {
+          "id": "hotaka",
+          "name": "穂高岳",
+          "alt": 3190,
+          "emoji": "🏔️",
+          "badge": "🏔️",
+          "certificate": "北アルプスの雄！",
+          "order": 4,
+          "unlockSlides": 100,
+          "previousMountain": "tanigawa"
+        },
+        {
+          "id": "kitadake",
+          "name": "北岳",
+          "alt": 3193,
+          "emoji": "🏔️",
+          "badge": "🏔️",
+          "certificate": "日本第二の高峰！",
+          "order": 5,
+          "unlockSlides": 150,
+          "previousMountain": "hotaka"
+        },
+        {
+          "id": "fuji",
+          "name": "富士山",
+          "alt": 3776,
+          "emoji": "🗻",
+          "badge": "🗻",
+          "certificate": "日本最高峰制覇！",
+          "order": 6,
+          "unlockSlides": 200,
+          "previousMountain": "kitadake"
+        }
       ]
     },
     {
@@ -28,12 +91,72 @@
       "emoji": "🌍",
       "unlockCondition": { "type": "completeGroup", "groupId": "japan" },
       "mountains": [
-        { "id": "kilimanjaro", "name": "キリマンジャロ", "alt": 5895, "emoji": "🌍", "badge": "🌍", "certificate": "アフリカ最高峰！" },
-        { "id": "elbrus", "name": "エルブルス山", "alt": 5642, "emoji": "🏔️", "badge": "🏔️", "certificate": "ヨーロッパ最高峰！" },
-        { "id": "denali", "name": "デナリ", "alt": 6190, "emoji": "🏔️", "badge": "🏔️", "certificate": "北米最高峰！" },
-        { "id": "aconcagua", "name": "アコンカグア", "alt": 6961, "emoji": "🏔️", "badge": "🏔️", "certificate": "南米最高峰！" },
-        { "id": "k2", "name": "K2", "alt": 8611, "emoji": "🏔️", "badge": "🏔️", "certificate": "世界第二の高峰！" },
-        { "id": "everest", "name": "エベレスト", "alt": 8849, "emoji": "🏔️", "badge": "🏔️", "certificate": "世界最高峰制覇！！" }
+        {
+          "id": "kilimanjaro",
+          "name": "キリマンジャロ",
+          "alt": 5895,
+          "emoji": "🌍",
+          "badge": "🌍",
+          "certificate": "アフリカ最高峰！",
+          "order": 7,
+          "unlockSlides": 300,
+          "previousMountain": "fuji"
+        },
+        {
+          "id": "elbrus",
+          "name": "エルブルス山",
+          "alt": 5642,
+          "emoji": "🏔️",
+          "badge": "🏔️",
+          "certificate": "ヨーロッパ最高峰！",
+          "order": 8,
+          "unlockSlides": 400,
+          "previousMountain": "kilimanjaro"
+        },
+        {
+          "id": "denali",
+          "name": "デナリ",
+          "alt": 6190,
+          "emoji": "🏔️",
+          "badge": "🏔️",
+          "certificate": "北米最高峰！",
+          "order": 9,
+          "unlockSlides": 500,
+          "previousMountain": "elbrus"
+        },
+        {
+          "id": "aconcagua",
+          "name": "アコンカグア",
+          "alt": 6961,
+          "emoji": "🏔️",
+          "badge": "🏔️",
+          "certificate": "南米最高峰！",
+          "order": 10,
+          "unlockSlides": 600,
+          "previousMountain": "denali"
+        },
+        {
+          "id": "k2",
+          "name": "K2",
+          "alt": 8611,
+          "emoji": "🏔️",
+          "badge": "🏔️",
+          "certificate": "世界第二の高峰！",
+          "order": 11,
+          "unlockSlides": 800,
+          "previousMountain": "aconcagua"
+        },
+        {
+          "id": "everest",
+          "name": "エベレスト",
+          "alt": 8849,
+          "emoji": "🏔️",
+          "badge": "🏔️",
+          "certificate": "世界最高峰制覇！！",
+          "order": 12,
+          "unlockSlides": 1000,
+          "previousMountain": "k2"
+        }
       ]
     }
   ]
