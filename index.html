@@ -174,6 +174,37 @@
       <div id="popularContentList" class="popular-content-list"></div>
     </div>
 
+    <!-- 家族画面 -->
+    <div id="screen-family" class="screen">
+      <div class="section-title" style="color:#fff">👨‍👩‍👧 ファミリーミッション<span class="free-tag" style="background:var(--family)">家族で挑戦</span></div>
+
+      <!-- 達成サマリー -->
+      <div class="family-summary" id="familySummary">
+        <div class="family-summary-icon">👨‍👩‍👧</div>
+        <div class="family-summary-info">
+          <div class="family-summary-title">家族ミッション達成</div>
+          <div class="family-summary-stats">
+            <span id="familyCompletedCount">0</span>
+            <span>/ <span id="familyTotalCount">6</span> 達成</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 今日のファミリーミッション -->
+      <div class="section-title" style="color:#fff;font-size:14px;margin-top:16px">🌟 今日のミッション</div>
+      <div id="familyDailyMission"></div>
+
+      <!-- ミッション一覧 -->
+      <div class="section-title" style="color:#fff;font-size:14px;margin-top:16px">📋 ミッション一覧
+        <span id="familyEditBtn" style="display:none;margin-left:auto;background:var(--parent);color:#fff;font-size:10px;padding:4px 10px;border-radius:10px;cursor:pointer" onclick="openFamilyMissionEditor()">➕ 新規作成</span>
+      </div>
+      <div id="familyMissionsList"></div>
+
+      <!-- 達成履歴 -->
+      <div class="section-title" style="color:#fff;font-size:14px;margin-top:16px">🏆 達成履歴</div>
+      <div id="familyHistory"></div>
+    </div>
+
     <!-- プロフィール画面 -->
     <div id="screen-profile" class="screen">
       <div class="profile-card">
@@ -234,14 +265,14 @@
       <div class="nav-item active" data-screen="home" onclick="showScreen('home')">
         <span>🏠</span><span>ホーム</span>
       </div>
+      <div class="nav-item" data-screen="family" onclick="showScreen('family'); renderFamilyScreen()">
+        <span>👨‍👩‍👧</span><span>家族</span>
+      </div>
       <div class="nav-item" data-screen="bookshelf" onclick="showScreen('bookshelf')">
         <span>📚</span><span>本棚</span>
       </div>
       <div class="nav-item" data-screen="climb" onclick="showScreen('climb'); renderClimb()">
         <span>🏔️</span><span>登頂</span>
-      </div>
-      <div class="nav-item" data-screen="ranking" onclick="showScreen('ranking'); renderRanking()">
-        <span>🏆</span><span>ランキング</span>
       </div>
       <div class="nav-item" data-screen="profile" onclick="showScreen('profile')">
         <span>👤</span><span>マイ</span>

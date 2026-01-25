@@ -1199,6 +1199,132 @@ function deleteFamilyMissionFromEditor() {
 }
 
 // ========================================
+// 家族画面
+// ========================================
+function renderFamilyScreen() {
+  if (!APP.missions) return;
+
+  // 保護者モードの場合は編集ボタンを表示
+  const editBtn = document.getElementById('familyEditBtn');
+  if (editBtn) {
+    editBtn.style.display = mode === 'parent' ? 'inline-block' : 'none';
+  }
+
+  renderFamilySummary();
+  renderFamilyDailyMission();
+  renderFamilyMissionsList();
+  renderFamilyHistory();
+}
+
+// 達成サマリーをレンダリング
+function renderFamilySummary() {
+  const allMissions = getAllFamilyMissions();
+  const completedCount = completedFamilyMissions.length;
+
+  document.getElementById('familyCompletedCount').textContent = completedCount;
+  document.getElementById('familyTotalCount').textContent = allMissions.length;
+}
+
+// 今日のミッションをレンダリング
+function renderFamilyDailyMission() {
+  const container = document.getElementById('familyDailyMission');
+  if (!container) return;
+
+  const dailyMission = getDailyFamilyMission();
+  if (!dailyMission) {
+    container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,.6);padding:20px">ミッションがありません</div>';
+    return;
+  }
+
+  const isCompleted = isDailyFamilyMissionCompleted() || isFamilyMissionCompleted(dailyMission.id);
+  const reason = getMissionRecommendationReason();
+
+  container.innerHTML = `
+    <div class="daily-family-mission ${isCompleted ? 'completed' : ''}" onclick="openFamilyMission('${dailyMission.id}')" style="margin-bottom:12px">
+      <div class="dfm-header">
+        <div class="dfm-badge">🌟 今日のファミリーミッション</div>
+        <div class="dfm-reason">${reason}</div>
+      </div>
+      <div class="dfm-content">
+        <div class="dfm-emoji" style="background:linear-gradient(135deg,${dailyMission.color[0]},${dailyMission.color[1]})">${dailyMission.emoji}</div>
+        <div class="dfm-info">
+          <div class="dfm-name">${dailyMission.name}</div>
+          <div class="dfm-reward">${isCompleted ? '✓ 達成済み' : `+${dailyMission.reward} ALT`}</div>
+        </div>
+        ${isCompleted ? '<div class="dfm-check">✓</div>' : '<div class="dfm-arrow">→</div>'}
+      </div>
+    </div>
+  `;
+}
+
+// ミッション一覧をレンダリング
+function renderFamilyMissionsList() {
+  const container = document.getElementById('familyMissionsList');
+  if (!container) return;
+
+  const allMissions = getAllFamilyMissions();
+
+  container.innerHTML = allMissions.map(m => {
+    const isCompleted = isFamilyMissionCompleted(m.id);
+    const isCustom = m.isCustom || m.id.startsWith('custom_');
+
+    return `
+      <div class="family-mission-item ${isCompleted ? 'completed' : ''}" onclick="${mode === 'parent' && isCustom ? `openFamilyMissionEditor('${m.id}')` : `openFamilyMission('${m.id}')`}">
+        <div class="fmi-emoji" style="background:linear-gradient(135deg,${m.color[0]},${m.color[1]})">${m.emoji}</div>
+        <div class="fmi-info">
+          <div class="fmi-name">${m.name}${isCustom ? ' <span class="fmi-custom-badge">カスタム</span>' : ''}</div>
+          <div class="fmi-reward" style="color:${isCompleted ? 'var(--rock)' : m.color[0]}">${isCompleted ? '✓ 達成済み' : '+' + m.reward + ' ALT'}</div>
+        </div>
+        ${isCompleted ? '<div class="fmi-check">✓</div>' : '<div class="fmi-arrow">→</div>'}
+        ${mode === 'parent' && isCustom ? '<div class="fmi-edit">✏️</div>' : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+// 達成履歴をレンダリング
+function renderFamilyHistory() {
+  const container = document.getElementById('familyHistory');
+  if (!container) return;
+
+  if (completedFamilyMissions.length === 0) {
+    container.innerHTML = `
+      <div class="family-history-empty">
+        <div style="font-size:32px;margin-bottom:8px">🎯</div>
+        <div>まだ達成したミッションがありません</div>
+        <div style="font-size:11px;margin-top:4px">家族と一緒にミッションに挑戦しよう！</div>
+      </div>
+    `;
+    return;
+  }
+
+  // 新しい順にソート
+  const sortedHistory = [...completedFamilyMissions].sort((a, b) =>
+    new Date(b.completedAt) - new Date(a.completedAt)
+  );
+
+  container.innerHTML = sortedHistory.map(record => {
+    const allMissions = getAllFamilyMissions();
+    const mission = allMissions.find(m => m.id === record.missionId);
+    if (!mission) return '';
+
+    const date = new Date(record.completedAt);
+    const dateStr = `${date.getMonth() + 1}/${date.getDate()}`;
+
+    return `
+      <div class="family-history-item">
+        <div class="fhi-emoji" style="background:linear-gradient(135deg,${mission.color[0]},${mission.color[1]})">${mission.emoji}</div>
+        <div class="fhi-info">
+          <div class="fhi-name">${mission.name}</div>
+          <div class="fhi-date">${dateStr} 達成</div>
+        </div>
+        <div class="fhi-reward">+${mission.reward}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ========================================
 // プロフィール
 // ========================================
 function renderProfile() {
