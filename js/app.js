@@ -36,6 +36,17 @@ let completedSlides = JSON.parse(localStorage.getItem('sherupa_s')) || [];
 let climbedMountains = JSON.parse(localStorage.getItem('sherupa_climbed')) || [];
 let mode = 'child';
 
+// スライド・クイズ状態
+let currentSlide = null;
+let currentSlideIndex = 0;
+let currentQuiz = {
+  slide: null,
+  questions: [],
+  currentQuestion: 0,
+  correctCount: 0,
+  answered: false
+};
+
 // ========================================
 // データ読み込み
 // ========================================
@@ -367,14 +378,291 @@ function openSlide(slideId) {
   const slide = APP.slides.find(s => s.id === slideId);
   if (!slide) return;
 
-  // スライドモーダルを表示（簡略化）
-  const isCompleted = completedSlides.includes(slideId);
+  currentSlide = slide;
+  currentSlideIndex = 0;
 
-  if (!isCompleted) {
-    completeSlide(slideId);
+  const category = APP.categories.find(c => c.id === slide.category);
+
+  // ヘッダー設定
+  const header = document.getElementById('slideModalHeader');
+  header.style.background = `linear-gradient(135deg, ${category?.colorGradient?.[0] || '#3b82f6'}, ${category?.colorGradient?.[1] || '#60a5fa'})`;
+  document.getElementById('slideEmoji').textContent = slide.emoji;
+  document.getElementById('slideTitle').textContent = slide.title;
+  document.getElementById('slideCategory').textContent = category?.name || slide.category;
+
+  renderSlidePage();
+  document.getElementById('slideModal').classList.add('active');
+}
+
+function renderSlidePage() {
+  const slide = currentSlide;
+  if (!slide || !slide.pages) return;
+
+  const page = slide.pages[currentSlideIndex];
+  const totalPages = slide.pages.length;
+
+  // コンテンツ
+  document.getElementById('slideContent').innerHTML = `
+    <div class="slide-page">
+      <div class="slide-page-emoji">${page.emoji}</div>
+      <div class="slide-page-title">${page.title}</div>
+      <div class="slide-page-content">${page.content}</div>
+    </div>
+  `;
+
+  // ドット
+  const dots = slide.pages.map((_, i) =>
+    `<div class="slide-dot ${i === currentSlideIndex ? 'active' : ''}"></div>`
+  ).join('');
+  document.getElementById('slideDots').innerHTML = dots;
+  document.getElementById('slidePageNum').textContent = `${currentSlideIndex + 1} / ${totalPages}`;
+
+  // ボタンテキスト
+  const nextBtn = document.getElementById('slideNextBtn');
+  if (currentSlideIndex === totalPages - 1) {
+    nextBtn.textContent = 'テストを始める 📝';
+    nextBtn.onclick = startQuiz;
   } else {
-    toast(`📖 ${slide.title}`);
+    nextBtn.textContent = '次へ →';
+    nextBtn.onclick = nextSlide;
   }
+}
+
+function nextSlide() {
+  if (!currentSlide || !currentSlide.pages) return;
+  if (currentSlideIndex < currentSlide.pages.length - 1) {
+    currentSlideIndex++;
+    renderSlidePage();
+  }
+}
+
+function prevSlide() {
+  if (currentSlideIndex > 0) {
+    currentSlideIndex--;
+    renderSlidePage();
+  }
+}
+
+// ========================================
+// クイズ
+// ========================================
+function startQuiz() {
+  const slide = currentSlide;
+  if (!slide || !slide.qa || slide.qa.length === 0) {
+    toast('❌ このスライドにはクイズがありません');
+    return;
+  }
+
+  // スライドモーダルを閉じる
+  document.getElementById('slideModal').classList.remove('active');
+
+  // クイズ初期化
+  currentQuiz = {
+    slide: slide,
+    questions: shuffleArray([...slide.qa]).slice(0, 8), // 最大8問
+    currentQuestion: 0,
+    correctCount: 0,
+    answered: false
+  };
+
+  renderQuizQuestion();
+  document.getElementById('quizModal').classList.add('active');
+}
+
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+function renderQuizQuestion() {
+  const q = currentQuiz.questions[currentQuiz.currentQuestion];
+  const total = currentQuiz.questions.length;
+  const current = currentQuiz.currentQuestion + 1;
+
+  document.getElementById('quizProgress').textContent = `問題 ${current}/${total}`;
+  document.getElementById('quizQuestion').textContent = q.q;
+  document.getElementById('quizFeedback').innerHTML = '';
+  currentQuiz.answered = false;
+
+  // 選択肢をシャッフル
+  const choices = shuffleArray([...q.choices]);
+  document.getElementById('quizOptions').innerHTML = choices.map(choice => `
+    <button class="quiz-option" onclick="selectAnswer('${escapeHtml(choice)}', '${escapeHtml(q.a)}')">${choice}</button>
+  `).join('');
+}
+
+function escapeHtml(str) {
+  return str.replace(/'/g, "\\'").replace(/"/g, '\\"');
+}
+
+function selectAnswer(selected, correct) {
+  if (currentQuiz.answered) return;
+  currentQuiz.answered = true;
+
+  const isCorrect = selected === correct;
+  if (isCorrect) {
+    currentQuiz.correctCount++;
+  }
+
+  // 選択肢のスタイル更新
+  const options = document.querySelectorAll('.quiz-option');
+  options.forEach(opt => {
+    opt.disabled = true;
+    if (opt.textContent === correct) {
+      opt.classList.add('correct');
+    } else if (opt.textContent === selected && !isCorrect) {
+      opt.classList.add('wrong');
+    }
+  });
+
+  // フィードバック
+  const feedback = document.getElementById('quizFeedback');
+  if (isCorrect) {
+    feedback.innerHTML = `<div class="feedback correct">⭕ 正解！</div>`;
+  } else {
+    feedback.innerHTML = `<div class="feedback wrong">❌ 不正解... 正解は「${correct}」</div>`;
+  }
+
+  // 次へボタン
+  setTimeout(() => {
+    feedback.innerHTML += `
+      <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="nextQuestion()">
+        ${currentQuiz.currentQuestion < currentQuiz.questions.length - 1 ? '次の問題へ' : '結果を見る'}
+      </button>
+    `;
+  }, 500);
+}
+
+function nextQuestion() {
+  if (currentQuiz.currentQuestion < currentQuiz.questions.length - 1) {
+    currentQuiz.currentQuestion++;
+    renderQuizQuestion();
+  } else {
+    showQuizResult();
+  }
+}
+
+function showQuizResult() {
+  document.getElementById('quizModal').classList.remove('active');
+
+  const correct = currentQuiz.correctCount;
+  const total = currentQuiz.questions.length;
+  const slide = currentQuiz.slide;
+
+  // 報酬計算: 5問以上正解で20ALT、全問正解で50ALT
+  let reward = 0;
+  let emoji = '😊';
+  let title = 'がんばったね！';
+  let headerColor = '#f59e0b';
+
+  if (correct === total) {
+    reward = 50;
+    emoji = '🎉';
+    title = 'パーフェクト！';
+    headerColor = '#10b981';
+  } else if (correct >= 5) {
+    reward = 20;
+    emoji = '👏';
+    title = '合格！';
+    headerColor = '#3b82f6';
+  } else {
+    emoji = '💪';
+    title = 'もう一度チャレンジ！';
+    headerColor = '#ef4444';
+  }
+
+  // 結果表示
+  document.getElementById('resultHeader').style.background = `linear-gradient(135deg, ${headerColor}, ${adjustColor(headerColor, 30)})`;
+  document.getElementById('resultEmoji').textContent = emoji;
+  document.getElementById('resultTitle').textContent = title;
+  document.getElementById('scoreNum').textContent = correct;
+  document.getElementById('scoreCircle').querySelector('.score-label').textContent = `/ ${total}問正解`;
+
+  // 報酬表示
+  const rewardBox = document.getElementById('rewardBox');
+  if (reward > 0) {
+    rewardBox.style.display = 'flex';
+    document.getElementById('rewardAlt').textContent = `+${reward} ALT`;
+
+    // ALTを追加
+    if (!completedSlides.includes(slide.id)) {
+      completedSlides.push(slide.id);
+      localStorage.setItem('sherupa_s', JSON.stringify(completedSlides));
+    }
+    userProfile.alt += reward;
+    localStorage.setItem('sherupa_profile', JSON.stringify(userProfile));
+    updateHeader();
+  } else {
+    rewardBox.style.display = 'none';
+  }
+
+  // NotebookLMリンク
+  const notebookLink = document.getElementById('notebookLink');
+  if (slide.notebookUrl) {
+    notebookLink.style.display = 'block';
+    document.getElementById('notebookUrl').href = slide.notebookUrl;
+  } else {
+    notebookLink.style.display = 'none';
+  }
+
+  // おすすめの学習
+  renderRecommendedSlides(slide);
+
+  document.getElementById('resultModal').classList.add('active');
+
+  // 再レンダリング
+  renderHome();
+  renderProfile();
+}
+
+function adjustColor(hex, percent) {
+  const num = parseInt(hex.replace('#', ''), 16);
+  const amt = Math.round(2.55 * percent);
+  const R = (num >> 16) + amt;
+  const G = (num >> 8 & 0x00FF) + amt;
+  const B = (num & 0x0000FF) + amt;
+  return '#' + (
+    0x1000000 +
+    (R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 +
+    (G < 255 ? (G < 1 ? 0 : G) : 255) * 0x100 +
+    (B < 255 ? (B < 1 ? 0 : B) : 255)
+  ).toString(16).slice(1);
+}
+
+function renderRecommendedSlides(currentSlideData) {
+  const container = document.getElementById('recommendedSlides');
+
+  // 同じカテゴリまたは関連カテゴリから未完了のスライドを取得
+  const recommendations = APP.slides
+    .filter(s => s.id !== currentSlideData.id && !completedSlides.includes(s.id))
+    .sort((a, b) => {
+      // 同じカテゴリを優先
+      if (a.category === currentSlideData.category && b.category !== currentSlideData.category) return -1;
+      if (a.category !== currentSlideData.category && b.category === currentSlideData.category) return 1;
+      return 0;
+    })
+    .slice(0, 3);
+
+  if (recommendations.length === 0) {
+    container.innerHTML = '<div style="text-align:center;color:var(--rock);font-size:12px;padding:12px">すべてのスライドを完了しました！</div>';
+    return;
+  }
+
+  container.innerHTML = recommendations.map(slide => {
+    const category = APP.categories.find(c => c.id === slide.category);
+    return `
+      <div class="recommended-card" onclick="closeModals(); setTimeout(() => openSlide('${slide.id}'), 300)">
+        <div class="recommended-emoji" style="background:linear-gradient(135deg, ${category?.colorGradient?.[0] || '#3b82f6'}, ${category?.colorGradient?.[1] || '#60a5fa'})">${slide.emoji}</div>
+        <div class="recommended-info">
+          <div class="recommended-title">${slide.title}</div>
+          <div class="recommended-reward">+${slide.reward} ALT</div>
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
 function completeSlide(slideId) {
