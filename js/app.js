@@ -44,6 +44,15 @@ let certificates = JSON.parse(localStorage.getItem('sherupa_certs')) || {};
 // marketplace: [{ certId, mountainId, sellerName, price, listedAt }]
 let marketplace = JSON.parse(localStorage.getItem('sherupa_market')) || [];
 
+// ランキングシステム
+// allUsers: [{ id, name, alt, slides, mountains, weeklyAlt, streak, lastActive }]
+let allUsers = JSON.parse(localStorage.getItem('sherupa_all_users')) || [];
+let currentRankingCategory = 'total';
+
+// コンテンツ完了記録（人気コンテンツ用）
+// slideCompletions: { slideId: count }
+let slideCompletions = JSON.parse(localStorage.getItem('sherupa_slide_completions')) || {};
+
 // ユーザーIDの生成・取得
 if (!userProfile.id) {
   userProfile.id = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
@@ -605,9 +614,13 @@ function showQuizResult() {
     if (!completedSlides.includes(slide.id)) {
       completedSlides.push(slide.id);
       localStorage.setItem('sherupa_s', JSON.stringify(completedSlides));
+      // 人気度を更新
+      updateSlidePopularity(slide.id);
     }
     userProfile.alt += reward;
     localStorage.setItem('sherupa_profile', JSON.stringify(userProfile));
+    // ランキングを同期
+    syncCurrentUserToRanking();
     updateHeader();
   } else {
     rewardBox.style.display = 'none';
@@ -1189,6 +1202,257 @@ function switchMode(newMode) {
 
   showScreen('home');
   toast(`${modeConfig.emoji} ${modeConfig.name}モードに切り替えました`);
+}
+
+// ========================================
+// ランキングシステム
+// ========================================
+
+// デモユーザーを初期化（リアルなランキング体験のため）
+function initDemoUsers() {
+  if (allUsers.length > 0) return;
+
+  const demoUsers = [
+    { id: 'demo_1', name: 'そうた', alt: 15420, slides: 48, mountains: 8, weeklyAlt: 2340, streak: 45, region: '関東' },
+    { id: 'demo_2', name: 'ゆいな', alt: 12850, slides: 42, mountains: 6, weeklyAlt: 1890, streak: 32, region: '関西' },
+    { id: 'demo_3', name: 'けんた', alt: 11200, slides: 38, mountains: 5, weeklyAlt: 3210, streak: 28, region: '東北' },
+    { id: 'demo_4', name: 'あおい', alt: 9850, slides: 35, mountains: 5, weeklyAlt: 1560, streak: 21, region: '北海道' },
+    { id: 'demo_5', name: 'りく', alt: 8420, slides: 30, mountains: 4, weeklyAlt: 2780, streak: 18, region: '九州' },
+    { id: 'demo_6', name: 'ひなた', alt: 7650, slides: 28, mountains: 4, weeklyAlt: 980, streak: 55, region: '中部' },
+    { id: 'demo_7', name: 'はると', alt: 6890, slides: 25, mountains: 3, weeklyAlt: 1420, streak: 14, region: '関東' },
+    { id: 'demo_8', name: 'みお', alt: 5420, slides: 22, mountains: 3, weeklyAlt: 2100, streak: 12, region: '四国' },
+    { id: 'demo_9', name: 'ゆうき', alt: 4850, slides: 20, mountains: 2, weeklyAlt: 890, streak: 8, region: '中国' },
+    { id: 'demo_10', name: 'さくら', alt: 3200, slides: 15, mountains: 2, weeklyAlt: 1650, streak: 5, region: '関西' },
+    { id: 'demo_11', name: 'たいが', alt: 2450, slides: 12, mountains: 1, weeklyAlt: 720, streak: 3, region: '東北' },
+    { id: 'demo_12', name: 'こはる', alt: 1800, slides: 8, mountains: 1, weeklyAlt: 450, streak: 2, region: '北海道' }
+  ];
+
+  allUsers = demoUsers.map(u => ({
+    ...u,
+    lastActive: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString()
+  }));
+  localStorage.setItem('sherupa_all_users', JSON.stringify(allUsers));
+}
+
+// 現在のユーザーをランキングに同期
+function syncCurrentUserToRanking() {
+  const existingIndex = allUsers.findIndex(u => u.id === userProfile.id);
+  const userData = {
+    id: userProfile.id,
+    name: userProfile.name,
+    alt: userProfile.alt,
+    slides: completedSlides.length,
+    mountains: climbedMountains.length,
+    weeklyAlt: calculateWeeklyAlt(),
+    streak: userProfile.streak,
+    region: userProfile.region,
+    lastActive: new Date().toISOString()
+  };
+
+  if (existingIndex >= 0) {
+    allUsers[existingIndex] = userData;
+  } else {
+    allUsers.push(userData);
+  }
+
+  localStorage.setItem('sherupa_all_users', JSON.stringify(allUsers));
+}
+
+// 週間ALT計算（簡易版：現在のALTの10%をベースに変動）
+function calculateWeeklyAlt() {
+  const baseWeekly = Math.floor(userProfile.alt * 0.1);
+  const variance = Math.floor(Math.random() * 500);
+  return baseWeekly + variance;
+}
+
+// ランキングを取得
+function getRanking(category) {
+  const sortKey = {
+    total: 'alt',
+    learning: 'slides',
+    climbing: 'mountains',
+    trending: 'weeklyAlt',
+    streak: 'streak'
+  }[category] || 'alt';
+
+  return [...allUsers].sort((a, b) => b[sortKey] - a[sortKey]);
+}
+
+// 現在のユーザーの順位を取得
+function getCurrentUserRank(category) {
+  const ranking = getRanking(category);
+  const index = ranking.findIndex(u => u.id === userProfile.id);
+  return index >= 0 ? index + 1 : ranking.length + 1;
+}
+
+// ランキング画面をレンダリング
+function renderRanking() {
+  initDemoUsers();
+  syncCurrentUserToRanking();
+  renderRankingSummary();
+  showRankingCategory(currentRankingCategory);
+  renderPopularContent();
+}
+
+// 自分の順位サマリーをレンダリング
+function renderRankingSummary() {
+  document.getElementById('myRankAvatar').textContent = userProfile.name.charAt(0);
+  document.getElementById('myRankName').textContent = userProfile.name;
+  document.getElementById('myRankPosition').textContent = `${getCurrentUserRank(currentRankingCategory)}位`;
+  document.getElementById('myRankAlt').textContent = `${userProfile.alt.toLocaleString()} ALT`;
+}
+
+// ランキングカテゴリを表示
+function showRankingCategory(category, element) {
+  currentRankingCategory = category;
+
+  // タブ切り替え
+  document.querySelectorAll('.ranking-tab').forEach(t => t.classList.remove('active'));
+  if (element) {
+    element.classList.add('active');
+  } else {
+    const tab = document.querySelector(`.ranking-tab[data-category="${category}"]`);
+    if (tab) tab.classList.add('active');
+  }
+
+  // 順位更新
+  document.getElementById('myRankPosition').textContent = `${getCurrentUserRank(category)}位`;
+
+  // ランキングリストをレンダリング
+  const ranking = getRanking(category);
+  const container = document.getElementById('rankingList');
+
+  const metricLabels = {
+    total: 'ALT',
+    learning: 'スライド',
+    climbing: '山',
+    trending: '週間ALT',
+    streak: '日連続'
+  };
+
+  const metricKeys = {
+    total: 'alt',
+    learning: 'slides',
+    climbing: 'mountains',
+    trending: 'weeklyAlt',
+    streak: 'streak'
+  };
+
+  container.innerHTML = ranking.slice(0, 10).map((user, index) => {
+    const rank = index + 1;
+    const isMe = user.id === userProfile.id;
+    const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
+    const value = user[metricKeys[category]];
+    const label = metricLabels[category];
+
+    return `
+      <div class="ranking-item ${isMe ? 'is-me' : ''} ${rank <= 3 ? 'top-' + rank : ''}">
+        <div class="ranking-position">
+          ${medal ? `<span class="medal">${medal}</span>` : `<span class="rank-num">${rank}</span>`}
+        </div>
+        <div class="ranking-avatar">${user.name.charAt(0)}</div>
+        <div class="ranking-info">
+          <div class="ranking-name">${user.name}${isMe ? ' <span class="you-badge">あなた</span>' : ''}</div>
+          <div class="ranking-region">${user.region || '未設定'}</div>
+        </div>
+        <div class="ranking-value">
+          <div class="value-num">${value.toLocaleString()}</div>
+          <div class="value-label">${label}</div>
+        </div>
+        ${getTrendIndicator(user, category)}
+      </div>
+    `;
+  }).join('');
+
+  // 10位以下で自分が含まれていない場合、自分の順位を表示
+  const myRank = getCurrentUserRank(category);
+  if (myRank > 10) {
+    const me = allUsers.find(u => u.id === userProfile.id);
+    if (me) {
+      const value = me[metricKeys[category]];
+      const label = metricLabels[category];
+      container.innerHTML += `
+        <div class="ranking-divider">
+          <span>...</span>
+        </div>
+        <div class="ranking-item is-me">
+          <div class="ranking-position">
+            <span class="rank-num">${myRank}</span>
+          </div>
+          <div class="ranking-avatar">${me.name.charAt(0)}</div>
+          <div class="ranking-info">
+            <div class="ranking-name">${me.name} <span class="you-badge">あなた</span></div>
+            <div class="ranking-region">${me.region || '未設定'}</div>
+          </div>
+          <div class="ranking-value">
+            <div class="value-num">${value.toLocaleString()}</div>
+            <div class="value-label">${label}</div>
+          </div>
+        </div>
+      `;
+    }
+  }
+}
+
+// トレンドインジケーター（上昇/下降）
+function getTrendIndicator(user, category) {
+  // 簡易的なトレンド計算（ランダムで表示）
+  const rand = Math.random();
+  if (category === 'trending') {
+    return '<div class="trend-indicator up">↑</div>';
+  }
+  if (rand > 0.7) {
+    return '<div class="trend-indicator up">↑</div>';
+  } else if (rand < 0.3) {
+    return '<div class="trend-indicator down">↓</div>';
+  }
+  return '<div class="trend-indicator stable">−</div>';
+}
+
+// 人気コンテンツをレンダリング
+function renderPopularContent() {
+  const container = document.getElementById('popularContentList');
+  if (!container || !APP.slides) return;
+
+  // デモ用の完了数を生成
+  const popularSlides = APP.slides.map(slide => {
+    const baseCount = Math.floor(Math.random() * 50) + 10;
+    const userCompleted = completedSlides.includes(slide.id);
+    return {
+      ...slide,
+      completions: slideCompletions[slide.id] || baseCount,
+      userCompleted
+    };
+  }).sort((a, b) => b.completions - a.completions).slice(0, 5);
+
+  container.innerHTML = popularSlides.map((slide, index) => {
+    const category = APP.categories.find(c => c.id === slide.category);
+    const rank = index + 1;
+    const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
+
+    return `
+      <div class="popular-item ${slide.userCompleted ? 'completed' : ''}" onclick="openSlide('${slide.id}')">
+        <div class="popular-rank">
+          ${medal ? `<span class="medal">${medal}</span>` : `<span class="rank-num">${rank}</span>`}
+        </div>
+        <div class="popular-emoji" style="background:linear-gradient(135deg, ${category?.colorGradient?.[0] || '#3b82f6'}, ${category?.colorGradient?.[1] || '#60a5fa'})">${slide.emoji}</div>
+        <div class="popular-info">
+          <div class="popular-title">${slide.title}</div>
+          <div class="popular-meta">
+            <span class="popular-category">${category?.name || slide.category}</span>
+            <span class="popular-count">${slide.completions}人が学習</span>
+          </div>
+        </div>
+        ${slide.userCompleted ? '<div class="completed-badge">✓</div>' : '<div class="popular-reward">+' + slide.reward + ' ALT</div>'}
+      </div>
+    `;
+  }).join('');
+}
+
+// スライド完了時に人気度を更新
+function updateSlidePopularity(slideId) {
+  slideCompletions[slideId] = (slideCompletions[slideId] || 0) + 1;
+  localStorage.setItem('sherupa_slide_completions', JSON.stringify(slideCompletions));
 }
 
 // ========================================
