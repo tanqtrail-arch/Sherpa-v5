@@ -44,6 +44,10 @@ let certificates = JSON.parse(localStorage.getItem('sherupa_certs')) || {};
 // marketplace: [{ certId, mountainId, sellerName, price, listedAt }]
 let marketplace = JSON.parse(localStorage.getItem('sherupa_market')) || [];
 
+// 取引履歴
+// transactions: [{ type, certId, mountainId, buyerId, buyerName, sellerId, sellerName, price, timestamp }]
+let transactions = JSON.parse(localStorage.getItem('sherupa_transactions')) || [];
+
 // ユーザーIDの生成・取得
 if (!userProfile.id) {
   userProfile.id = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
@@ -719,6 +723,9 @@ function renderProfile() {
   document.getElementById('profClimbed').textContent = climbedMountains.length;
   document.getElementById('profWorks').textContent = '0';
 
+  // 証明書を表示
+  renderProfileCertificates();
+
   document.getElementById('completedSlideCount').textContent = `${completedSlides.length}件`;
 
   const completedList = document.getElementById('completedSlideList');
@@ -735,6 +742,33 @@ function renderProfile() {
     noCompleted.style.display = 'block';
     completedList.innerHTML = '';
   }
+}
+
+function renderProfileCertificates() {
+  const container = document.getElementById('profileCertificatesList');
+  if (!container) return;
+
+  const userCerts = getUserCertificates();
+  const countEl = document.getElementById('profileCertCount');
+  if (countEl) countEl.textContent = `${userCerts.length}枚`;
+
+  if (userCerts.length === 0) {
+    container.innerHTML = `<div style="text-align:center;color:var(--rock);font-size:12px;padding:20px">まだ証明書を持っていません<br>山に登頂して証明書を取得しよう！</div>`;
+    return;
+  }
+
+  container.innerHTML = userCerts.map(cert => {
+    const mountain = findMountain(cert.mountainId);
+    const isListed = marketplace.find(m => m.certId === cert.id);
+    return `
+      <div style="background:var(--cloud);border-radius:8px;padding:10px;text-align:center;position:relative">
+        <div style="font-size:28px">${mountain?.emoji || '🏔️'}</div>
+        <div style="font-size:10px;font-weight:700;color:var(--summit)">${mountain?.name || '不明'}</div>
+        <div style="font-size:9px;color:var(--rock)">#${cert.certNumber}/100</div>
+        ${isListed ? '<div style="position:absolute;top:4px;right:4px;background:var(--sunrise);color:#fff;font-size:8px;padding:2px 4px;border-radius:4px">出品中</div>' : ''}
+      </div>
+    `;
+  }).join('');
 }
 
 function saveProfile() {
@@ -988,6 +1022,20 @@ function buyCertificate(certId) {
     climbedMountains.push(listing.mountainId);
   }
 
+  // 取引履歴に追加
+  transactions.push({
+    type: 'buy',
+    certId: certId,
+    mountainId: listing.mountainId,
+    buyerId: userProfile.id,
+    buyerName: userProfile.name,
+    sellerId: listing.sellerId,
+    sellerName: listing.sellerName,
+    price: listing.price,
+    certNumber: cert.certNumber,
+    timestamp: new Date().toISOString()
+  });
+
   // 出品リストから削除
   marketplace = marketplace.filter(m => m.certId !== certId);
 
@@ -995,6 +1043,7 @@ function buyCertificate(certId) {
   localStorage.setItem('sherupa_climbed', JSON.stringify(climbedMountains));
   localStorage.setItem('sherupa_certs', JSON.stringify(certificates));
   localStorage.setItem('sherupa_market', JSON.stringify(marketplace));
+  localStorage.setItem('sherupa_transactions', JSON.stringify(transactions));
 
   updateHeader();
   renderMarketplace();
@@ -1018,42 +1067,92 @@ function renderMarketplace() {
   const container = document.getElementById('marketplaceList');
   if (!container) return;
 
+  let html = '';
+
+  // 出品中の証明書
   if (marketplace.length === 0) {
-    container.innerHTML = `
-      <div style="text-align:center;color:#fff;padding:40px">
-        <div style="font-size:48px;margin-bottom:12px">🏪</div>
-        <div style="font-size:14px">出品中の証明書はありません</div>
+    html += `
+      <div style="text-align:center;color:#fff;padding:30px">
+        <div style="font-size:40px;margin-bottom:8px">🏪</div>
+        <div style="font-size:13px">出品中の証明書はありません</div>
       </div>
     `;
-    return;
-  }
+  } else {
+    html += marketplace.map(listing => {
+      const mountain = findMountain(listing.mountainId);
+      const cert = certificates[listing.mountainId]?.find(c => c.id === listing.certId);
+      const isOwn = listing.sellerId === userProfile.id;
+      const canBuy = !isOwn && userProfile.alt >= listing.price;
 
-  container.innerHTML = marketplace.map(listing => {
-    const mountain = findMountain(listing.mountainId);
-    const cert = certificates[listing.mountainId]?.find(c => c.id === listing.certId);
-    const isOwn = listing.sellerId === userProfile.id;
-    const canBuy = !isOwn && userProfile.alt >= listing.price;
-
-    return `
-      <div class="card" style="margin-bottom:10px">
-        <div class="card-body" style="display:flex;align-items:center;gap:12px">
-          <div style="font-size:36px">${mountain?.emoji || '🏔️'}</div>
-          <div style="flex:1">
-            <div style="font-size:14px;font-weight:700;color:var(--summit)">${mountain?.name || '不明'}</div>
-            <div style="font-size:11px;color:var(--rock)">証明書 #${cert?.certNumber || '?'}/100</div>
-            <div style="font-size:11px;color:var(--rock)">出品者: ${listing.sellerName}</div>
-          </div>
-          <div style="text-align:right">
-            <div style="font-size:16px;font-weight:900;color:var(--sunrise)">${listing.price.toLocaleString()} ALT</div>
-            ${isOwn
-              ? `<button onclick="cancelListing('${listing.certId}')" style="background:var(--sunset);color:#fff;border:none;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;margin-top:4px">キャンセル</button>`
-              : `<button onclick="buyCertificate('${listing.certId}')" style="background:${canBuy ? 'linear-gradient(135deg,var(--meadow),#34d399)' : 'var(--cloud)'};color:${canBuy ? '#fff' : 'var(--rock)'};border:none;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;cursor:${canBuy ? 'pointer' : 'not-allowed'};margin-top:4px" ${canBuy ? '' : 'disabled'}>購入</button>`
-            }
+      return `
+        <div class="card" style="margin-bottom:10px">
+          <div class="card-body" style="display:flex;align-items:center;gap:12px">
+            <div style="font-size:36px">${mountain?.emoji || '🏔️'}</div>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:700;color:var(--summit)">${mountain?.name || '不明'}</div>
+              <div style="font-size:11px;color:var(--rock)">証明書 #${cert?.certNumber || '?'}/100</div>
+              <div style="font-size:11px;color:var(--rock)">出品者: ${listing.sellerName}</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:16px;font-weight:900;color:var(--sunrise)">${listing.price.toLocaleString()} ALT</div>
+              ${isOwn
+                ? `<button onclick="cancelListing('${listing.certId}')" style="background:var(--sunset);color:#fff;border:none;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;margin-top:4px">キャンセル</button>`
+                : `<button onclick="buyCertificate('${listing.certId}')" style="background:${canBuy ? 'linear-gradient(135deg,var(--meadow),#34d399)' : 'var(--cloud)'};color:${canBuy ? '#fff' : 'var(--rock)'};border:none;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;cursor:${canBuy ? 'pointer' : 'not-allowed'};margin-top:4px" ${canBuy ? '' : 'disabled'}>購入</button>`
+              }
+            </div>
           </div>
         </div>
+      `;
+    }).join('');
+  }
+
+  // 取引履歴
+  html += renderTransactionHistory();
+
+  container.innerHTML = html;
+}
+
+function renderTransactionHistory() {
+  if (transactions.length === 0) {
+    return `
+      <div style="margin-top:20px">
+        <div style="color:#fff;font-size:12px;font-weight:700;margin-bottom:8px">📊 取引履歴</div>
+        <div style="text-align:center;color:rgba(255,255,255,.6);font-size:12px;padding:16px">まだ取引がありません</div>
       </div>
     `;
-  }).join('');
+  }
+
+  const recentTransactions = [...transactions].reverse().slice(0, 10);
+
+  return `
+    <div style="margin-top:20px">
+      <div style="color:#fff;font-size:12px;font-weight:700;margin-bottom:8px">📊 取引履歴（最新10件）</div>
+      ${recentTransactions.map(tx => {
+        const mountain = findMountain(tx.mountainId);
+        const isBuyer = tx.buyerId === userProfile.id;
+        const isSeller = tx.sellerId === userProfile.id;
+        const date = new Date(tx.timestamp).toLocaleDateString('ja-JP');
+
+        return `
+          <div class="card" style="margin-bottom:6px">
+            <div class="card-body" style="padding:10px;display:flex;align-items:center;gap:10px">
+              <div style="font-size:24px">${mountain?.emoji || '🏔️'}</div>
+              <div style="flex:1">
+                <div style="font-size:12px;font-weight:600;color:var(--summit)">${mountain?.name || '不明'} #${tx.certNumber}</div>
+                <div style="font-size:10px;color:var(--rock)">${tx.sellerName} → ${tx.buyerName}</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-size:12px;font-weight:700;color:${isBuyer ? 'var(--sunset)' : isSeller ? 'var(--meadow)' : 'var(--rock)'}">
+                  ${isBuyer ? '-' : isSeller ? '+' : ''}${tx.price.toLocaleString()} ALT
+                </div>
+                <div style="font-size:9px;color:var(--rock)">${date}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
 }
 
 function renderMyCertificates() {
@@ -1064,8 +1163,10 @@ function renderMyCertificates() {
 
   if (userCerts.length === 0) {
     container.innerHTML = `
-      <div style="text-align:center;color:var(--rock);padding:20px">
-        まだ証明書を持っていません<br>山に登頂して証明書を取得しよう！
+      <div style="text-align:center;color:#fff;padding:30px">
+        <div style="font-size:40px;margin-bottom:8px">📜</div>
+        <div style="font-size:13px">まだ証明書を持っていません</div>
+        <div style="font-size:11px;opacity:.7;margin-top:4px">山に登頂して証明書を取得しよう！</div>
       </div>
     `;
     return;
@@ -1082,10 +1183,11 @@ function renderMyCertificates() {
           <div style="flex:1">
             <div style="font-size:13px;font-weight:700;color:var(--summit)">${mountain?.name || '不明'}</div>
             <div style="font-size:10px;color:var(--rock)">証明書 #${cert.certNumber}/100</div>
+            <div style="font-size:9px;color:var(--rock)">${new Date(cert.issuedAt).toLocaleDateString('ja-JP')} 取得</div>
           </div>
           ${isListed
             ? `<div style="font-size:11px;color:var(--sunrise);font-weight:700">出品中</div>`
-            : `<button onclick="openSellModal('${cert.id}', '${cert.mountainId}')" style="background:linear-gradient(135deg,var(--sunrise),var(--sunset));color:#fff;border:none;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer">売る</button>`
+            : `<button onclick="openSellModal('${cert.id}', '${cert.mountainId}')" style="background:linear-gradient(135deg,var(--sunrise),var(--sunset));color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">売る</button>`
           }
         </div>
       </div>
