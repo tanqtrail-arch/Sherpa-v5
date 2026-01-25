@@ -139,19 +139,39 @@
       </div>
     </div>
 
-    <!-- ギャラリー画面 -->
-    <div id="screen-gallery" class="screen">
-      <div class="section-title" style="color:#fff">🖼️ みんなの作品<span class="free-tag">全機能無料</span></div>
-      <div style="background:rgba(255,255,255,.15);border-radius:12px;padding:10px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
-        <div style="color:#fff;font-size:12px;font-weight:600">💜 今日のいいね</div>
-        <div style="color:#fff;font-size:14px;font-weight:900">残り 10/10回</div>
-      </div>
-      <div class="gallery-grid" id="galleryGrid">
-        <div style="grid-column:span 2;text-align:center;color:#fff;padding:40px">
-          <div style="font-size:48px;margin-bottom:12px">🖼️</div>
-          <div style="font-size:14px">まだ作品がありません</div>
+    <!-- ランキング画面 -->
+    <div id="screen-ranking" class="screen">
+      <div class="section-title" style="color:#fff">🏆 盛り上がりランキング<span class="free-tag">リアルタイム更新</span></div>
+
+      <!-- 自分の順位サマリー -->
+      <div class="ranking-my-summary" id="rankingMySummary">
+        <div class="my-rank-avatar" id="myRankAvatar">探</div>
+        <div class="my-rank-info">
+          <div class="my-rank-name" id="myRankName">探究者さん</div>
+          <div class="my-rank-stats">
+            <span id="myRankPosition">--位</span>
+            <span id="myRankAlt">0 ALT</span>
+          </div>
         </div>
       </div>
+
+      <!-- ランキングカテゴリタブ -->
+      <div class="ranking-tabs" id="rankingTabs">
+        <div class="ranking-tab active" data-category="total" onclick="showRankingCategory('total', this)">🏆 総合</div>
+        <div class="ranking-tab" data-category="learning" onclick="showRankingCategory('learning', this)">📚 学習</div>
+        <div class="ranking-tab" data-category="climbing" onclick="showRankingCategory('climbing', this)">🏔️ 登頂</div>
+        <div class="ranking-tab" data-category="trending" onclick="showRankingCategory('trending', this)">🔥 急上昇</div>
+        <div class="ranking-tab" data-category="streak" onclick="showRankingCategory('streak', this)">⚡ 連続</div>
+      </div>
+
+      <!-- ランキングリスト -->
+      <div class="ranking-list-container">
+        <div id="rankingList" class="ranking-list"></div>
+      </div>
+
+      <!-- 人気コンテンツランキング -->
+      <div class="section-title" style="color:#fff;margin-top:20px">📈 人気コンテンツ<span class="free-tag">みんなが学んでいる</span></div>
+      <div id="popularContentList" class="popular-content-list"></div>
     </div>
 
     <!-- プロフィール画面 -->
@@ -227,8 +247,8 @@
       <div class="nav-item" data-screen="climb" onclick="showScreen('climb'); renderClimb()">
         <span>🏔️</span><span>登頂</span>
       </div>
-      <div class="nav-item" data-screen="gallery" onclick="showScreen('gallery')">
-        <span>🖼️</span><span>ギャラリー</span>
+      <div class="nav-item" data-screen="ranking" onclick="showScreen('ranking'); renderRanking()">
+        <span>🏆</span><span>ランキング</span>
       </div>
       <div class="nav-item" data-screen="profile" onclick="showScreen('profile')">
         <span>👤</span><span>マイ</span>
