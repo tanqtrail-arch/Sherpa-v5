@@ -1,0 +1,397 @@
+{
+  "_comment": "管理者専用学習分析データ - Sherupa v5",
+  "_description": "子どもの探究学習の基礎データを管理者向けに可視化するためのデータ構造",
+  "version": "1.0",
+  "lastUpdated": "2026-01-25T00:00:00.000Z",
+
+  "overview": {
+    "totalRegistrations": 1247,
+    "activeUsersToday": 342,
+    "activeUsersWeek": 856,
+    "activeUsersMonth": 1089,
+    "totalAltEarned": 2847650,
+    "totalSlidesCompleted": 18420,
+    "totalQuizzesTaken": 24680,
+    "avgSessionDuration": 18.5,
+    "avgDailyActiveTime": 23.2,
+    "premiumUsers": 187,
+    "premiumConversionRate": 15.0
+  },
+
+  "registrationTrends": {
+    "daily": [
+      { "date": "2026-01-19", "count": 12, "premium": 2 },
+      { "date": "2026-01-20", "count": 18, "premium": 3 },
+      { "date": "2026-01-21", "count": 15, "premium": 1 },
+      { "date": "2026-01-22", "count": 22, "premium": 4 },
+      { "date": "2026-01-23", "count": 28, "premium": 5 },
+      { "date": "2026-01-24", "count": 31, "premium": 6 },
+      { "date": "2026-01-25", "count": 19, "premium": 3 }
+    ],
+    "monthly": [
+      { "month": "2025-08", "count": 89, "premium": 12 },
+      { "month": "2025-09", "count": 124, "premium": 18 },
+      { "month": "2025-10", "count": 156, "premium": 22 },
+      { "month": "2025-11", "count": 198, "premium": 31 },
+      { "month": "2025-12", "count": 234, "premium": 38 },
+      { "month": "2026-01", "count": 267, "premium": 42 }
+    ]
+  },
+
+  "registrationByRegion": {
+    "北海道": { "total": 78, "lower": 18, "middle": 32, "upper": 28 },
+    "東北": { "total": 92, "lower": 22, "middle": 38, "upper": 32 },
+    "関東": { "total": 412, "lower": 98, "middle": 168, "upper": 146 },
+    "中部": { "total": 156, "lower": 38, "middle": 64, "upper": 54 },
+    "近畿": { "total": 234, "lower": 56, "middle": 96, "upper": 82 },
+    "中国": { "total": 87, "lower": 21, "middle": 36, "upper": 30 },
+    "四国": { "total": 54, "lower": 13, "middle": 22, "upper": 19 },
+    "九州・沖縄": { "total": 134, "lower": 32, "middle": 55, "upper": 47 }
+  },
+
+  "registrationByGrade": {
+    "lower": { "total": 298, "label": "低学年（小1〜小2）", "emoji": "🌱", "avgAlt": 1850, "avgSlides": 12 },
+    "middle": { "total": 511, "label": "中学年（小3〜小4）", "emoji": "⭐", "avgAlt": 3420, "avgSlides": 22 },
+    "upper": { "total": 438, "label": "高学年（小5〜中学）", "emoji": "🚀", "avgAlt": 5280, "avgSlides": 31 }
+  },
+
+  "registrationSources": {
+    "organic": { "count": 487, "percent": 39.1, "label": "自然検索", "emoji": "🔍" },
+    "referral": { "count": 312, "percent": 25.0, "label": "友達紹介", "emoji": "👥" },
+    "school": { "count": 234, "percent": 18.8, "label": "学校経由", "emoji": "🏫" },
+    "social": { "count": 156, "percent": 12.5, "label": "SNS", "emoji": "📱" },
+    "advertisement": { "count": 58, "percent": 4.6, "label": "広告", "emoji": "📢" }
+  },
+
+  "contentPopularityByGrade": {
+    "lower": [
+      { "slideId": "slide_nature_butterfly", "title": "チョウのふしぎ", "category": "nature", "completions": 156, "avgScore": 72 },
+      { "slideId": "slide_nature_seasons", "title": "四季のひみつ", "category": "nature", "completions": 142, "avgScore": 78 },
+      { "slideId": "slide_science_water", "title": "水のじっけん", "category": "science", "completions": 128, "avgScore": 68 },
+      { "slideId": "slide_japan_festivals", "title": "日本のおまつり", "category": "japan_culture", "completions": 118, "avgScore": 82 },
+      { "slideId": "slide_space_moon", "title": "お月さまのひみつ", "category": "space", "completions": 98, "avgScore": 75 }
+    ],
+    "middle": [
+      { "slideId": "slide_history_samurai", "title": "武士の時代", "category": "japan_history", "completions": 234, "avgScore": 76 },
+      { "slideId": "slide_science_electricity", "title": "電気のふしぎ", "category": "science", "completions": 212, "avgScore": 71 },
+      { "slideId": "slide_sdgs_environment", "title": "地球を守ろう", "category": "sdgs", "completions": 198, "avgScore": 79 },
+      { "slideId": "slide_tech_programming", "title": "プログラミング入門", "category": "technology", "completions": 186, "avgScore": 68 },
+      { "slideId": "slide_space_planets", "title": "太陽系の惑星", "category": "space", "completions": 174, "avgScore": 73 }
+    ],
+    "upper": [
+      { "slideId": "slide_history_wwii", "title": "第二次世界大戦", "category": "world_history", "completions": 198, "avgScore": 74 },
+      { "slideId": "slide_science_dna", "title": "DNAのひみつ", "category": "science", "completions": 187, "avgScore": 69 },
+      { "slideId": "slide_geopolitics_asia", "title": "アジアの今", "category": "geopolitics", "completions": 176, "avgScore": 72 },
+      { "slideId": "slide_tech_ai", "title": "AIのしくみ", "category": "technology", "completions": 168, "avgScore": 66 },
+      { "slideId": "slide_energy_future", "title": "エネルギーの未来", "category": "energy", "completions": 154, "avgScore": 71 }
+    ]
+  },
+
+  "contentCompletionRates": {
+    "byCategory": [
+      { "id": "science", "name": "科学", "emoji": "🔬", "totalViews": 4520, "completions": 3210, "rate": 71.0 },
+      { "id": "nature", "name": "自然", "emoji": "🦋", "totalViews": 3840, "completions": 2880, "rate": 75.0 },
+      { "id": "japan_history", "name": "日本史", "emoji": "🏯", "totalViews": 3120, "completions": 2340, "rate": 75.0 },
+      { "id": "world_history", "name": "世界史", "emoji": "🌐", "totalViews": 2890, "completions": 2023, "rate": 70.0 },
+      { "id": "space", "name": "宇宙", "emoji": "🚀", "totalViews": 2780, "completions": 2057, "rate": 74.0 },
+      { "id": "sdgs", "name": "SDGs", "emoji": "🌍", "totalViews": 2450, "completions": 1715, "rate": 70.0 },
+      { "id": "technology", "name": "テクノロジー", "emoji": "🤖", "totalViews": 2340, "completions": 1521, "rate": 65.0 },
+      { "id": "biography", "name": "伝記", "emoji": "📖", "totalViews": 1890, "completions": 1380, "rate": 73.0 },
+      { "id": "geopolitics", "name": "地政学", "emoji": "🗺️", "totalViews": 1560, "completions": 1014, "rate": 65.0 },
+      { "id": "energy", "name": "エネルギー", "emoji": "⚡", "totalViews": 1420, "completions": 994, "rate": 70.0 },
+      { "id": "japan_culture", "name": "日本文化", "emoji": "🎎", "totalViews": 1340, "completions": 1005, "rate": 75.0 }
+    ],
+    "overallRate": 71.8,
+    "dropoffPoints": [
+      { "stage": "スライド開始", "rate": 100 },
+      { "stage": "50%まで閲覧", "rate": 85 },
+      { "stage": "スライド完了", "rate": 78 },
+      { "stage": "クイズ開始", "rate": 72 },
+      { "stage": "クイズ合格", "rate": 58 }
+    ]
+  },
+
+  "quizAnalytics": {
+    "overallStats": {
+      "totalAttempts": 24680,
+      "passRate": 72.4,
+      "avgScore": 6.2,
+      "perfectScoreRate": 18.5,
+      "retryRate": 28.3
+    },
+    "mostDifficultQuestions": [
+      {
+        "questionId": "q014_4",
+        "theme": "ブラックホール",
+        "question": "ブラックホールの境界を何という？",
+        "correctAnswer": "事象の地平面",
+        "wrongRate": 68.5,
+        "totalAttempts": 890,
+        "commonWrongAnswer": "入口"
+      },
+      {
+        "questionId": "q015_7",
+        "theme": "宇宙の始まり",
+        "question": "宇宙にある物質のうち私たちが見えるのは？",
+        "correctAnswer": "約5%だけ（残りはダークマターなど）",
+        "wrongRate": 62.3,
+        "totalAttempts": 756,
+        "commonWrongAnswer": "約50%"
+      },
+      {
+        "questionId": "q017_8",
+        "theme": "地震のメカニズム",
+        "question": "マグニチュードが1上がるとエネルギーは約何倍？",
+        "correctAnswer": "32倍",
+        "wrongRate": 58.9,
+        "totalAttempts": 1120,
+        "commonWrongAnswer": "10倍"
+      },
+      {
+        "questionId": "q012_4",
+        "theme": "ロケットが飛ぶ理由",
+        "question": "地球の重力を脱出するのに必要な速度は秒速約何km？",
+        "correctAnswer": "約11km",
+        "wrongRate": 54.2,
+        "totalAttempts": 980,
+        "commonWrongAnswer": "約5km"
+      },
+      {
+        "questionId": "q002_5",
+        "theme": "万里の長城のひみつ",
+        "question": "万里の長城は宇宙から見える？",
+        "correctAnswer": "肉眼では見えない",
+        "wrongRate": 51.8,
+        "totalAttempts": 1340,
+        "commonWrongAnswer": "はっきり見える"
+      },
+      {
+        "questionId": "q020_6",
+        "theme": "DNAって何？",
+        "question": "人間のDNAの塩基は約何個？",
+        "correctAnswer": "約30億個",
+        "wrongRate": 49.2,
+        "totalAttempts": 890,
+        "commonWrongAnswer": "約1万個"
+      },
+      {
+        "questionId": "q013_5",
+        "theme": "アポロ計画の偉業",
+        "question": "地球から月までの距離は約何km？",
+        "correctAnswer": "約380,000km",
+        "wrongRate": 47.6,
+        "totalAttempts": 1240,
+        "commonWrongAnswer": "約38,000km"
+      },
+      {
+        "questionId": "q001_5",
+        "theme": "ピラミッドのひみつ",
+        "question": "ピラミッドに使われた石は約何個？",
+        "correctAnswer": "約230万個",
+        "wrongRate": 45.3,
+        "totalAttempts": 1560,
+        "commonWrongAnswer": "約10万個"
+      },
+      {
+        "questionId": "q016_5",
+        "theme": "動く大陸",
+        "question": "約2億年前、すべての大陸は一つだった。その名前は？",
+        "correctAnswer": "パンゲア",
+        "wrongRate": 42.1,
+        "totalAttempts": 1080,
+        "commonWrongAnswer": "アトランティス"
+      },
+      {
+        "questionId": "q018_5",
+        "theme": "食物連鎖",
+        "question": "食物連鎖の各段階でエネルギーは次にどのくらい伝わる？",
+        "correctAnswer": "約10%",
+        "wrongRate": 38.7,
+        "totalAttempts": 1290,
+        "commonWrongAnswer": "約50%"
+      }
+    ],
+    "easiestQuestions": [
+      {
+        "questionId": "q001_8",
+        "theme": "ピラミッドのひみつ",
+        "question": "ピラミッドがある国はどこ？",
+        "correctAnswer": "エジプト",
+        "correctRate": 97.2,
+        "totalAttempts": 1560
+      },
+      {
+        "questionId": "q005_1",
+        "theme": "邪馬台国はどこ？",
+        "question": "邪馬台国の女王の名前は？",
+        "correctAnswer": "卑弥呼",
+        "correctRate": 95.8,
+        "totalAttempts": 1180
+      },
+      {
+        "questionId": "q006_1",
+        "theme": "信長の革新",
+        "question": "織田信長が生きた時代は？",
+        "correctAnswer": "戦国時代",
+        "correctRate": 94.3,
+        "totalAttempts": 1420
+      }
+    ],
+    "byCategory": [
+      { "category": "japan_history", "passRate": 78.2, "avgScore": 6.8 },
+      { "category": "nature", "passRate": 76.5, "avgScore": 6.5 },
+      { "category": "japan_culture", "passRate": 75.8, "avgScore": 6.4 },
+      { "category": "world_history", "passRate": 72.1, "avgScore": 6.1 },
+      { "category": "science", "passRate": 70.4, "avgScore": 5.9 },
+      { "category": "space", "passRate": 68.2, "avgScore": 5.7 },
+      { "category": "sdgs", "passRate": 71.8, "avgScore": 6.0 },
+      { "category": "technology", "passRate": 65.3, "avgScore": 5.4 },
+      { "category": "geopolitics", "passRate": 64.8, "avgScore": 5.3 },
+      { "category": "energy", "passRate": 69.5, "avgScore": 5.8 },
+      { "category": "biography", "passRate": 74.2, "avgScore": 6.3 }
+    ]
+  },
+
+  "learningTimeAnalytics": {
+    "avgSessionMinutes": 18.5,
+    "avgDailyMinutes": 23.2,
+    "avgWeeklyMinutes": 142.8,
+    "peakHours": [
+      { "hour": 7, "sessions": 89, "label": "朝学習" },
+      { "hour": 8, "sessions": 124, "label": "登校前" },
+      { "hour": 16, "sessions": 287, "label": "放課後" },
+      { "hour": 17, "sessions": 312, "label": "夕方ピーク" },
+      { "hour": 18, "sessions": 256, "label": "夕食前" },
+      { "hour": 19, "sessions": 198, "label": "夜" },
+      { "hour": 20, "sessions": 156, "label": "就寝前" }
+    ],
+    "byDayOfWeek": [
+      { "day": "月", "avgMinutes": 19.2, "sessions": 1240 },
+      { "day": "火", "avgMinutes": 18.8, "sessions": 1180 },
+      { "day": "水", "avgMinutes": 21.5, "sessions": 1420 },
+      { "day": "木", "avgMinutes": 18.2, "sessions": 1150 },
+      { "day": "金", "avgMinutes": 17.5, "sessions": 1080 },
+      { "day": "土", "avgMinutes": 32.4, "sessions": 1890 },
+      { "day": "日", "avgMinutes": 28.6, "sessions": 1680 }
+    ],
+    "byGrade": {
+      "lower": { "avgSession": 12.5, "avgDaily": 15.8 },
+      "middle": { "avgSession": 18.2, "avgDaily": 22.4 },
+      "upper": { "avgSession": 24.8, "avgDaily": 31.2 }
+    }
+  },
+
+  "loginAnalytics": {
+    "dailyActiveUsers": [
+      { "date": "2026-01-19", "dau": 312, "newUsers": 12 },
+      { "date": "2026-01-20", "dau": 345, "newUsers": 18 },
+      { "date": "2026-01-21", "dau": 328, "newUsers": 15 },
+      { "date": "2026-01-22", "dau": 389, "newUsers": 22 },
+      { "date": "2026-01-23", "dau": 412, "newUsers": 28 },
+      { "date": "2026-01-24", "dau": 456, "newUsers": 31 },
+      { "date": "2026-01-25", "dau": 342, "newUsers": 19 }
+    ],
+    "retentionRates": {
+      "day1": 68.5,
+      "day7": 45.2,
+      "day30": 32.8,
+      "day90": 24.6
+    },
+    "avgSessionsPerUser": 3.2,
+    "loginStreak": {
+      "avg": 4.8,
+      "max": 127,
+      "distribution": [
+        { "range": "1-3日", "count": 456, "percent": 36.6 },
+        { "range": "4-7日", "count": 312, "percent": 25.0 },
+        { "range": "8-14日", "count": 234, "percent": 18.8 },
+        { "range": "15-30日", "count": 156, "percent": 12.5 },
+        { "range": "31日以上", "count": 89, "percent": 7.1 }
+      ]
+    }
+  },
+
+  "premiumConversion": {
+    "totalPremiumUsers": 187,
+    "conversionRate": 15.0,
+    "avgDaysToConvert": 14.2,
+    "conversionBySource": {
+      "organic": { "users": 78, "rate": 16.0 },
+      "referral": { "users": 52, "rate": 16.7 },
+      "school": { "users": 38, "rate": 16.2 },
+      "social": { "users": 14, "rate": 9.0 },
+      "advertisement": { "users": 5, "rate": 8.6 }
+    },
+    "conversionTriggers": [
+      { "trigger": "7日連続ログイン後", "percent": 28.3 },
+      { "trigger": "10スライド完了後", "percent": 24.6 },
+      { "trigger": "最初の登頂達成後", "percent": 18.7 },
+      { "trigger": "友達が有料会員に", "percent": 12.4 },
+      { "trigger": "プロモーション利用", "percent": 16.0 }
+    ],
+    "monthlyRevenue": [
+      { "month": "2025-08", "revenue": 89000, "users": 12 },
+      { "month": "2025-09", "revenue": 126000, "users": 18 },
+      { "month": "2025-10", "revenue": 168000, "users": 22 },
+      { "month": "2025-11", "revenue": 217000, "users": 31 },
+      { "month": "2025-12", "revenue": 285000, "users": 38 },
+      { "month": "2026-01", "revenue": 312000, "users": 42 }
+    ],
+    "churnRate": 8.2,
+    "ltv": 18500
+  },
+
+  "engagementMetrics": {
+    "familyMissionCompletion": {
+      "rate": 42.3,
+      "popularMissions": [
+        { "id": "cooking", "name": "夕食を一緒に作る", "completions": 234 },
+        { "id": "stargazing", "name": "星空観察", "completions": 198 },
+        { "id": "book_exchange", "name": "本を紹介し合う", "completions": 176 }
+      ]
+    },
+    "sponsorMissionCompletion": {
+      "rate": 38.7,
+      "topSponsors": [
+        { "sponsor": "環境省", "completions": 312 },
+        { "sponsor": "JAXA", "completions": 287 },
+        { "sponsor": "テック企業", "completions": 245 }
+      ]
+    },
+    "notebookLmUsage": {
+      "clickRate": 23.4,
+      "avgTimeSpent": 8.5,
+      "topCategories": ["space", "science", "technology"]
+    },
+    "socialFeatures": {
+      "avgLikesGiven": 4.2,
+      "avgLikesReceived": 3.8,
+      "activeSharers": 324
+    }
+  },
+
+  "alerts": {
+    "active": [
+      {
+        "type": "warning",
+        "message": "SDGsカテゴリの完了率が先週比-5%",
+        "timestamp": "2026-01-25T08:00:00.000Z",
+        "metric": "completionRate",
+        "category": "sdgs"
+      },
+      {
+        "type": "success",
+        "message": "週間新規登録者数が過去最高を更新",
+        "timestamp": "2026-01-24T12:00:00.000Z",
+        "metric": "registrations"
+      },
+      {
+        "type": "info",
+        "message": "関東エリアからの登録が急増中（+18%）",
+        "timestamp": "2026-01-23T15:00:00.000Z",
+        "metric": "regionalGrowth",
+        "region": "関東"
+      }
+    ]
+  }
+}
