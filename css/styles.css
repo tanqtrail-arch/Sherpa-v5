@@ -161,7 +161,7 @@ nav.admin { background: rgba(127, 29, 29, .95); }
 }
 
 .nav-item {
-  padding: 10px 12px;
+  padding: 10px 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
