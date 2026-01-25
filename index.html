@@ -56,6 +56,9 @@
         <div class="mission-bar"><div class="mission-fill" id="missionFill" style="width:0%"></div></div>
       </div>
 
+      <!-- デイリーファミリーミッション -->
+      <div id="dailyFamilyMission" style="margin-bottom:12px"></div>
+
       <!-- ファミリーミッション -->
       <div class="section-title">👨‍👩‍👧 ファミリーミッション<span style="background:linear-gradient(135deg,#ec4899,#f472b6);color:#fff;font-size:9px;padding:2px 8px;border-radius:10px;margin-left:6px">家族で挑戦</span></div>
       <div id="familyMissionsGrid" class="mission-grid"></div>
@@ -296,6 +299,37 @@
       </div>
     </div>
 
+    <!-- 家族画面 -->
+    <div id="screen-family" class="screen">
+      <div class="section-title" style="color:#fff">👨‍👩‍👧 ファミリーミッション<span class="free-tag" style="background:var(--family)">家族で挑戦</span></div>
+
+      <!-- 達成サマリー -->
+      <div class="family-summary" id="familySummary">
+        <div class="family-summary-icon">👨‍👩‍👧</div>
+        <div class="family-summary-info">
+          <div class="family-summary-title">家族ミッション達成</div>
+          <div class="family-summary-stats">
+            <span id="familyCompletedCount">0</span>
+            <span>/ <span id="familyTotalCount">6</span> 達成</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 今日のファミリーミッション -->
+      <div class="section-title" style="color:#fff;font-size:14px;margin-top:16px">🌟 今日のミッション</div>
+      <div id="familyDailyMission"></div>
+
+      <!-- ミッション一覧 -->
+      <div class="section-title" style="color:#fff;font-size:14px;margin-top:16px">📋 ミッション一覧
+        <span id="familyEditBtn" style="display:none;margin-left:auto;background:var(--parent);color:#fff;font-size:10px;padding:4px 10px;border-radius:10px;cursor:pointer" onclick="openFamilyMissionEditor()">➕ 新規作成</span>
+      </div>
+      <div id="familyMissionsList"></div>
+
+      <!-- 達成履歴 -->
+      <div class="section-title" style="color:#fff;font-size:14px;margin-top:16px">🏆 達成履歴</div>
+      <div id="familyHistory"></div>
+    </div>
+
     <!-- プロフィール画面 -->
     <div id="screen-profile" class="screen">
       <div class="profile-card">
@@ -362,6 +396,9 @@
     <div class="nav-items">
       <div class="nav-item active" data-screen="home" onclick="showScreen('home')">
         <span>🏠</span><span>ホーム</span>
+      </div>
+      <div class="nav-item" data-screen="family" onclick="showScreen('family'); renderFamilyScreen()">
+        <span>👨‍👩‍👧</span><span>家族</span>
       </div>
       <div class="nav-item" data-screen="bookshelf" onclick="showScreen('bookshelf')">
         <span>📚</span><span>本棚</span>
@@ -539,6 +576,84 @@
     </div>
     <div style="padding:0 16px 16px">
       <button class="btn btn-secondary" style="width:100%" onclick="closeModals()">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<!-- ファミリーミッション詳細モーダル -->
+<div class="modal-overlay" id="familyMissionModal" onclick="if(event.target===this)closeModals()">
+  <div class="modal-box">
+    <div class="modal-header" id="familyMissionHeader" style="background:linear-gradient(135deg,#ec4899,#f472b6)">
+      <div style="font-size:48px" id="familyMissionEmoji">👨‍👩‍👧</div>
+      <div style="font-weight:700;margin-top:8px;font-size:18px" id="familyMissionTitle">ファミリーミッション</div>
+      <div style="font-size:12px;opacity:.9;margin-top:4px">家族と一緒に挑戦しよう！</div>
+    </div>
+    <div class="modal-body">
+      <div class="family-mission-detail">
+        <div class="family-mission-description" id="familyMissionDescription">
+          <p>🌟 このミッションを家族と一緒にやってみよう！</p>
+          <p>完了したら「達成！」ボタンを押してね。</p>
+        </div>
+        <div class="family-mission-reward-box" id="familyMissionRewardBox">
+          <div style="font-size:12px;color:var(--rock);margin-bottom:4px">獲得できるALT</div>
+          <div style="font-size:28px;font-weight:900;color:var(--family)" id="familyMissionReward">+20</div>
+        </div>
+        <div class="family-mission-tips" id="familyMissionTips">
+          <div style="font-size:12px;font-weight:700;color:var(--summit);margin-bottom:8px">💡 ヒント</div>
+          <ul id="familyMissionTipsList"></ul>
+        </div>
+      </div>
+      <input type="hidden" id="familyMissionId">
+      <button class="btn btn-primary family-complete-btn" id="familyCompleteBtn" onclick="completeFamilyMission()">
+        🎉 達成！
+      </button>
+      <button class="btn btn-secondary" style="width:100%;margin-top:8px" onclick="closeModals()">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<!-- ファミリーミッション編集モーダル（保護者用） -->
+<div class="modal-overlay" id="familyMissionEditorModal" onclick="if(event.target===this)closeModals()">
+  <div class="modal-box">
+    <div class="modal-header" style="background:linear-gradient(135deg,#3b82f6,#60a5fa)">
+      <div style="font-size:32px">📝</div>
+      <div style="font-weight:700;margin-top:4px" id="editorModalTitle">新しいミッションを作成</div>
+      <div style="font-size:11px;opacity:.9;margin-top:4px">保護者モード</div>
+    </div>
+    <div class="modal-body">
+      <form id="familyMissionEditorForm" onsubmit="event.preventDefault();saveFamilyMissionEditor()">
+        <input type="hidden" id="editorMissionId">
+
+        <div class="form-group">
+          <label class="form-label">📛 ミッション名</label>
+          <input type="text" class="form-input" id="editorMissionName" placeholder="例: 一緒にお弁当を作る" required>
+        </div>
+
+        <div style="display:flex;gap:8px">
+          <div class="form-group" style="flex:1">
+            <label class="form-label">😊 絵文字</label>
+            <input type="text" class="form-input" id="editorMissionEmoji" placeholder="⭐" maxlength="2" style="text-align:center;font-size:20px">
+          </div>
+          <div class="form-group" style="flex:1">
+            <label class="form-label">⛰️ 報酬ALT</label>
+            <input type="number" class="form-input" id="editorMissionReward" placeholder="20" min="1" max="100" style="text-align:center">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">📝 説明文</label>
+          <textarea class="form-input" id="editorMissionDescription" rows="3" placeholder="このミッションの詳細を書いてください" style="resize:none"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">💡 ヒント（1行に1つ）</label>
+          <textarea class="form-input" id="editorMissionTips" rows="3" placeholder="例:&#10;材料を一緒に買いに行こう&#10;好きな具材を選ぼう&#10;完成したら写真を撮ろう" style="resize:none"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width:100%">💾 保存</button>
+        <button type="button" id="editorDeleteBtn" class="btn" style="width:100%;margin-top:8px;background:#ef4444;color:#fff;display:none" onclick="deleteFamilyMissionFromEditor()">🗑️ 削除</button>
+        <button type="button" class="btn btn-secondary" style="width:100%;margin-top:8px" onclick="closeModals()">キャンセル</button>
+      </form>
     </div>
   </div>
 </div>
