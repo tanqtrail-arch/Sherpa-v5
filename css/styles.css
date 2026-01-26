@@ -3443,3 +3443,72 @@ nav.sponsor {
     grid-template-columns: 1fr;
   }
 }
+
+/* ========================================
+   管理者・スポンサー用フッターナビゲーション
+   ======================================== */
+
+.admin-footer-nav,
+.sponsor-footer-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0 16px;
+  z-index: 100;
+  backdrop-filter: blur(20px);
+}
+
+.admin-footer-nav {
+  background: rgba(51, 65, 85, .95);
+}
+
+.sponsor-footer-nav {
+  background: rgba(120, 53, 15, .95);
+}
+
+.admin-footer-item,
+.sponsor-footer-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 24px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all .2s;
+  color: rgba(255, 255, 255, .6);
+}
+
+.admin-footer-item:hover,
+.sponsor-footer-item:hover {
+  background: rgba(255, 255, 255, .1);
+  color: #fff;
+}
+
+.admin-footer-item.active,
+.sponsor-footer-item.active {
+  color: #fff;
+  background: rgba(255, 255, 255, .15);
+}
+
+.admin-footer-item span:first-child,
+.sponsor-footer-item span:first-child {
+  font-size: 20px;
+}
+
+.admin-footer-item span:last-child,
+.sponsor-footer-item span:last-child {
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* 管理者・スポンサー画面のパディング調整 */
+#screen-admin,
+#screen-sponsor {
+  padding-bottom: 80px;
+}
