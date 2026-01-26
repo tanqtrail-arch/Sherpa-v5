@@ -3702,7 +3702,7 @@ function renderSponsorHistoryList() {
 // ========================================
 
 function openAltPurchaseModal() {
-  document.getElementById('altPurchaseModal').style.display = 'flex';
+  document.getElementById('altPurchaseModal').classList.add('active');
   document.getElementById('customAltAmount').value = '';
   updateCustomAltCalculation();
 }
@@ -3783,7 +3783,7 @@ function openSponsorSlideManager() {
 }
 
 function openSponsorSlideEditor(slideId = null) {
-  document.getElementById('sponsorSlideEditorModal').style.display = 'flex';
+  document.getElementById('sponsorSlideEditorModal').classList.add('active');
   document.getElementById('editSponsorSlideId').value = slideId || '';
 
   // 初期化
@@ -4007,7 +4007,7 @@ function deleteSponsorSlideById(slideId) {
 // ========================================
 
 function openSponsorLikePanel() {
-  document.getElementById('sponsorLikeModal').style.display = 'flex';
+  document.getElementById('sponsorLikeModal').classList.add('active');
   document.getElementById('likesRemaining').textContent = sponsorProfile.sponsorLikes;
   updateLikeTargets();
 }
@@ -4132,7 +4132,7 @@ function sendSponsorLike(childId, childName) {
 
 function showSponsorLikeReceivedModal(sponsorName, sponsorLogo) {
   document.getElementById('likeReceivedSponsor').textContent = `${sponsorLogo} ${sponsorName} から`;
-  document.getElementById('sponsorLikeReceivedModal').style.display = 'flex';
+  document.getElementById('sponsorLikeReceivedModal').classList.add('active');
   updateHeader();
 }
 
@@ -4187,7 +4187,7 @@ function openSponsorList() {
     `).join('');
   }
 
-  document.getElementById('sponsorListModal').style.display = 'flex';
+  document.getElementById('sponsorListModal').classList.add('active');
 }
 
 // スポンサー詳細を開く
@@ -4225,7 +4225,7 @@ function openSponsorDetail(sponsorId) {
   `).join('');
 
   closeModals();
-  document.getElementById('sponsorDetailModal').style.display = 'flex';
+  document.getElementById('sponsorDetailModal').classList.add('active');
 }
 
 // こどもがスポンサースライドを開く
@@ -4243,7 +4243,7 @@ function openSponsorSlideForChild(slideId) {
 
   closeModals();
   renderSlideModal();
-  document.getElementById('slideModal').style.display = 'flex';
+  document.getElementById('slideModal').classList.add('active');
 }
 
 // スポンサースライド完了処理（既存のスライド完了処理を拡張）
