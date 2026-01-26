@@ -548,6 +548,11 @@
         <div class="parent-subtitle">お子さまの学習状況を確認</div>
       </div>
 
+      <!-- 子ども選択エリア -->
+      <div class="parent-child-selector" id="parentChildSelector">
+        <!-- JSで動的にレンダリング -->
+      </div>
+
       <!-- 子どもの学習サマリー -->
       <div class="parent-summary-grid" id="parentSummaryGrid">
         <!-- JSで動的にレンダリング -->
@@ -1382,6 +1387,61 @@
       </div>
       <button class="btn btn-primary" style="width:100%;margin-top:16px" onclick="verifyPassword()">確認</button>
       <button class="btn btn-secondary" style="width:100%;margin-top:8px" onclick="cancelPassword()">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<!-- 子ども追加・編集モーダル（保護者用） -->
+<div class="modal-overlay" id="childEditorModal" onclick="if(event.target===this)closeModals()">
+  <div class="modal-box" style="max-width:360px">
+    <div class="modal-header" style="background:linear-gradient(135deg,#3b82f6,#60a5fa)">
+      <div style="font-size:32px" id="childEditorEmoji">👦</div>
+      <div style="font-weight:700;margin-top:4px" id="childEditorTitle">お子さまを登録</div>
+    </div>
+    <div class="modal-body">
+      <form id="childEditorForm" onsubmit="event.preventDefault();saveChild()">
+        <input type="hidden" id="editChildId">
+
+        <div class="form-group">
+          <label class="form-label">📛 ニックネーム</label>
+          <input type="text" class="form-input" id="childName" placeholder="例: たろう" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">😊 アイコン</label>
+          <div class="child-emoji-picker" id="childEmojiPicker">
+            <div class="child-emoji-option selected" data-emoji="👦" onclick="selectChildEmoji('👦', this)">👦</div>
+            <div class="child-emoji-option" data-emoji="👧" onclick="selectChildEmoji('👧', this)">👧</div>
+            <div class="child-emoji-option" data-emoji="🧒" onclick="selectChildEmoji('🧒', this)">🧒</div>
+            <div class="child-emoji-option" data-emoji="👶" onclick="selectChildEmoji('👶', this)">👶</div>
+            <div class="child-emoji-option" data-emoji="🐻" onclick="selectChildEmoji('🐻', this)">🐻</div>
+            <div class="child-emoji-option" data-emoji="🐰" onclick="selectChildEmoji('🐰', this)">🐰</div>
+            <div class="child-emoji-option" data-emoji="🐱" onclick="selectChildEmoji('🐱', this)">🐱</div>
+            <div class="child-emoji-option" data-emoji="🌟" onclick="selectChildEmoji('🌟', this)">🌟</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">🎓 学年</label>
+          <select class="form-select" id="childGrade">
+            <option value="lower">🌱 低学年（小1〜小2）</option>
+            <option value="middle" selected>⭐ 中学年（小3〜小4）</option>
+            <option value="upper">🚀 高学年（小5〜中学）</option>
+          </select>
+        </div>
+
+        <div style="background:rgba(59,130,246,.1);border-radius:8px;padding:12px;margin-bottom:12px">
+          <div style="font-size:11px;color:var(--parent);font-weight:700">💡 ヒント</div>
+          <div style="font-size:11px;color:var(--rock);margin-top:4px">
+            お子さまごとに学習データが管理されます。<br>
+            複数のお子さまを登録できます。
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width:100%">💾 保存</button>
+        <button type="button" id="childDeleteBtn" class="btn" style="width:100%;margin-top:8px;background:#ef4444;color:#fff;display:none" onclick="deleteChild()">🗑️ 削除</button>
+        <button type="button" class="btn btn-secondary" style="width:100%;margin-top:8px" onclick="closeModals()">キャンセル</button>
+      </form>
     </div>
   </div>
 </div>

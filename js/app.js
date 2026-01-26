@@ -3741,10 +3741,241 @@ let parentSettings = JSON.parse(localStorage.getItem('sherupa_parent_settings'))
   notifyFamily: true
 };
 
+// 子ども管理データ
+let parentChildren = JSON.parse(localStorage.getItem('sherupa_parent_children')) || [];
+let selectedChildId = localStorage.getItem('sherupa_selected_child') || null;
+let selectedChildEmoji = '👦';
+
 // 保護者ダッシュボードをレンダリング
 function renderParentDashboard() {
+  renderChildSelector();
   renderParentSummary();
   showParentTab(currentParentTab);
+}
+
+// 子ども選択UIをレンダリング
+function renderChildSelector() {
+  const container = document.getElementById('parentChildSelector');
+  if (!container) return;
+
+  // 子どもがいない場合
+  if (parentChildren.length === 0) {
+    container.innerHTML = '';
+    document.getElementById('parentSummaryGrid').innerHTML = '';
+    document.getElementById('parentTabs').style.display = 'none';
+    document.querySelectorAll('.parent-tab-content').forEach(c => c.style.display = 'none');
+
+    // 子どもなし状態を表示
+    const noChildrenHtml = `
+      <div class="parent-no-children">
+        <div class="parent-no-children-icon">👶</div>
+        <div class="parent-no-children-title">お子さまを登録しましょう</div>
+        <div class="parent-no-children-desc">お子さまを登録すると、学習状況を確認できます</div>
+        <button class="btn btn-primary" onclick="openChildEditor()">➕ お子さまを登録</button>
+      </div>
+    `;
+    container.innerHTML = noChildrenHtml;
+    return;
+  }
+
+  // タブを表示
+  document.getElementById('parentTabs').style.display = '';
+  document.querySelectorAll('.parent-tab-content').forEach(c => c.style.display = '');
+
+  // 選択中の子どもがいない場合は最初の子どもを選択
+  if (!selectedChildId || !parentChildren.find(c => c.id === selectedChildId)) {
+    selectedChildId = parentChildren[0].id;
+    localStorage.setItem('sherupa_selected_child', selectedChildId);
+  }
+
+  // 子ども選択カードを生成
+  container.innerHTML = parentChildren.map(child => {
+    const isActive = child.id === selectedChildId;
+    const childData = getChildData(child.id);
+    return `
+      <div class="parent-child-card ${isActive ? 'active' : ''}" onclick="selectChild('${child.id}')">
+        <div class="parent-child-emoji">${child.emoji}</div>
+        <div class="parent-child-name">${child.name}</div>
+        <div class="parent-child-stats">${childData.alt} ALT</div>
+      </div>
+    `;
+  }).join('') + `
+    <div class="parent-child-add" onclick="openChildEditor()">
+      <div class="parent-child-add-icon">➕</div>
+      <div class="parent-child-add-text">追加</div>
+    </div>
+  `;
+}
+
+// 子どもを選択
+function selectChild(childId) {
+  selectedChildId = childId;
+  localStorage.setItem('sherupa_selected_child', childId);
+  renderParentDashboard();
+}
+
+// 子どもの学習データを取得
+function getChildData(childId) {
+  const key = `sherupa_child_${childId}`;
+  return JSON.parse(localStorage.getItem(key)) || {
+    alt: 0,
+    streak: 0,
+    completedSlides: [],
+    completedFamilyMissions: [],
+    quizResults: [],
+    slideHistory: []
+  };
+}
+
+// 子どもの学習データを保存
+function saveChildData(childId, data) {
+  const key = `sherupa_child_${childId}`;
+  localStorage.setItem(key, JSON.stringify(data));
+}
+
+// 現在選択中の子どものデータを取得
+function getSelectedChildData() {
+  if (!selectedChildId) return null;
+  return getChildData(selectedChildId);
+}
+
+// 子どもエディタを開く
+function openChildEditor(childId = null) {
+  const modal = document.getElementById('childEditorModal');
+  const titleEl = document.getElementById('childEditorTitle');
+  const emojiEl = document.getElementById('childEditorEmoji');
+  const nameEl = document.getElementById('childName');
+  const gradeEl = document.getElementById('childGrade');
+  const idEl = document.getElementById('editChildId');
+  const deleteBtn = document.getElementById('childDeleteBtn');
+
+  // 絵文字選択をリセット
+  document.querySelectorAll('.child-emoji-option').forEach(opt => opt.classList.remove('selected'));
+
+  if (childId) {
+    // 編集モード
+    const child = parentChildren.find(c => c.id === childId);
+    if (!child) return;
+
+    titleEl.textContent = 'お子さまを編集';
+    emojiEl.textContent = child.emoji;
+    nameEl.value = child.name;
+    gradeEl.value = child.grade || 'middle';
+    idEl.value = child.id;
+    selectedChildEmoji = child.emoji;
+    deleteBtn.style.display = 'block';
+
+    // 絵文字を選択状態に
+    const emojiOpt = document.querySelector(`.child-emoji-option[data-emoji="${child.emoji}"]`);
+    if (emojiOpt) emojiOpt.classList.add('selected');
+  } else {
+    // 新規作成モード
+    titleEl.textContent = 'お子さまを登録';
+    emojiEl.textContent = '👦';
+    nameEl.value = '';
+    gradeEl.value = 'middle';
+    idEl.value = '';
+    selectedChildEmoji = '👦';
+    deleteBtn.style.display = 'none';
+
+    // デフォルトの絵文字を選択
+    const defaultOpt = document.querySelector('.child-emoji-option[data-emoji="👦"]');
+    if (defaultOpt) defaultOpt.classList.add('selected');
+  }
+
+  modal.classList.add('active');
+}
+
+// 子ども絵文字を選択
+function selectChildEmoji(emoji, element) {
+  selectedChildEmoji = emoji;
+  document.getElementById('childEditorEmoji').textContent = emoji;
+  document.querySelectorAll('.child-emoji-option').forEach(opt => opt.classList.remove('selected'));
+  element.classList.add('selected');
+}
+
+// 子どもを保存
+function saveChild() {
+  const nameEl = document.getElementById('childName');
+  const gradeEl = document.getElementById('childGrade');
+  const idEl = document.getElementById('editChildId');
+
+  const name = nameEl.value.trim();
+  if (!name) {
+    toast('❌ ニックネームを入力してください');
+    return;
+  }
+
+  const childId = idEl.value || `child_${Date.now()}`;
+  const existingIndex = parentChildren.findIndex(c => c.id === childId);
+
+  const childInfo = {
+    id: childId,
+    name: name,
+    emoji: selectedChildEmoji,
+    grade: gradeEl.value,
+    createdAt: existingIndex >= 0 ? parentChildren[existingIndex].createdAt : new Date().toISOString()
+  };
+
+  if (existingIndex >= 0) {
+    // 更新
+    parentChildren[existingIndex] = childInfo;
+    toast('✅ お子さまの情報を更新しました');
+  } else {
+    // 新規追加
+    parentChildren.push(childInfo);
+    // 初期データを作成
+    saveChildData(childId, {
+      alt: 0,
+      streak: 0,
+      completedSlides: [],
+      completedFamilyMissions: [],
+      quizResults: [],
+      slideHistory: []
+    });
+    toast('✅ お子さまを登録しました');
+  }
+
+  localStorage.setItem('sherupa_parent_children', JSON.stringify(parentChildren));
+
+  // 新規追加の場合は選択
+  if (existingIndex < 0) {
+    selectedChildId = childId;
+    localStorage.setItem('sherupa_selected_child', childId);
+  }
+
+  closeModals();
+  renderParentDashboard();
+}
+
+// 子どもを削除
+function deleteChild() {
+  const idEl = document.getElementById('editChildId');
+  const childId = idEl.value;
+
+  if (!childId) return;
+
+  const child = parentChildren.find(c => c.id === childId);
+  if (!confirm(`${child.emoji} ${child.name}さんを削除しますか？\n学習データも削除されます。`)) {
+    return;
+  }
+
+  // 子どもリストから削除
+  parentChildren = parentChildren.filter(c => c.id !== childId);
+  localStorage.setItem('sherupa_parent_children', JSON.stringify(parentChildren));
+
+  // 学習データを削除
+  localStorage.removeItem(`sherupa_child_${childId}`);
+
+  // 選択をリセット
+  if (selectedChildId === childId) {
+    selectedChildId = parentChildren.length > 0 ? parentChildren[0].id : null;
+    localStorage.setItem('sherupa_selected_child', selectedChildId || '');
+  }
+
+  toast('🗑️ お子さまを削除しました');
+  closeModals();
+  renderParentDashboard();
 }
 
 // サマリーカードをレンダリング
@@ -3752,13 +3983,18 @@ function renderParentSummary() {
   const container = document.getElementById('parentSummaryGrid');
   if (!container) return;
 
-  // 子どもの学習データを取得
-  const slidesCompleted = completedSlides.length;
-  const quizAvg = calculateQuizAverage();
-  const familyCompleted = completedFamilyMissions.length;
-  const totalAlt = alt;
-  const currentStreak = streak;
-  const todaySlides = getTodaySlidesCount();
+  if (!selectedChildId) return;
+
+  // 選択中の子どもの学習データを取得
+  const childData = getSelectedChildData();
+  if (!childData) return;
+
+  const slidesCompleted = childData.completedSlides?.length || 0;
+  const quizAvg = calculateChildQuizAverage(childData);
+  const familyCompleted = childData.completedFamilyMissions?.length || 0;
+  const totalAlt = childData.alt || 0;
+  const currentStreak = childData.streak || 0;
+  const todaySlides = getChildTodaySlidesCount(childData);
 
   container.innerHTML = `
     <div class="parent-summary-card">
@@ -3794,7 +4030,7 @@ function renderParentSummary() {
   `;
 }
 
-// クイズ平均点を計算
+// クイズ平均点を計算（グローバル）
 function calculateQuizAverage() {
   const quizResults = JSON.parse(localStorage.getItem('sherupa_quiz_results')) || [];
   if (quizResults.length === 0) return 0;
@@ -3802,10 +4038,25 @@ function calculateQuizAverage() {
   return Math.round(total / quizResults.length);
 }
 
-// 今日完了したスライド数を取得
+// 子どものクイズ平均点を計算
+function calculateChildQuizAverage(childData) {
+  const quizResults = childData?.quizResults || [];
+  if (quizResults.length === 0) return 0;
+  const total = quizResults.reduce((sum, r) => sum + (r.score / r.total * 100), 0);
+  return Math.round(total / quizResults.length);
+}
+
+// 今日完了したスライド数を取得（グローバル）
 function getTodaySlidesCount() {
   const today = new Date().toDateString();
   const slideHistory = JSON.parse(localStorage.getItem('sherupa_slide_history')) || [];
+  return slideHistory.filter(h => new Date(h.date).toDateString() === today).length;
+}
+
+// 子どもの今日完了したスライド数を取得
+function getChildTodaySlidesCount(childData) {
+  const today = new Date().toDateString();
+  const slideHistory = childData?.slideHistory || [];
   return slideHistory.filter(h => new Date(h.date).toDateString() === today).length;
 }
 
@@ -3856,8 +4107,14 @@ function renderParentWeeklyStats() {
   const container = document.getElementById('parentWeeklyStats');
   if (!container) return;
 
+  const childData = getSelectedChildData();
+  if (!childData) {
+    container.innerHTML = '<div style="text-align:center;color:var(--rock);font-size:12px;padding:16px">データがありません</div>';
+    return;
+  }
+
   const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
-  const slideHistory = JSON.parse(localStorage.getItem('sherupa_slide_history')) || [];
+  const slideHistory = childData.slideHistory || [];
   const today = new Date();
 
   // 過去7日間のデータを集計
@@ -3896,10 +4153,16 @@ function renderParentRecentAchievements() {
   const container = document.getElementById('parentRecentAchievements');
   if (!container) return;
 
+  const childData = getSelectedChildData();
+  if (!childData) {
+    container.innerHTML = '<div style="text-align:center;color:var(--rock);font-size:12px;padding:16px">データがありません</div>';
+    return;
+  }
+
   const achievements = [];
 
   // 完了したスライドから最近の成果を取得
-  const slideHistory = JSON.parse(localStorage.getItem('sherupa_slide_history')) || [];
+  const slideHistory = childData.slideHistory || [];
   const recentSlides = slideHistory.slice(-3).reverse();
 
   recentSlides.forEach(h => {
@@ -3911,7 +4174,7 @@ function renderParentRecentAchievements() {
   });
 
   // ファミリーミッション完了
-  const recentFamily = completedFamilyMissions.slice(-2).reverse();
+  const recentFamily = (childData.completedFamilyMissions || []).slice(-2).reverse();
   recentFamily.forEach(fm => {
     const mission = APP.missions?.familyMissions?.find(m => m.id === fm.missionId) ||
                     customFamilyMissions.find(m => m.id === fm.missionId);
@@ -3925,10 +4188,11 @@ function renderParentRecentAchievements() {
   });
 
   // 連続学習の成果
-  if (streak >= 7) {
+  const childStreak = childData.streak || 0;
+  if (childStreak >= 7) {
     achievements.unshift({
       icon: '🔥',
-      title: `${streak}日連続学習中！`,
+      title: `${childStreak}日連続学習中！`,
       time: '継続中'
     });
   }
@@ -3954,10 +4218,16 @@ function renderParentRecommendations() {
   const container = document.getElementById('parentRecommendations');
   if (!container) return;
 
+  const childData = getSelectedChildData();
+  if (!childData) {
+    container.innerHTML = '<div style="text-align:center;color:var(--rock);font-size:12px;padding:16px">データがありません</div>';
+    return;
+  }
+
   const recommendations = [];
 
   // 今日の学習状況をチェック
-  const todaySlides = getTodaySlidesCount();
+  const todaySlides = getChildTodaySlidesCount(childData);
   if (todaySlides < parentSettings.dailySlideGoal) {
     recommendations.push({
       icon: '📚',
@@ -3968,8 +4238,9 @@ function renderParentRecommendations() {
 
   // ファミリーミッションの提案
   const allMissions = [...(APP.missions?.familyMissions || []), ...customFamilyMissions];
+  const childCompletedFamilyMissions = childData.completedFamilyMissions || [];
   const pendingFamilyMissions = allMissions.filter(m =>
-    !completedFamilyMissions.some(c => c.missionId === m.id)
+    !childCompletedFamilyMissions.some(c => c.missionId === m.id)
   );
   if (pendingFamilyMissions.length > 0) {
     recommendations.push({
@@ -3980,17 +4251,19 @@ function renderParentRecommendations() {
   }
 
   // 連続学習の励まし
-  if (streak > 0 && streak < 7) {
+  const childStreak = childData.streak || 0;
+  if (childStreak > 0 && childStreak < 7) {
     recommendations.push({
       icon: '🔥',
       title: '連続学習を続けよう！',
-      desc: `あと${7 - streak}日で1週間連続達成`
+      desc: `あと${7 - childStreak}日で1週間連続達成`
     });
   }
 
   // 新しいスライドの提案
+  const childCompletedSlides = childData.completedSlides || [];
   const uncompletedSlides = (APP.slides || []).filter(s =>
-    !completedSlides.includes(s.id)
+    !childCompletedSlides.includes(s.id)
   );
   if (uncompletedSlides.length > 0) {
     recommendations.push({
@@ -4028,12 +4301,19 @@ function renderParentCategoryProgress() {
   const container = document.getElementById('parentCategoryProgress');
   if (!container) return;
 
+  const childData = getSelectedChildData();
+  if (!childData) {
+    container.innerHTML = '<div style="text-align:center;color:var(--rock);font-size:12px;padding:16px">データがありません</div>';
+    return;
+  }
+
   const categories = APP.categories || [];
   const slides = APP.slides || [];
+  const childCompletedSlides = childData.completedSlides || [];
 
   const categoryProgress = categories.map(cat => {
     const catSlides = slides.filter(s => s.category === cat.id);
-    const completed = catSlides.filter(s => completedSlides.includes(s.id)).length;
+    const completed = catSlides.filter(s => childCompletedSlides.includes(s.id)).length;
     const total = catSlides.length;
     const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
 
@@ -4070,7 +4350,13 @@ function renderParentQuizStats() {
   const container = document.getElementById('parentQuizStats');
   if (!container) return;
 
-  const quizResults = JSON.parse(localStorage.getItem('sherupa_quiz_results')) || [];
+  const childData = getSelectedChildData();
+  if (!childData) {
+    container.innerHTML = '<div style="text-align:center;color:var(--rock);font-size:12px;padding:16px">データがありません</div>';
+    return;
+  }
+
+  const quizResults = childData.quizResults || [];
 
   if (quizResults.length === 0) {
     container.innerHTML = '<div style="text-align:center;color:var(--rock);font-size:12px;padding:16px">まだクイズを受けていません</div>';
@@ -4078,7 +4364,7 @@ function renderParentQuizStats() {
   }
 
   const totalQuizzes = quizResults.length;
-  const avgScore = calculateQuizAverage();
+  const avgScore = calculateChildQuizAverage(childData);
   const perfectCount = quizResults.filter(r => r.score === r.total).length;
   const recentResults = quizResults.slice(-5).reverse();
 
@@ -4115,7 +4401,13 @@ function renderParentCompletedSlides() {
   const container = document.getElementById('parentCompletedSlides');
   if (!container) return;
 
-  const slideHistory = JSON.parse(localStorage.getItem('sherupa_slide_history')) || [];
+  const childData = getSelectedChildData();
+  if (!childData) {
+    container.innerHTML = '<div style="text-align:center;color:var(--rock);font-size:12px;padding:16px">データがありません</div>';
+    return;
+  }
+
+  const slideHistory = childData.slideHistory || [];
   const recentCompleted = slideHistory.slice(-10).reverse();
 
   if (recentCompleted.length === 0) {
@@ -4146,6 +4438,9 @@ function renderParentFamilyMissions() {
   const container = document.getElementById('parentFamilyMissions');
   if (!container) return;
 
+  const childData = getSelectedChildData();
+  const childCompletedFamilyMissions = childData?.completedFamilyMissions || [];
+
   const allMissions = [...(APP.missions?.familyMissions || []), ...customFamilyMissions];
 
   if (allMissions.length === 0) {
@@ -4154,7 +4449,7 @@ function renderParentFamilyMissions() {
   }
 
   container.innerHTML = allMissions.map(m => {
-    const isCompleted = completedFamilyMissions.some(c => c.missionId === m.id);
+    const isCompleted = childCompletedFamilyMissions.some(c => c.missionId === m.id);
     const isCustom = customFamilyMissions.some(c => c.id === m.id);
 
     return `
@@ -4175,12 +4470,15 @@ function renderParentFamilyHistory() {
   const container = document.getElementById('parentFamilyHistory');
   if (!container) return;
 
-  if (completedFamilyMissions.length === 0) {
+  const childData = getSelectedChildData();
+  const childCompletedFamilyMissions = childData?.completedFamilyMissions || [];
+
+  if (childCompletedFamilyMissions.length === 0) {
     container.innerHTML = '<div style="text-align:center;color:var(--rock);font-size:12px;padding:16px">まだ達成したミッションがありません</div>';
     return;
   }
 
-  const historyItems = completedFamilyMissions.slice(-10).reverse().map(fm => {
+  const historyItems = childCompletedFamilyMissions.slice(-10).reverse().map(fm => {
     const mission = APP.missions?.familyMissions?.find(m => m.id === fm.missionId) ||
                     customFamilyMissions.find(m => m.id === fm.missionId);
     return {
