@@ -3511,6 +3511,7 @@ nav.sponsor {
 /* 管理者・スポンサー画面のパディング調整 */
 #screen-admin,
 #screen-sponsor,
+#screen-parent,
 #screen-teacher {
   padding-bottom: 80px;
 }
