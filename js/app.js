@@ -36,6 +36,10 @@ let completedSlides = JSON.parse(localStorage.getItem('sherupa_s')) || [];
 let climbedMountains = JSON.parse(localStorage.getItem('sherupa_climbed')) || [];
 let mode = 'child';
 
+// 登録・デモモード管理
+let isRegistered = localStorage.getItem('sherupa_registered') === 'true';
+let isDemoMode = localStorage.getItem('sherupa_demo') === 'true';
+
 // 証明書システム（各山100枚限定）
 // certificates: { mountainId: [{ id, owner, ownerName, issuedAt, certNumber }] }
 let certificates = JSON.parse(localStorage.getItem('sherupa_certs')) || {};
@@ -191,13 +195,151 @@ function showError(message) {
 // ========================================
 function initApp() {
   document.getElementById('loading').style.display = 'none';
+
+  // 初回アクセス時はウェルカム画面を表示
+  if (!isRegistered && !isDemoMode) {
+    showWelcomeScreen();
+    return;
+  }
+
+  // デモモードまたは登録済みの場合はアプリを表示
+  startMainApp();
+}
+
+function startMainApp() {
   document.getElementById('app').style.display = 'block';
+  document.getElementById('welcome-screen').style.display = 'none';
+  document.getElementById('registration-screen').style.display = 'none';
+
+  // デモモードの場合はバナーを表示
+  if (isDemoMode && !isRegistered) {
+    document.getElementById('demo-banner').style.display = 'block';
+    document.body.classList.add('demo-mode');
+  } else {
+    document.getElementById('demo-banner').style.display = 'none';
+    document.body.classList.remove('demo-mode');
+  }
 
   updateHeader();
   renderHome();
   renderBookshelf();
   renderProfile();
   showScreen('home');
+
+  // デモユーザーを初期化
+  initDemoUsers();
+}
+
+// ========================================
+// ウェルカム・登録・デモモード
+// ========================================
+function showWelcomeScreen() {
+  document.getElementById('welcome-screen').style.display = 'flex';
+  document.getElementById('registration-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'none';
+}
+
+function startDemo() {
+  // デモモードを有効化
+  isDemoMode = true;
+  localStorage.setItem('sherupa_demo', 'true');
+
+  // アプリを開始
+  startMainApp();
+  toast('🎮 デモモードで開始しました！');
+}
+
+function showRegistration() {
+  document.getElementById('welcome-screen').style.display = 'none';
+  document.getElementById('registration-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('demo-banner').style.display = 'none';
+}
+
+function hideRegistration() {
+  // デモモード中なら戻る先はアプリ、そうでなければウェルカム画面
+  if (isDemoMode) {
+    startMainApp();
+  } else {
+    showWelcomeScreen();
+  }
+}
+
+function submitRegistration() {
+  const nameInput = document.getElementById('reg-name');
+  const gradeInput = document.querySelector('input[name="reg-grade"]:checked');
+  const regionInput = document.getElementById('reg-region');
+
+  const name = nameInput.value.trim();
+  const grade = gradeInput ? gradeInput.value : 'middle';
+  const region = regionInput.value;
+
+  // バリデーション
+  if (!name) {
+    toast('ニックネームを入力してください');
+    nameInput.focus();
+    return;
+  }
+  if (!region) {
+    toast('地域を選択してください');
+    regionInput.focus();
+    return;
+  }
+
+  // 全てのデータをリセット
+  resetAllData();
+
+  // 新しいプロフィールを作成
+  userProfile = {
+    id: 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+    name: name,
+    grade: grade,
+    region: region,
+    alt: 0,
+    streak: 0
+  };
+  localStorage.setItem('sherupa_profile', JSON.stringify(userProfile));
+
+  // 登録完了フラグを設定
+  isRegistered = true;
+  isDemoMode = false;
+  localStorage.setItem('sherupa_registered', 'true');
+  localStorage.removeItem('sherupa_demo');
+
+  // アプリを開始
+  startMainApp();
+  toast('🎉 登録完了！冒険を始めよう！');
+}
+
+function resetAllData() {
+  // 学習進捗をリセット
+  completedSlides = [];
+  climbedMountains = [];
+  certificates = {};
+  marketplace = [];
+  transactions = [];
+  auctionBids = {};
+  certLimits = {};
+  slideCompletions = {};
+  completedFamilyMissions = [];
+  customFamilyMissions = [];
+  dailyFamilyMissionHistory = {};
+  sponsorLikesReceived = [];
+
+  // LocalStorageをクリア
+  localStorage.removeItem('sherupa_s');
+  localStorage.removeItem('sherupa_climbed');
+  localStorage.removeItem('sherupa_certs');
+  localStorage.removeItem('sherupa_market');
+  localStorage.removeItem('sherupa_transactions');
+  localStorage.removeItem('sherupa_bids');
+  localStorage.removeItem('sherupa_certlimits');
+  localStorage.removeItem('sherupa_slide_completions');
+  localStorage.removeItem('sherupa_family_missions');
+  localStorage.removeItem('sherupa_custom_family_missions');
+  localStorage.removeItem('sherupa_daily_family_history');
+  localStorage.removeItem('sherupa_sponsor_likes_received');
+  localStorage.removeItem('sherupa_all_users');
 }
 
 // ========================================

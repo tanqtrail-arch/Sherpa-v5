@@ -4516,3 +4516,395 @@ nav.sponsor {
     width: 120px;
   }
 }
+
+/* ========================================
+   ウェルカム画面・登録画面・デモモード
+   ======================================== */
+
+/* ウェルカム画面 */
+.welcome-screen {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 50%, #1e293b 100%);
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.welcome-content {
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+}
+
+.welcome-logo {
+  margin-bottom: 24px;
+}
+
+.welcome-logo-icon {
+  font-size: 80px;
+  margin-bottom: 8px;
+  animation: welcomeBounce 2s ease-in-out infinite;
+}
+
+@keyframes welcomeBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.welcome-logo-text {
+  font-size: 32px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -1px;
+}
+
+.welcome-logo-text span {
+  color: #22d3ee;
+}
+
+.welcome-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 12px;
+}
+
+.welcome-subtitle {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.6;
+  margin: 0 0 32px;
+}
+
+.welcome-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.welcome-btn {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.welcome-btn:hover {
+  transform: translateY(-2px);
+}
+
+.welcome-btn:active {
+  transform: translateY(0);
+}
+
+.welcome-btn-primary {
+  background: linear-gradient(135deg, #10b981, #059669);
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+}
+
+.welcome-btn-secondary {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+}
+
+.welcome-btn-icon {
+  font-size: 32px;
+}
+
+.welcome-btn-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.welcome-btn-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.welcome-btn-desc {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 2px;
+}
+
+.welcome-features {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+}
+
+.welcome-feature {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.welcome-feature span:first-child {
+  font-size: 24px;
+}
+
+/* 登録画面 */
+.registration-screen {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 50%, #1e293b 100%);
+  z-index: 9998;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.registration-content {
+  max-width: 400px;
+  width: 100%;
+  padding: 20px 0;
+}
+
+.registration-back {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 8px 0;
+  margin-bottom: 16px;
+}
+
+.registration-back:hover {
+  color: #fff;
+}
+
+.registration-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.registration-icon {
+  font-size: 64px;
+  margin-bottom: 12px;
+}
+
+.registration-title {
+  font-size: 24px;
+  font-weight: 900;
+  color: #fff;
+  margin: 0 0 8px;
+}
+
+.registration-subtitle {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+.registration-form {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  padding: 24px;
+}
+
+.registration-form .form-group {
+  margin-bottom: 20px;
+}
+
+.registration-form .form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--summit);
+  margin-bottom: 8px;
+}
+
+.registration-form .form-input,
+.registration-form .form-select {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 16px;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.registration-form .form-input:focus,
+.registration-form .form-select:focus {
+  border-color: #3b82f6;
+  outline: none;
+}
+
+.grade-selector {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.grade-option {
+  cursor: pointer;
+}
+
+.grade-option input {
+  display: none;
+}
+
+.grade-option .grade-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 8px;
+  background: #f3f4f6;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+
+.grade-option input:checked + .grade-card {
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  border-color: #3b82f6;
+}
+
+.grade-option .grade-emoji {
+  font-size: 24px;
+  margin-bottom: 4px;
+}
+
+.grade-option .grade-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--summit);
+}
+
+.grade-option .grade-desc {
+  font-size: 10px;
+  color: var(--rock);
+  margin-top: 2px;
+}
+
+.registration-submit {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+}
+
+.registration-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+}
+
+.registration-submit:active {
+  transform: translateY(0);
+}
+
+.registration-note {
+  text-align: center;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 16px;
+}
+
+/* デモモードバナー */
+.demo-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  padding: 8px 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.demo-banner-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.demo-banner-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.demo-banner-btn {
+  padding: 6px 16px;
+  background: #fff;
+  color: #d97706;
+  border: none;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.demo-banner-btn:hover {
+  transform: scale(1.05);
+}
+
+/* デモモード時のヘッダー調整 */
+body.demo-mode #header {
+  top: 40px;
+}
+
+body.demo-mode main {
+  padding-top: calc(60px + 40px);
+}
+
+body.demo-mode #nav {
+  /* ナビゲーションはそのまま */
+}
+
+/* レスポンシブ */
+@media (max-width: 400px) {
+  .welcome-btn {
+    padding: 14px 16px;
+  }
+
+  .welcome-btn-icon {
+    font-size: 28px;
+  }
+
+  .welcome-btn-title {
+    font-size: 14px;
+  }
+
+  .grade-selector {
+    grid-template-columns: 1fr;
+  }
+
+  .grade-option .grade-card {
+    flex-direction: row;
+    gap: 12px;
+    padding: 10px 14px;
+  }
+
+  .grade-option .grade-emoji {
+    margin-bottom: 0;
+  }
+}

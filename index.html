@@ -25,6 +25,131 @@
   </div>
 </div>
 
+<!-- ウェルカム画面 -->
+<div id="welcome-screen" class="welcome-screen" style="display:none">
+  <div class="welcome-content">
+    <div class="welcome-logo">
+      <div class="welcome-logo-icon">🏔️</div>
+      <div class="welcome-logo-text">Sher<span>upa</span></div>
+    </div>
+    <h1 class="welcome-title">探究学習プラットフォーム</h1>
+    <p class="welcome-subtitle">学びの冒険を始めよう！<br>スライドを見て、クイズに挑戦して、山を登ろう</p>
+
+    <div class="welcome-buttons">
+      <button class="welcome-btn welcome-btn-primary" onclick="startDemo()">
+        <span class="welcome-btn-icon">🎮</span>
+        <span class="welcome-btn-text">
+          <span class="welcome-btn-title">デモで試す</span>
+          <span class="welcome-btn-desc">登録なしですぐに体験</span>
+        </span>
+      </button>
+      <button class="welcome-btn welcome-btn-secondary" onclick="showRegistration()">
+        <span class="welcome-btn-icon">📝</span>
+        <span class="welcome-btn-text">
+          <span class="welcome-btn-title">アカウント登録</span>
+          <span class="welcome-btn-desc">正式に始める</span>
+        </span>
+      </button>
+    </div>
+
+    <div class="welcome-features">
+      <div class="welcome-feature">
+        <span>📚</span>
+        <span>100+スライド</span>
+      </div>
+      <div class="welcome-feature">
+        <span>🏔️</span>
+        <span>登頂チャレンジ</span>
+      </div>
+      <div class="welcome-feature">
+        <span>👨‍👩‍👧</span>
+        <span>家族で学習</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 登録画面 -->
+<div id="registration-screen" class="registration-screen" style="display:none">
+  <div class="registration-content">
+    <button class="registration-back" onclick="hideRegistration()">← 戻る</button>
+
+    <div class="registration-header">
+      <div class="registration-icon">📝</div>
+      <h1 class="registration-title">アカウント登録</h1>
+      <p class="registration-subtitle">あなたのプロフィールを設定しよう</p>
+    </div>
+
+    <form id="registration-form" class="registration-form" onsubmit="event.preventDefault();submitRegistration()">
+      <div class="form-group">
+        <label class="form-label">📛 ニックネーム</label>
+        <input type="text" class="form-input" id="reg-name" placeholder="例: たんきゅうくん" required maxlength="20">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">🎓 学年</label>
+        <div class="grade-selector">
+          <label class="grade-option">
+            <input type="radio" name="reg-grade" value="lower" required>
+            <div class="grade-card">
+              <span class="grade-emoji">🌱</span>
+              <span class="grade-label">低学年</span>
+              <span class="grade-desc">小1〜小2</span>
+            </div>
+          </label>
+          <label class="grade-option">
+            <input type="radio" name="reg-grade" value="middle" checked>
+            <div class="grade-card">
+              <span class="grade-emoji">⭐</span>
+              <span class="grade-label">中学年</span>
+              <span class="grade-desc">小3〜小4</span>
+            </div>
+          </label>
+          <label class="grade-option">
+            <input type="radio" name="reg-grade" value="upper">
+            <div class="grade-card">
+              <span class="grade-emoji">🚀</span>
+              <span class="grade-label">高学年</span>
+              <span class="grade-desc">小5〜中学</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">📍 地域</label>
+        <select class="form-select" id="reg-region" required>
+          <option value="">選択してください</option>
+          <option value="北海道">北海道</option>
+          <option value="東北">東北</option>
+          <option value="関東">関東</option>
+          <option value="中部">中部</option>
+          <option value="近畿">近畿</option>
+          <option value="中国">中国</option>
+          <option value="四国">四国</option>
+          <option value="九州・沖縄">九州・沖縄</option>
+        </select>
+      </div>
+
+      <button type="submit" class="registration-submit">
+        🎉 登録して始める
+      </button>
+    </form>
+
+    <div class="registration-note">
+      登録すると進捗がリセットされ、ゼロからスタートします
+    </div>
+  </div>
+</div>
+
+<!-- デモモードバナー -->
+<div id="demo-banner" class="demo-banner" style="display:none">
+  <div class="demo-banner-content">
+    <span class="demo-banner-text">🎮 デモモードで体験中</span>
+    <button class="demo-banner-btn" onclick="showRegistration()">登録する</button>
+  </div>
+</div>
+
 <!-- アプリケーション -->
 <div id="app" style="display:none">
 
