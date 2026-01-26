@@ -17,6 +17,7 @@
   --teacher: #10b981;
   --admin: #dc2626;
   --family: #ec4899;
+  --sponsor: #f59e0b;
   --font: 'Zen Maru Gothic', sans-serif;
 }
 
@@ -63,6 +64,7 @@ header {
 }
 header.parent { background: rgba(30, 58, 138, .95); }
 header.teacher { background: rgba(6, 78, 59, .95); }
+header.sponsor { background: rgba(120, 53, 15, .95); }
 header.admin { background: rgba(127, 29, 29, .95); }
 
 .hd {
@@ -2940,5 +2942,504 @@ main {
     transform: none;
     text-align: right;
     margin-top: 4px;
+  }
+}
+
+/* ========================================
+   スポンサーダッシュボード
+   ======================================== */
+
+/* スポンサーサマリーグリッド */
+.sponsor-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.sponsor-summary-card {
+  background: rgba(255, 255, 255, .95);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .1);
+}
+
+.sponsor-summary-icon {
+  font-size: 28px;
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sponsor-summary-info {
+  flex: 1;
+}
+
+.sponsor-summary-label {
+  font-size: 10px;
+  color: var(--rock);
+  font-weight: 600;
+}
+
+.sponsor-summary-value {
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--summit);
+}
+
+/* スポンサーアクションボタン */
+.sponsor-actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.sponsor-action-btn {
+  background: rgba(255, 255, 255, .95);
+  border: none;
+  border-radius: 12px;
+  padding: 16px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: transform .2s, box-shadow .2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .1);
+}
+
+.sponsor-action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .15);
+}
+
+.sponsor-action-btn.purchase { border-bottom: 3px solid #f59e0b; }
+.sponsor-action-btn.slides { border-bottom: 3px solid #3b82f6; }
+.sponsor-action-btn.likes { border-bottom: 3px solid #ec4899; }
+.sponsor-action-btn.stats { border-bottom: 3px solid #10b981; }
+
+.sponsor-action-icon {
+  font-size: 24px;
+}
+
+.sponsor-action-text {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--summit);
+}
+
+/* ALT購入プラン */
+.alt-purchase-plans {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.alt-plan {
+  background: var(--cloud);
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 14px;
+  cursor: pointer;
+  transition: .2s;
+  position: relative;
+}
+
+.alt-plan:hover {
+  border-color: var(--sponsor);
+  background: #fef3c7;
+}
+
+.alt-plan.popular {
+  border-color: var(--sponsor);
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+}
+
+.alt-plan-badge {
+  position: absolute;
+  top: -8px;
+  right: 12px;
+  background: var(--sponsor);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.alt-plan-header {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--summit);
+  margin-bottom: 4px;
+}
+
+.alt-plan-amount {
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--sponsor);
+}
+
+.alt-plan-bonus {
+  font-size: 11px;
+  color: var(--family);
+  font-weight: 600;
+}
+
+.alt-plan-price {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--rock);
+  margin-top: 4px;
+}
+
+/* カスタム購入 */
+.alt-custom-purchase {
+  background: var(--cloud);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+/* いいねターゲットリスト */
+.like-targets-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.like-target-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--cloud);
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+
+.like-target-avatar {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--meadow), #34d399);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.like-target-info {
+  flex: 1;
+}
+
+.like-target-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--summit);
+}
+
+.like-target-detail {
+  font-size: 11px;
+  color: var(--rock);
+}
+
+.like-target-btn {
+  background: linear-gradient(135deg, #ec4899, #f472b6);
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: .2s;
+}
+
+.like-target-btn:hover {
+  transform: scale(1.05);
+}
+
+.like-target-btn:disabled {
+  background: var(--rock);
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* スポンサー詳細統計 */
+.sponsor-detail-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  background: var(--cloud);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.sponsor-stat-item {
+  text-align: center;
+}
+
+.sponsor-stat-value {
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--sponsor);
+}
+
+.sponsor-stat-label {
+  font-size: 10px;
+  color: var(--rock);
+}
+
+/* スポンサースライドカード */
+.sponsor-slide-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sponsor-slide-emoji {
+  font-size: 32px;
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sponsor-slide-info {
+  flex: 1;
+}
+
+.sponsor-slide-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--summit);
+}
+
+.sponsor-slide-meta {
+  font-size: 11px;
+  color: var(--rock);
+  margin-top: 2px;
+}
+
+.sponsor-slide-reward {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--sponsor);
+}
+
+.sponsor-slide-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.sponsor-slide-action-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: .2s;
+}
+
+.sponsor-slide-action-btn.edit {
+  background: #dbeafe;
+  color: #3b82f6;
+}
+
+.sponsor-slide-action-btn.delete {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+/* スポンサーページエディタ */
+.sponsor-page-editor {
+  background: var(--cloud);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.sponsor-page-editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.sponsor-page-number {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--sponsor);
+}
+
+.sponsor-page-delete {
+  background: #fee2e2;
+  color: #ef4444;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+/* クイズエディタ */
+.sponsor-quiz-editor {
+  background: #f0f4ff;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.sponsor-quiz-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.sponsor-quiz-number {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6366f1;
+}
+
+.sponsor-quiz-delete {
+  background: #fee2e2;
+  color: #ef4444;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.sponsor-quiz-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.sponsor-quiz-choice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sponsor-quiz-choice input[type="radio"] {
+  accent-color: var(--meadow);
+}
+
+.sponsor-quiz-choice input[type="text"] {
+  flex: 1;
+}
+
+/* スポンサー一覧（こども向け） */
+.sponsor-list-item {
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: .2s;
+  border: 2px solid transparent;
+}
+
+.sponsor-list-item:hover {
+  border-color: var(--sponsor);
+  transform: translateY(-2px);
+}
+
+.sponsor-list-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.sponsor-list-logo {
+  font-size: 32px;
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sponsor-list-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--summit);
+}
+
+.sponsor-list-message {
+  font-size: 12px;
+  color: var(--rock);
+}
+
+.sponsor-list-stats {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--rock);
+}
+
+/* ナビゲーションスポンサーモード */
+nav.sponsor {
+  background: rgba(120, 53, 15, .95);
+}
+
+/* モードバッジ */
+.badge.sponsor {
+  background: var(--sponsor);
+  color: #fff;
+}
+
+/* スポンサーいいね受取アニメーション */
+@keyframes likeReceived {
+  0% { transform: scale(0.5); opacity: 0; }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+#sponsorLikeReceivedModal .modal-box {
+  animation: likeReceived 0.5s ease-out;
+}
+
+/* レスポンシブ */
+@media (max-width: 400px) {
+  .sponsor-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sponsor-actions {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .sponsor-detail-stats {
+    grid-template-columns: 1fr;
   }
 }
