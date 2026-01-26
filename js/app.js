@@ -5753,9 +5753,13 @@ function renderReportList() {
     const totalLikes = getTotalLikes(report);
     const slide = report.slideId ? APP.slides.find(s => s.id === report.slideId) : null;
     const timeAgo = getTimeAgo(report.createdAt);
+    const isCard = report.isCard;
+    const hasPhoto = report.photo;
 
     return `
       <div class="report-card" onclick="openReportDetail('${report.id}')">
+        ${isCard ? '<div class="report-card-type-badge">🎴 探究カード</div>' : ''}
+        ${hasPhoto ? `<div class="report-card-photo"><img src="${report.photo}" alt=""></div>` : ''}
         <div class="report-card-header">
           <div class="report-card-emoji">${report.emoji}</div>
           <div class="report-card-info">
@@ -5766,7 +5770,10 @@ function renderReportList() {
             </div>
           </div>
         </div>
-        <div class="report-card-content">${escapeHtml(report.content).substring(0, 100)}${report.content.length > 100 ? '...' : ''}</div>
+        <div class="report-card-content">${isCard && report.cardData ?
+          `💡 ${escapeHtml(report.cardData.learned).substring(0, 60)}${report.cardData.learned.length > 60 ? '...' : ''}` :
+          `${escapeHtml(report.content).substring(0, 100)}${report.content.length > 100 ? '...' : ''}`
+        }</div>
         ${slide ? `<div class="report-card-slide">📚 ${slide.title}</div>` : ''}
         <div class="report-card-footer">
           <div class="report-card-likes">
@@ -5952,7 +5959,38 @@ function openReportDetail(reportId) {
   document.getElementById('reportDetailEmoji').textContent = report.emoji;
   document.getElementById('reportDetailTitle').textContent = report.title;
   document.getElementById('reportDetailMeta').textContent = `${report.authorName} • ${getTimeAgo(report.createdAt)}`;
-  document.getElementById('reportDetailContent').textContent = report.content;
+
+  // 写真を表示
+  const photoContainer = document.getElementById('reportDetailPhoto');
+  if (report.photo) {
+    document.getElementById('reportDetailPhotoImg').src = report.photo;
+    photoContainer.style.display = 'block';
+  } else {
+    photoContainer.style.display = 'none';
+  }
+
+  // コンテンツを表示（カード形式の場合はテンプレート表示）
+  const contentContainer = document.getElementById('reportDetailContent');
+  if (report.isCard && report.cardData) {
+    contentContainer.innerHTML = `
+      <div style="margin-bottom:12px">
+        <div style="font-size:12px;font-weight:700;color:#f59e0b;margin-bottom:4px">💡 わかったこと</div>
+        <div style="background:#fef3c7;padding:10px 12px;border-radius:8px;font-size:13px">${escapeHtml(report.cardData.learned)}</div>
+      </div>
+      <div style="margin-bottom:12px">
+        <div style="font-size:12px;font-weight:700;color:#ec4899;margin-bottom:4px">😲 びっくりしたこと</div>
+        <div style="background:#fce7f3;padding:10px 12px;border-radius:8px;font-size:13px">${escapeHtml(report.cardData.surprised)}</div>
+      </div>
+      ${report.cardData.question ? `
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#6366f1;margin-bottom:4px">❓ もっと知りたいこと</div>
+          <div style="background:#e0e7ff;padding:10px 12px;border-radius:8px;font-size:13px">${escapeHtml(report.cardData.question)}</div>
+        </div>
+      ` : ''}
+    `;
+  } else {
+    contentContainer.textContent = report.content;
+  }
 
   // 関連スライド
   const slideContainer = document.getElementById('reportDetailSlide');
@@ -6123,6 +6161,335 @@ function grantAltToReportAuthor(authorId, amount) {
     user.alt = (user.alt || 0) + amount;
     localStorage.setItem('sherupa_all_users', JSON.stringify(allUsers));
   }
+}
+
+// ========================================
+// 探究カードメーカー
+// ========================================
+
+let currentCardPhoto = null; // Base64形式の写真データ
+
+// カードメーカーを開く
+function openCardMaker() {
+  // フォームをリセット
+  document.getElementById('cardMakerForm').reset();
+  currentCardPhoto = null;
+
+  // 写真プレビューをリセット
+  document.getElementById('cardPhotoPreview').style.display = 'none';
+  document.getElementById('cardPhotoPreview').src = '';
+  document.getElementById('photoPlaceholder').style.display = 'flex';
+  document.getElementById('photoRemoveBtn').style.display = 'none';
+
+  // スライド選択肢を設定
+  const slideSelect = document.getElementById('cardSlideSelect');
+  slideSelect.innerHTML = '<option value="">選択しない</option>';
+  completedSlides.forEach(slideId => {
+    const slide = APP.slides.find(s => s.id === slideId);
+    if (slide) {
+      slideSelect.innerHTML += `<option value="${slide.id}">${slide.emoji} ${slide.title}</option>`;
+    }
+  });
+
+  // プレビューを初期化
+  updateCardPreview();
+
+  // 入力時にプレビュー更新
+  ['cardTopic', 'cardLearned', 'cardSurprised', 'cardQuestion'].forEach(id => {
+    document.getElementById(id).oninput = updateCardPreview;
+  });
+
+  // 作者名と日付を設定
+  document.getElementById('cardPreviewAuthor').textContent = userProfile.name;
+  document.getElementById('cardPreviewDate').textContent = new Date().toLocaleDateString('ja-JP');
+
+  document.getElementById('cardMakerModal').style.display = 'flex';
+}
+
+// 写真を処理
+function handleCardPhoto(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // ファイルサイズチェック（5MB以下）
+  if (file.size > 5 * 1024 * 1024) {
+    toast('⚠️ 画像は5MB以下にしてください');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    currentCardPhoto = e.target.result;
+
+    // 入力エリアのプレビュー
+    document.getElementById('cardPhotoPreview').src = currentCardPhoto;
+    document.getElementById('cardPhotoPreview').style.display = 'block';
+    document.getElementById('photoPlaceholder').style.display = 'none';
+    document.getElementById('photoRemoveBtn').style.display = 'flex';
+
+    // カードプレビューの写真
+    document.getElementById('cardPreviewPhotoImg').src = currentCardPhoto;
+    document.getElementById('cardPreviewPhoto').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+// 写真を削除
+function removeCardPhoto() {
+  currentCardPhoto = null;
+  document.getElementById('cardPhotoInput').value = '';
+  document.getElementById('cardPhotoPreview').style.display = 'none';
+  document.getElementById('cardPhotoPreview').src = '';
+  document.getElementById('photoPlaceholder').style.display = 'flex';
+  document.getElementById('photoRemoveBtn').style.display = 'none';
+  document.getElementById('cardPreviewPhoto').style.display = 'none';
+}
+
+// カードプレビューを更新
+function updateCardPreview() {
+  const topic = document.getElementById('cardTopic').value || '調べたこと';
+  const learned = document.getElementById('cardLearned').value || '-';
+  const surprised = document.getElementById('cardSurprised').value || '-';
+  const question = document.getElementById('cardQuestion').value;
+
+  document.getElementById('cardPreviewTopic').textContent = '🔍 ' + topic;
+  document.getElementById('cardPreviewLearned').textContent = learned;
+  document.getElementById('cardPreviewSurprised').textContent = surprised;
+
+  if (question) {
+    document.getElementById('cardPreviewQuestionSection').style.display = 'block';
+    document.getElementById('cardPreviewQuestion').textContent = question;
+  } else {
+    document.getElementById('cardPreviewQuestionSection').style.display = 'none';
+  }
+}
+
+// カードを投稿
+function submitCard() {
+  const topic = document.getElementById('cardTopic').value.trim();
+  const learned = document.getElementById('cardLearned').value.trim();
+  const surprised = document.getElementById('cardSurprised').value.trim();
+  const question = document.getElementById('cardQuestion').value.trim();
+  const slideId = document.getElementById('cardSlideSelect').value || null;
+
+  if (!topic || !learned || !surprised) {
+    toast('⚠️ 必須項目を入力してください');
+    return;
+  }
+
+  // レポートとして保存（カード形式）
+  const cardContent = `🔍 調べたこと：${topic}\n\n💡 わかったこと：\n${learned}\n\n😲 びっくりしたこと：\n${surprised}${question ? `\n\n❓ もっと知りたいこと：\n${question}` : ''}`;
+
+  const newReport = {
+    id: 'report_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+    authorId: userProfile.id,
+    authorName: userProfile.name,
+    title: topic,
+    content: cardContent,
+    emoji: '🎴',
+    slideId: slideId,
+    photo: currentCardPhoto, // Base64写真データ
+    isCard: true, // カード形式フラグ
+    cardData: { topic, learned, surprised, question }, // 構造化データ
+    createdAt: new Date().toISOString(),
+    likes: {
+      discovery: [],
+      effort: [],
+      research: [],
+      helpful: []
+    }
+  };
+
+  explorationReports.unshift(newReport);
+  localStorage.setItem('sherupa_exploration_reports', JSON.stringify(explorationReports));
+
+  toast('🎉 探究カードを投稿しました！');
+  closeModals();
+  renderReportList();
+}
+
+// カードを画像として保存
+function downloadCard() {
+  const topic = document.getElementById('cardTopic').value.trim();
+  const learned = document.getElementById('cardLearned').value.trim();
+  const surprised = document.getElementById('cardSurprised').value.trim();
+
+  if (!topic || !learned || !surprised) {
+    toast('⚠️ 必須項目を入力してください');
+    return;
+  }
+
+  // Canvas APIでカード画像を生成
+  generateCardImage().then(dataUrl => {
+    // ダウンロードリンクを作成
+    const link = document.createElement('a');
+    link.download = `sherupa_card_${Date.now()}.png`;
+    link.href = dataUrl;
+    link.click();
+    toast('💾 カードを保存しました！');
+  }).catch(err => {
+    console.error('カード生成エラー:', err);
+    toast('⚠️ 画像の生成に失敗しました');
+  });
+}
+
+// Canvas APIでカード画像を生成
+async function generateCardImage() {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+
+  // カードサイズ（Instagram向け 1080x1350）
+  const width = 1080;
+  const height = currentCardPhoto ? 1350 : 1080;
+  canvas.width = width;
+  canvas.height = height;
+
+  // 背景グラデーション
+  const gradient = ctx.createLinearGradient(0, 0, 0, height);
+  gradient.addColorStop(0, '#1a2f4e');
+  gradient.addColorStop(0.5, '#2d5a87');
+  gradient.addColorStop(1, '#1a2f4e');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, width, height);
+
+  // カード背景（白い角丸四角）
+  const cardMargin = 40;
+  const cardWidth = width - cardMargin * 2;
+  const cardHeight = height - cardMargin * 2;
+  ctx.fillStyle = '#ffffff';
+  roundRect(ctx, cardMargin, cardMargin, cardWidth, cardHeight, 30);
+  ctx.fill();
+
+  let yOffset = cardMargin + 40;
+
+  // ヘッダー
+  ctx.fillStyle = '#8b5cf6';
+  ctx.font = 'bold 36px "Zen Maru Gothic", sans-serif';
+  ctx.fillText('🏔️ Sherupa', cardMargin + 40, yOffset + 30);
+
+  ctx.fillStyle = '#a78bfa';
+  ctx.font = 'bold 24px "Zen Maru Gothic", sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText('探究カード', width - cardMargin - 40, yOffset + 30);
+  ctx.textAlign = 'left';
+
+  yOffset += 80;
+
+  // 写真があれば表示
+  if (currentCardPhoto) {
+    try {
+      const img = await loadImage(currentCardPhoto);
+      const photoHeight = 400;
+      const photoWidth = cardWidth - 80;
+      const photoX = cardMargin + 40;
+
+      // 写真を角丸でクリップ
+      ctx.save();
+      roundRect(ctx, photoX, yOffset, photoWidth, photoHeight, 20);
+      ctx.clip();
+
+      // アスペクト比を維持して中央に配置
+      const scale = Math.max(photoWidth / img.width, photoHeight / img.height);
+      const scaledWidth = img.width * scale;
+      const scaledHeight = img.height * scale;
+      const offsetX = photoX + (photoWidth - scaledWidth) / 2;
+      const offsetY = yOffset + (photoHeight - scaledHeight) / 2;
+      ctx.drawImage(img, offsetX, offsetY, scaledWidth, scaledHeight);
+      ctx.restore();
+
+      yOffset += photoHeight + 30;
+    } catch (e) {
+      console.error('写真読み込みエラー:', e);
+    }
+  }
+
+  // トピック
+  const topic = document.getElementById('cardTopic').value.trim();
+  ctx.fillStyle = '#1a2f4e';
+  ctx.font = 'bold 48px "Zen Maru Gothic", sans-serif';
+  ctx.fillText('🔍 ' + topic, cardMargin + 40, yOffset + 40);
+  yOffset += 80;
+
+  // セクション描画用関数
+  function drawSection(emoji, label, text, bgColor) {
+    const sectionHeight = 120;
+    ctx.fillStyle = bgColor;
+    roundRect(ctx, cardMargin + 40, yOffset, cardWidth - 80, sectionHeight, 15);
+    ctx.fill();
+
+    ctx.fillStyle = '#1a2f4e';
+    ctx.font = 'bold 28px "Zen Maru Gothic", sans-serif';
+    ctx.fillText(emoji + ' ' + label, cardMargin + 60, yOffset + 35);
+
+    ctx.fillStyle = '#334155';
+    ctx.font = '26px "Zen Maru Gothic", sans-serif';
+    wrapText(ctx, text, cardMargin + 60, yOffset + 75, cardWidth - 140, 32);
+
+    yOffset += sectionHeight + 15;
+  }
+
+  const learned = document.getElementById('cardLearned').value.trim();
+  const surprised = document.getElementById('cardSurprised').value.trim();
+  const question = document.getElementById('cardQuestion').value.trim();
+
+  drawSection('💡', 'わかったこと', learned, '#fef3c7');
+  drawSection('😲', 'びっくり', surprised, '#fce7f3');
+
+  if (question) {
+    drawSection('❓', 'もっと知りたい', question, '#e0e7ff');
+  }
+
+  // フッター
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '24px "Zen Maru Gothic", sans-serif';
+  ctx.fillText(userProfile.name + ' • ' + new Date().toLocaleDateString('ja-JP'), cardMargin + 40, height - cardMargin - 30);
+
+  return canvas.toDataURL('image/png');
+}
+
+// 画像読み込みPromise
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+// 角丸四角を描画
+function roundRect(ctx, x, y, width, height, radius) {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  ctx.lineTo(x + radius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+}
+
+// テキスト折り返し描画
+function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+  const chars = text.split('');
+  let line = '';
+
+  for (let i = 0; i < chars.length; i++) {
+    const testLine = line + chars[i];
+    const metrics = ctx.measureText(testLine);
+
+    if (metrics.width > maxWidth && i > 0) {
+      ctx.fillText(line, x, y);
+      line = chars[i];
+      y += lineHeight;
+    } else {
+      line = testLine;
+    }
+  }
+  ctx.fillText(line, x, y);
 }
 
 // ========================================

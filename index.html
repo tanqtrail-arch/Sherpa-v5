@@ -801,11 +801,11 @@
     <div id="screen-reports" class="screen">
       <div class="section-title" style="color:#fff">📝 探究レポート<span class="free-tag" style="background:linear-gradient(135deg,#8b5cf6,#a78bfa)">みんなの発見</span></div>
 
-      <!-- 投稿ボタン -->
+      <!-- カード作成ボタン -->
       <div class="report-post-btn-container">
-        <button class="report-post-btn" onclick="openReportEditor()">
-          <span>✏️</span>
-          <span>レポートを投稿する</span>
+        <button class="report-post-btn" onclick="openCardMaker()">
+          <span>🎴</span>
+          <span>探究カードを作る</span>
         </button>
       </div>
 
@@ -1465,6 +1465,112 @@
   </div>
 </div>
 
+<!-- 探究カードメーカーモーダル -->
+<div class="modal-overlay" id="cardMakerModal" onclick="if(event.target===this)closeModals()">
+  <div class="modal-box card-maker-modal" style="max-width:440px">
+    <div class="modal-header" style="background:linear-gradient(135deg,#8b5cf6,#a78bfa)">
+      <div style="font-size:32px">🎴</div>
+      <div style="font-weight:700;margin-top:4px">探究カードメーカー</div>
+      <div style="font-size:11px;opacity:.9;margin-top:2px">学んだことをカードにまとめよう！</div>
+    </div>
+    <div class="modal-body" style="max-height:70vh;overflow-y:auto">
+      <form id="cardMakerForm" onsubmit="event.preventDefault()">
+
+        <!-- 関連スライド選択 -->
+        <div class="form-group">
+          <label class="form-label">📚 関連するスライド（任意）</label>
+          <select class="form-select" id="cardSlideSelect">
+            <option value="">選択しない</option>
+          </select>
+        </div>
+
+        <!-- テンプレート入力 -->
+        <div class="card-template-inputs">
+          <div class="form-group">
+            <label class="form-label">🔍 調べたこと</label>
+            <input type="text" class="form-input" id="cardTopic" placeholder="例: 恐竜の絶滅について" required maxlength="30">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">💡 わかったこと</label>
+            <textarea class="form-input" id="cardLearned" rows="2" placeholder="例: 6500万年前に隕石が落ちて絶滅した" required maxlength="100" style="resize:none"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">😲 びっくりしたこと</label>
+            <textarea class="form-input" id="cardSurprised" rows="2" placeholder="例: 恐竜の子孫は鳥だった！" required maxlength="100" style="resize:none"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">❓ もっと知りたいこと</label>
+            <input type="text" class="form-input" id="cardQuestion" placeholder="例: 他にも絶滅した生き物は？" maxlength="50">
+          </div>
+        </div>
+
+        <!-- 写真アップロード -->
+        <div class="form-group">
+          <label class="form-label">📸 写真を追加（任意）</label>
+          <div class="card-photo-upload" id="cardPhotoUpload" onclick="document.getElementById('cardPhotoInput').click()">
+            <div class="photo-upload-placeholder" id="photoPlaceholder">
+              <span class="photo-upload-icon">📷</span>
+              <span class="photo-upload-text">タップして写真を選択</span>
+            </div>
+            <img id="cardPhotoPreview" class="photo-preview" style="display:none">
+            <button type="button" class="photo-remove-btn" id="photoRemoveBtn" style="display:none" onclick="event.stopPropagation();removeCardPhoto()">✕</button>
+          </div>
+          <input type="file" id="cardPhotoInput" accept="image/*" style="display:none" onchange="handleCardPhoto(event)">
+        </div>
+
+        <!-- プレビュー -->
+        <div class="form-group">
+          <label class="form-label">👀 プレビュー</label>
+          <div class="card-preview-container">
+            <div class="card-preview" id="cardPreview">
+              <div class="card-preview-header">
+                <div class="card-preview-logo">🏔️ Sherupa</div>
+                <div class="card-preview-badge">探究カード</div>
+              </div>
+              <div class="card-preview-photo" id="cardPreviewPhoto" style="display:none">
+                <img id="cardPreviewPhotoImg" src="" alt="">
+              </div>
+              <div class="card-preview-content">
+                <div class="card-preview-topic" id="cardPreviewTopic">🔍 調べたこと</div>
+                <div class="card-preview-section">
+                  <div class="card-preview-label">💡 わかったこと</div>
+                  <div class="card-preview-text" id="cardPreviewLearned">-</div>
+                </div>
+                <div class="card-preview-section">
+                  <div class="card-preview-label">😲 びっくり</div>
+                  <div class="card-preview-text" id="cardPreviewSurprised">-</div>
+                </div>
+                <div class="card-preview-section" id="cardPreviewQuestionSection" style="display:none">
+                  <div class="card-preview-label">❓ もっと知りたい</div>
+                  <div class="card-preview-text" id="cardPreviewQuestion">-</div>
+                </div>
+              </div>
+              <div class="card-preview-footer">
+                <span class="card-preview-author" id="cardPreviewAuthor">探究者さん</span>
+                <span class="card-preview-date" id="cardPreviewDate"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ボタン -->
+        <div class="card-maker-buttons">
+          <button type="button" class="btn btn-primary" style="flex:2" onclick="submitCard()">
+            📤 投稿する
+          </button>
+          <button type="button" class="btn" style="flex:1;background:#10b981;color:#fff" onclick="downloadCard()">
+            💾 保存
+          </button>
+        </div>
+        <button type="button" class="btn btn-secondary" style="width:100%;margin-top:8px" onclick="closeModals()">キャンセル</button>
+      </form>
+    </div>
+  </div>
+</div>
+
 <!-- レポート詳細モーダル -->
 <div class="modal-overlay" id="reportDetailModal" onclick="if(event.target===this)closeModals()">
   <div class="modal-box" style="max-width:420px">
@@ -1474,6 +1580,11 @@
       <div style="font-size:11px;opacity:.9;margin-top:4px" id="reportDetailMeta">投稿者 • 日時</div>
     </div>
     <div class="modal-body">
+      <!-- 写真 -->
+      <div id="reportDetailPhoto" class="report-detail-photo" style="display:none">
+        <img id="reportDetailPhotoImg" src="" alt="">
+      </div>
+
       <!-- 関連スライド -->
       <div id="reportDetailSlide" style="display:none;margin-bottom:12px">
         <div style="font-size:11px;color:var(--rock);margin-bottom:4px">📚 関連スライド</div>
