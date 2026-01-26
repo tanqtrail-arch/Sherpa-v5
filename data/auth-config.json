@@ -1,0 +1,39 @@
+{
+  "mode": "demo",
+  "description": "認証設定ファイル。本番環境では mode を 'production' に変更し、credentials にハッシュ化されたパスワードを設定してください。",
+  "credentials": {
+    "teacher": {
+      "salt": "a1b2c3d4e5f6789012345678abcdef01",
+      "hash": "設定が必要です - SherpaAuth.generatePasswordHash() で生成してください"
+    },
+    "sponsor": {
+      "salt": "b2c3d4e5f6789012345678abcdef01a2",
+      "hash": "設定が必要です - SherpaAuth.generatePasswordHash() で生成してください"
+    },
+    "admin": {
+      "salt": "c3d4e5f6789012345678abcdef01a2b3",
+      "hash": "設定が必要です - SherpaAuth.generatePasswordHash() で生成してください"
+    }
+  },
+  "settings": {
+    "maxAttempts": 5,
+    "lockoutDuration": 300000,
+    "sessionDuration": 3600000
+  },
+  "_setup_instructions": {
+    "ja": [
+      "1. ブラウザのコンソールで以下を実行してハッシュを生成:",
+      "   await SherpaAuth.generatePasswordHash('your-secure-password')",
+      "2. 出力された salt と hash をこのファイルの credentials に設定",
+      "3. mode を 'production' に変更",
+      "4. このファイルを .gitignore に追加（機密情報保護）"
+    ],
+    "en": [
+      "1. Run in browser console to generate hash:",
+      "   await SherpaAuth.generatePasswordHash('your-secure-password')",
+      "2. Copy the salt and hash to credentials in this file",
+      "3. Change mode to 'production'",
+      "4. Add this file to .gitignore (security)"
+    ]
+  }
+}

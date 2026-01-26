@@ -81,12 +81,8 @@ let customFamilyMissions = JSON.parse(localStorage.getItem('sherupa_custom_famil
 // dailyFamilyMissionHistory: { date: string, missionId: string, completed: boolean }
 let dailyFamilyMissionHistory = JSON.parse(localStorage.getItem('sherupa_daily_family_history')) || {};
 
-// パスワード保護
-const modePasswords = {
-  teacher: 'teacher',
-  sponsor: '9999',
-  admin: 'admin'
-};
+// パスワード保護が必要なモード（実際のパスワードはauth.jsで管理）
+const protectedModes = ['teacher', 'sponsor', 'admin'];
 let pendingMode = null;
 
 // ========================================
@@ -2598,7 +2594,14 @@ function closeModals() {
 
 function switchMode(newMode) {
   // パスワード保護が必要なモードの場合
-  if (modePasswords[newMode]) {
+  if (protectedModes.includes(newMode)) {
+    // ロックアウトチェック
+    if (window.SherpaAuth && SherpaAuth.isLockedOut(newMode)) {
+      const remaining = SherpaAuth.getLockoutRemaining(newMode);
+      toast(`セキュリティロック中です（${remaining}秒後に再試行可能）`, 'error');
+      return;
+    }
+
     pendingMode = newMode;
     closeModals();
     const modeConfig = APP.config.roles[newMode];
@@ -2609,6 +2612,7 @@ function switchMode(newMode) {
         : 'linear-gradient(135deg,#f59e0b,#fbbf24)';
     document.getElementById('passwordInput').value = '';
     document.getElementById('passwordError').style.display = 'none';
+    document.getElementById('passwordError').textContent = 'パスワードが違います';
     document.getElementById('passwordModal').classList.add('active');
     document.getElementById('passwordInput').focus();
     return;
@@ -2661,16 +2665,52 @@ function executeSwitchMode(newMode) {
   toast(`${modeConfig.emoji} ${modeConfig.name}モードに切り替えました`);
 }
 
-function verifyPassword() {
+async function verifyPassword() {
   const input = document.getElementById('passwordInput').value;
-  if (pendingMode && input === modePasswords[pendingMode]) {
-    document.getElementById('passwordError').style.display = 'none';
-    executeSwitchMode(pendingMode);
-    pendingMode = null;
+  const errorElement = document.getElementById('passwordError');
+
+  if (!pendingMode || !input) {
+    errorElement.textContent = 'パスワードを入力してください';
+    errorElement.style.display = 'block';
+    return;
+  }
+
+  // SherpaAuthを使用して検証
+  if (window.SherpaAuth) {
+    const result = await SherpaAuth.verifyPassword(pendingMode, input);
+
+    if (result.success) {
+      errorElement.style.display = 'none';
+      executeSwitchMode(pendingMode);
+      pendingMode = null;
+    } else {
+      errorElement.textContent = result.message;
+      errorElement.style.display = 'block';
+      document.getElementById('passwordInput').value = '';
+      document.getElementById('passwordInput').focus();
+
+      // ロックアウト時はモーダルを閉じる
+      if (result.error === 'locked') {
+        setTimeout(() => {
+          cancelPassword();
+          toast(result.message, 'error');
+        }, 1500);
+      }
+    }
   } else {
-    document.getElementById('passwordError').style.display = 'block';
-    document.getElementById('passwordInput').value = '';
-    document.getElementById('passwordInput').focus();
+    // フォールバック（auth.jsが読み込まれていない場合）
+    console.warn('SherpaAuth not loaded, using fallback');
+    const fallbackPasswords = { teacher: 'teacher', sponsor: '9999', admin: 'admin' };
+    if (input === fallbackPasswords[pendingMode]) {
+      errorElement.style.display = 'none';
+      executeSwitchMode(pendingMode);
+      pendingMode = null;
+    } else {
+      errorElement.textContent = 'パスワードが違います';
+      errorElement.style.display = 'block';
+      document.getElementById('passwordInput').value = '';
+      document.getElementById('passwordInput').focus();
+    }
   }
 }
 
