@@ -77,6 +77,13 @@ let customFamilyMissions = JSON.parse(localStorage.getItem('sherupa_custom_famil
 // dailyFamilyMissionHistory: { date: string, missionId: string, completed: boolean }
 let dailyFamilyMissionHistory = JSON.parse(localStorage.getItem('sherupa_daily_family_history')) || {};
 
+// パスワード保護
+const modePasswords = {
+  sponsor: '9999',
+  admin: 'admin'
+};
+let pendingMode = null;
+
 // ========================================
 // スポンサーシステム
 // ========================================
@@ -2447,6 +2454,28 @@ function closeModals() {
 }
 
 function switchMode(newMode) {
+  // パスワード保護が必要なモードの場合
+  if (modePasswords[newMode]) {
+    pendingMode = newMode;
+    closeModals();
+    const modeConfig = APP.config.roles[newMode];
+    document.getElementById('passwordModalTitle').textContent = `${modeConfig.emoji} ${modeConfig.name}モード`;
+    document.getElementById('passwordModalHeader').style.background =
+      newMode === 'admin'
+        ? 'linear-gradient(135deg,#6366f1,#8b5cf6)'
+        : 'linear-gradient(135deg,#f59e0b,#fbbf24)';
+    document.getElementById('passwordInput').value = '';
+    document.getElementById('passwordError').style.display = 'none';
+    document.getElementById('passwordModal').classList.add('active');
+    document.getElementById('passwordInput').focus();
+    return;
+  }
+
+  // パスワード不要のモードはそのまま切り替え
+  executeSwitchMode(newMode);
+}
+
+function executeSwitchMode(newMode) {
   mode = newMode;
   closeModals();
 
@@ -2479,6 +2508,24 @@ function switchMode(newMode) {
   }
 
   toast(`${modeConfig.emoji} ${modeConfig.name}モードに切り替えました`);
+}
+
+function verifyPassword() {
+  const input = document.getElementById('passwordInput').value;
+  if (pendingMode && input === modePasswords[pendingMode]) {
+    document.getElementById('passwordError').style.display = 'none';
+    executeSwitchMode(pendingMode);
+    pendingMode = null;
+  } else {
+    document.getElementById('passwordError').style.display = 'block';
+    document.getElementById('passwordInput').value = '';
+    document.getElementById('passwordInput').focus();
+  }
+}
+
+function cancelPassword() {
+  pendingMode = null;
+  document.getElementById('passwordModal').classList.remove('active');
 }
 
 // ========================================
@@ -3489,38 +3536,7 @@ function renderStreakDistribution() {
   `;
 }
 
-// モード切り替えを拡張（管理者モードでダッシュボード表示）
-const originalSwitchMode = switchMode;
-switchMode = function(newMode) {
-  mode = newMode;
-  closeModals();
-
-  const bg = document.getElementById('bg');
-  const header = document.getElementById('header');
-  const nav = document.querySelector('nav');
-
-  bg.className = 'bg ' + newMode;
-  header.className = newMode;
-  nav.className = newMode;
-
-  // モードバッジ更新
-  const modeConfig = APP.config.roles[newMode];
-  document.getElementById('modeBadge').innerHTML = `${modeConfig.emoji} ${modeConfig.name}`;
-  document.getElementById('modeBadge').className = `badge ${newMode}`;
-
-  // 管理者モードの場合、ダッシュボードを表示
-  if (newMode === 'admin') {
-    showScreen('admin');
-    renderAdminDashboard();
-  } else if (newMode === 'sponsor') {
-    showScreen('sponsor');
-    renderSponsorDashboard();
-  } else {
-    showScreen('home');
-  }
-
-  toast(`${modeConfig.emoji} ${modeConfig.name}モードに切り替えました`);
-};
+// モード切り替え拡張コードは上部のswitchMode/executeSwitchMode関数に統合済み
 
 // ========================================
 // スポンサーシステム
