@@ -79,6 +79,7 @@ let dailyFamilyMissionHistory = JSON.parse(localStorage.getItem('sherupa_daily_f
 
 // パスワード保護
 const modePasswords = {
+  teacher: 'teacher',
   sponsor: '9999',
   admin: 'admin'
 };
@@ -2492,7 +2493,7 @@ function executeSwitchMode(newMode) {
   document.getElementById('modeBadge').innerHTML = `${modeConfig.emoji} ${modeConfig.name}`;
   document.getElementById('modeBadge').className = `badge ${newMode}`;
 
-  // 管理者・スポンサーモードは下部ナビを非表示にし専用画面を表示
+  // 管理者・スポンサー・先生モードは下部ナビを非表示にし専用画面を表示
   if (newMode === 'admin') {
     nav.style.display = 'none';
     showScreen('admin');
@@ -2501,8 +2502,12 @@ function executeSwitchMode(newMode) {
     nav.style.display = 'none';
     showScreen('sponsor');
     renderSponsorDashboard();
+  } else if (newMode === 'teacher') {
+    nav.style.display = 'none';
+    showScreen('teacher');
+    renderTeacherDashboard();
   } else {
-    // 子ども、保護者、先生モードは下部ナビを表示
+    // 子ども、保護者モードは下部ナビを表示
     nav.style.display = '';
     showScreen('home');
   }
@@ -3537,6 +3542,387 @@ function renderStreakDistribution() {
 }
 
 // モード切り替え拡張コードは上部のswitchMode/executeSwitchMode関数に統合済み
+
+// ========================================
+// 先生ダッシュボード
+// ========================================
+let teacherData = null;
+let currentTeacherTab = 'overview';
+
+// 先生データを読み込み
+async function loadTeacherData() {
+  try {
+    const response = await fetch('data/teacher-data.json');
+    teacherData = await response.json();
+    console.log('✅ 先生データ読み込み完了');
+    return true;
+  } catch (error) {
+    console.error('❌ 先生データ読み込みエラー:', error);
+    return false;
+  }
+}
+
+// 先生ダッシュボードをレンダリング
+async function renderTeacherDashboard() {
+  if (!teacherData) {
+    await loadTeacherData();
+  }
+  if (!teacherData) {
+    toast('❌ 先生データの読み込みに失敗しました');
+    return;
+  }
+
+  // クラス名を設定
+  document.getElementById('teacherClassName').textContent = teacherData.classInfo.name;
+
+  renderTeacherSummary();
+  showTeacherTab(currentTeacherTab);
+}
+
+// サマリーカードをレンダリング
+function renderTeacherSummary() {
+  const data = teacherData.overview;
+  const container = document.getElementById('teacherSummaryGrid');
+  if (!container) return;
+
+  container.innerHTML = `
+    <div class="teacher-summary-card">
+      <div class="teacher-summary-icon">👥</div>
+      <div class="teacher-summary-value">${data.totalStudents}</div>
+      <div class="teacher-summary-label">登録生徒</div>
+    </div>
+    <div class="teacher-summary-card">
+      <div class="teacher-summary-icon">📗</div>
+      <div class="teacher-summary-value">${data.activeToday}</div>
+      <div class="teacher-summary-label">今日の学習</div>
+    </div>
+    <div class="teacher-summary-card">
+      <div class="teacher-summary-icon">⏰</div>
+      <div class="teacher-summary-value">${data.avgLearningTime}分</div>
+      <div class="teacher-summary-label">平均学習</div>
+    </div>
+    <div class="teacher-summary-card">
+      <div class="teacher-summary-icon">📊</div>
+      <div class="teacher-summary-value">${data.avgProgress}%</div>
+      <div class="teacher-summary-label">平均進捗</div>
+    </div>
+    <div class="teacher-summary-card">
+      <div class="teacher-summary-icon">🔥</div>
+      <div class="teacher-summary-value">${data.streakOver7Days}</div>
+      <div class="teacher-summary-label">連続7日+</div>
+    </div>
+    <div class="teacher-summary-card">
+      <div class="teacher-summary-icon">📝</div>
+      <div class="teacher-summary-value">${data.avgQuizScore}%</div>
+      <div class="teacher-summary-label">クイズ平均</div>
+    </div>
+  `;
+}
+
+// タブ切り替え
+function showTeacherTab(tabId, element) {
+  currentTeacherTab = tabId;
+
+  // タブのアクティブ状態を切り替え
+  document.querySelectorAll('.teacher-tab').forEach(t => t.classList.remove('active'));
+  if (element) {
+    element.classList.add('active');
+  } else {
+    const tab = document.querySelector(`.teacher-tab[data-tab="${tabId}"]`);
+    if (tab) tab.classList.add('active');
+  }
+
+  // コンテンツの表示切り替え
+  document.querySelectorAll('.teacher-tab-content').forEach(c => c.classList.remove('active'));
+  const content = document.getElementById(`teacherTab${tabId.charAt(0).toUpperCase() + tabId.slice(1)}`);
+  if (content) content.classList.add('active');
+
+  // タブごとのレンダリング
+  switch (tabId) {
+    case 'overview':
+      renderTeacherOverviewTab();
+      break;
+    case 'students':
+      renderTeacherStudentsTab();
+      break;
+    case 'progress':
+      renderTeacherProgressTab();
+      break;
+    case 'gallery':
+      renderTeacherGalleryTab();
+      break;
+    case 'assignments':
+      renderTeacherAssignmentsTab();
+      break;
+  }
+}
+
+// 概要タブ
+function renderTeacherOverviewTab() {
+  renderTeacherAlerts();
+  renderTeacherHighlights();
+  renderTeacherCategoryProgress();
+}
+
+// アラート
+function renderTeacherAlerts() {
+  const container = document.getElementById('teacherAlerts');
+  if (!container || !teacherData) return;
+
+  const alerts = teacherData.alerts;
+
+  if (alerts.length === 0) {
+    container.innerHTML = '<div style="text-align:center;color:var(--rock);font-size:12px;padding:16px">アラートはありません</div>';
+    return;
+  }
+
+  container.innerHTML = alerts.map(alert => {
+    const icon = alert.type === 'warning' ? '⚠️' : alert.type === 'success' ? '✅' : 'ℹ️';
+    return `
+      <div class="teacher-alert-item ${alert.type}">
+        <div class="teacher-alert-icon">${icon}</div>
+        <div class="teacher-alert-content">
+          <div class="teacher-alert-message">${alert.message}</div>
+          <div class="teacher-alert-time">${formatTimeAgo(alert.timestamp)}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ハイライト
+function renderTeacherHighlights() {
+  const container = document.getElementById('teacherHighlights');
+  if (!container || !teacherData) return;
+
+  const highlights = teacherData.weeklyHighlights;
+
+  container.innerHTML = highlights.map(h => `
+    <div class="teacher-highlight-item">
+      <div class="teacher-highlight-emoji">${h.emoji}</div>
+      <div class="teacher-highlight-content">
+        <div class="teacher-highlight-name">${h.studentName}</div>
+        <div class="teacher-highlight-message">${h.message}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// カテゴリ進捗
+function renderTeacherCategoryProgress() {
+  const container = document.getElementById('teacherCategoryProgress');
+  if (!container || !teacherData) return;
+
+  const categories = teacherData.categoryProgress;
+
+  container.innerHTML = categories.map(cat => `
+    <div class="category-progress-item">
+      <div class="category-progress-emoji">${cat.emoji}</div>
+      <div class="category-progress-info">
+        <div class="category-progress-name">${cat.name}</div>
+        <div class="category-progress-bar">
+          <div class="category-progress-fill" style="width:${cat.classAvg}%"></div>
+        </div>
+      </div>
+      <div class="category-progress-value">${cat.classAvg}%</div>
+    </div>
+  `).join('');
+}
+
+// 生徒タブ
+function renderTeacherStudentsTab() {
+  const container = document.getElementById('teacherStudentList');
+  if (!container || !teacherData) return;
+
+  const students = teacherData.students;
+
+  container.innerHTML = students.map(student => {
+    const lastActive = formatTimeAgo(student.lastActive);
+    const statusClass = student.status === 'active' ? 'student-status-active' : 'student-status-inactive';
+    const statusText = student.status === 'active' ? lastActive : `${lastActive} ⚠️`;
+
+    return `
+      <div class="student-list-item" data-name="${student.name}">
+        <div class="student-avatar">${student.avatar}</div>
+        <div class="student-info">
+          <div class="student-name">${student.name}</div>
+          <div class="student-meta">
+            <span>📚 ${student.slidesCompleted}完了</span>
+            <span>⛰️ ${student.alt} ALT</span>
+            <span>🔥 ${student.streak}日</span>
+          </div>
+        </div>
+        <div class="student-stats">
+          <div class="student-progress">${student.progress}%</div>
+          <div class="student-last-active ${statusClass}">${statusText}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// 生徒検索フィルター
+function filterStudents() {
+  const searchTerm = document.getElementById('studentSearchInput').value.toLowerCase();
+  const items = document.querySelectorAll('.student-list-item');
+
+  items.forEach(item => {
+    const name = item.getAttribute('data-name').toLowerCase();
+    if (name.includes(searchTerm)) {
+      item.style.display = '';
+    } else {
+      item.style.display = 'none';
+    }
+  });
+}
+
+// 進捗タブ
+function renderTeacherProgressTab() {
+  renderTeacherQuizStats();
+  renderTeacherDifficultTopics();
+}
+
+// クイズ統計
+function renderTeacherQuizStats() {
+  const container = document.getElementById('teacherQuizStats');
+  if (!container || !teacherData) return;
+
+  const stats = teacherData.quizStats;
+  const totalStudents = teacherData.overview.totalStudents;
+
+  container.innerHTML = `
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-size:32px;font-weight:900;color:var(--teacher)">${stats.classAverage}%</div>
+      <div style="font-size:12px;color:var(--rock)">クラス平均正答率</div>
+    </div>
+    <div>
+      ${stats.distribution.map(d => {
+        const percent = (d.count / totalStudents) * 100;
+        return `
+          <div class="quiz-distribution-item">
+            <div class="quiz-distribution-emoji">${d.emoji}</div>
+            <div class="quiz-distribution-label">${d.range}</div>
+            <div class="quiz-distribution-bar">
+              <div class="quiz-distribution-fill" style="width:${percent}%"></div>
+            </div>
+            <div class="quiz-distribution-count">${d.count}人</div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+// 難しいトピック
+function renderTeacherDifficultTopics() {
+  const container = document.getElementById('teacherDifficultTopics');
+  if (!container || !teacherData) return;
+
+  const topics = teacherData.quizStats.difficultTopics;
+
+  container.innerHTML = topics.map(topic => `
+    <div class="difficult-topic-item">
+      <div class="difficult-topic-name">${topic.topic}</div>
+      <div class="difficult-topic-score">平均 ${topic.avgScore}%</div>
+    </div>
+  `).join('');
+}
+
+// ギャラリータブ
+function renderTeacherGalleryTab() {
+  const container = document.getElementById('teacherGallery');
+  if (!container || !teacherData) return;
+
+  const gallery = teacherData.gallery;
+
+  if (gallery.length === 0) {
+    container.innerHTML = '<div style="text-align:center;color:var(--rock);font-size:12px;padding:20px">まだ作品がありません</div>';
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="teacher-gallery-grid">
+      ${gallery.map(work => `
+        <div class="gallery-item">
+          <div class="gallery-item-emoji">${work.emoji}</div>
+          <div class="gallery-item-title">${work.title}</div>
+          <div class="gallery-item-author">${work.studentName}</div>
+          <div class="gallery-item-likes">❤️ ${work.likes}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+// 課題タブ
+function renderTeacherAssignmentsTab() {
+  const container = document.getElementById('teacherAssignmentList');
+  if (!container || !teacherData) return;
+
+  const assignments = teacherData.assignments;
+
+  container.innerHTML = assignments.map(assignment => {
+    const deadline = new Date(assignment.deadline);
+    const now = new Date();
+    const daysLeft = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
+    const progress = (assignment.submitted / assignment.totalStudents * 100).toFixed(1);
+
+    let statusClass = 'active';
+    if (assignment.status === 'completed') {
+      statusClass = 'completed';
+    } else if (daysLeft <= 3 && daysLeft > 0) {
+      statusClass = 'urgent';
+    }
+
+    let deadlineText = '';
+    if (assignment.status === 'completed') {
+      deadlineText = '完了';
+    } else if (daysLeft < 0) {
+      deadlineText = '期限切れ';
+    } else if (daysLeft === 0) {
+      deadlineText = '今日まで';
+    } else {
+      deadlineText = `あと${daysLeft}日`;
+    }
+
+    return `
+      <div class="assignment-item">
+        <div class="assignment-status-indicator ${statusClass}"></div>
+        <div class="assignment-emoji">${assignment.emoji}</div>
+        <div class="assignment-info">
+          <div class="assignment-title">${assignment.title}</div>
+          <div class="assignment-meta">${deadlineText} | 提出: ${progress}%</div>
+        </div>
+        <div class="assignment-progress">
+          <div class="assignment-submitted">${assignment.submitted}</div>
+          <div class="assignment-total">/${assignment.totalStudents}人</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// 課題作成モーダルを開く（将来拡張用）
+function openAssignmentEditor() {
+  toast('📝 課題作成機能は今後追加予定です');
+}
+
+// 時間経過フォーマット（先生用）
+function formatTimeAgo(timestamp) {
+  const now = new Date();
+  const date = new Date(timestamp);
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffMins < 1) return 'たった今';
+  if (diffMins < 60) return `${diffMins}分前`;
+  if (diffHours < 24) return `${diffHours}時間前`;
+  if (diffDays === 1) return '昨日';
+  if (diffDays < 7) return `${diffDays}日前`;
+  return date.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
+}
 
 // ========================================
 // スポンサーシステム

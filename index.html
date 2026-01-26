@@ -416,6 +416,96 @@
       </div>
     </div>
 
+    <!-- 先生ダッシュボード画面 -->
+    <div id="screen-teacher" class="screen">
+      <div class="teacher-header">
+        <div class="teacher-title">🏫 先生ダッシュボード</div>
+        <div class="teacher-subtitle" id="teacherClassName">クラス管理・学習進捗</div>
+      </div>
+
+      <!-- クラス概要サマリー -->
+      <div class="teacher-summary-grid" id="teacherSummaryGrid">
+        <!-- JSで動的にレンダリング -->
+      </div>
+
+      <!-- タブナビゲーション -->
+      <div class="teacher-tabs" id="teacherTabs">
+        <div class="teacher-tab active" data-tab="overview" onclick="showTeacherTab('overview', this)">📊 概要</div>
+        <div class="teacher-tab" data-tab="students" onclick="showTeacherTab('students', this)">👥 生徒</div>
+        <div class="teacher-tab" data-tab="progress" onclick="showTeacherTab('progress', this)">📚 進捗</div>
+        <div class="teacher-tab" data-tab="gallery" onclick="showTeacherTab('gallery', this)">🎨 作品</div>
+        <div class="teacher-tab" data-tab="assignments" onclick="showTeacherTab('assignments', this)">📝 課題</div>
+      </div>
+
+      <!-- 概要タブ -->
+      <div id="teacherTabOverview" class="teacher-tab-content active">
+        <div class="teacher-card">
+          <div class="teacher-card-header">⚠️ 要注意アラート</div>
+          <div class="teacher-card-body" id="teacherAlerts"></div>
+        </div>
+        <div class="teacher-card">
+          <div class="teacher-card-header">🌟 今週のハイライト</div>
+          <div class="teacher-card-body" id="teacherHighlights"></div>
+        </div>
+        <div class="teacher-card">
+          <div class="teacher-card-header">📊 カテゴリ別達成率</div>
+          <div class="teacher-card-body" id="teacherCategoryProgress"></div>
+        </div>
+      </div>
+
+      <!-- 生徒タブ -->
+      <div id="teacherTabStudents" class="teacher-tab-content">
+        <div class="teacher-card">
+          <div class="teacher-card-header">👥 生徒一覧
+            <div class="teacher-search">
+              <input type="text" id="studentSearchInput" placeholder="🔍 名前で検索..." onkeyup="filterStudents()">
+            </div>
+          </div>
+          <div class="teacher-card-body" id="teacherStudentList"></div>
+        </div>
+      </div>
+
+      <!-- 進捗タブ -->
+      <div id="teacherTabProgress" class="teacher-tab-content">
+        <div class="teacher-card">
+          <div class="teacher-card-header">📊 クイズ成績分布</div>
+          <div class="teacher-card-body" id="teacherQuizStats"></div>
+        </div>
+        <div class="teacher-card">
+          <div class="teacher-card-header">❓ 難しかったトピック</div>
+          <div class="teacher-card-body" id="teacherDifficultTopics"></div>
+        </div>
+      </div>
+
+      <!-- 作品タブ -->
+      <div id="teacherTabGallery" class="teacher-tab-content">
+        <div class="teacher-card">
+          <div class="teacher-card-header">🎨 探究成果ギャラリー</div>
+          <div class="teacher-card-body" id="teacherGallery"></div>
+        </div>
+      </div>
+
+      <!-- 課題タブ -->
+      <div id="teacherTabAssignments" class="teacher-tab-content">
+        <div class="teacher-card">
+          <div class="teacher-card-header">📝 課題一覧
+            <button class="btn" style="margin-left:auto;background:var(--teacher);color:#fff;font-size:11px;padding:6px 12px" onclick="openAssignmentEditor()">➕ 新規作成</button>
+          </div>
+          <div class="teacher-card-body" id="teacherAssignmentList"></div>
+        </div>
+      </div>
+
+      <!-- 先生用フッターナビゲーション -->
+      <div class="teacher-footer-nav">
+        <div class="teacher-footer-item active" onclick="showScreen('teacher'); renderTeacherDashboard()">
+          <span>🏫</span><span>ダッシュボード</span>
+        </div>
+        <div class="teacher-footer-item" onclick="openModeModal()">
+          <span>🔄</span><span>モード切替</span>
+        </div>
+      </div>
+    </div>
+
     <!-- 家族画面 -->
     <div id="screen-family" class="screen">
       <div class="section-title" style="color:#fff">👨‍👩‍👧 ファミリーミッション<span class="free-tag" style="background:var(--family)">家族で挑戦</span></div>

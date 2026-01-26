@@ -154,7 +154,7 @@ nav {
   padding: 6px;
 }
 nav.parent { background: rgba(30, 58, 138, .95); }
-nav.teacher { background: rgba(6, 78, 59, .95); }
+nav.teacher { background: rgba(6, 78, 59, .95); display: none !important; }
 nav.admin { background: rgba(127, 29, 29, .95); display: none !important; }
 nav.sponsor { background: rgba(120, 53, 15, .95); display: none !important; }
 
@@ -3510,6 +3510,566 @@ nav.sponsor {
 
 /* 管理者・スポンサー画面のパディング調整 */
 #screen-admin,
-#screen-sponsor {
+#screen-sponsor,
+#screen-teacher {
   padding-bottom: 80px;
+}
+
+/* ========================================
+   先生モード専用スタイル
+   ======================================== */
+
+.teacher-header {
+  text-align: center;
+  padding: 20px 0 16px;
+  color: #fff;
+}
+
+.teacher-title {
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.teacher-subtitle {
+  font-size: 12px;
+  opacity: 0.8;
+  margin-top: 4px;
+}
+
+/* 先生サマリーグリッド */
+.teacher-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.teacher-summary-card {
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 12px 8px;
+  text-align: center;
+}
+
+.teacher-summary-icon {
+  font-size: 24px;
+  margin-bottom: 4px;
+}
+
+.teacher-summary-value {
+  font-size: 18px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.teacher-summary-label {
+  font-size: 10px;
+  color: rgba(255,255,255,0.8);
+  margin-top: 2px;
+}
+
+/* 先生タブナビゲーション */
+.teacher-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 14px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 10px;
+  padding: 3px;
+  overflow-x: auto;
+}
+
+.teacher-tab {
+  flex: 1;
+  padding: 10px 6px;
+  text-align: center;
+  color: rgba(255,255,255,0.6);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 8px;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.teacher-tab:hover {
+  color: rgba(255,255,255,0.9);
+  background: rgba(255,255,255,0.1);
+}
+
+.teacher-tab.active {
+  background: rgba(255,255,255,0.25);
+  color: #fff;
+}
+
+/* 先生タブコンテンツ */
+.teacher-tab-content {
+  display: none;
+}
+
+.teacher-tab-content.active {
+  display: block;
+}
+
+/* 先生カード */
+.teacher-card {
+  background: rgba(255,255,255,0.95);
+  border-radius: 16px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.teacher-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--summit);
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.teacher-card-body {
+  padding: 12px 14px;
+}
+
+/* 先生検索 */
+.teacher-search {
+  margin-left: auto;
+}
+
+.teacher-search input {
+  padding: 6px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 12px;
+  width: 150px;
+}
+
+/* 生徒リスト */
+.student-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.student-list-item:last-child {
+  border-bottom: none;
+}
+
+.student-avatar {
+  font-size: 28px;
+  width: 40px;
+  text-align: center;
+}
+
+.student-info {
+  flex: 1;
+}
+
+.student-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--summit);
+}
+
+.student-meta {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--rock);
+}
+
+.student-stats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.student-progress {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--teacher);
+}
+
+.student-last-active {
+  font-size: 10px;
+  color: var(--rock);
+}
+
+.student-status-active {
+  color: var(--meadow);
+}
+
+.student-status-inactive {
+  color: #ef4444;
+}
+
+/* アラートアイテム（先生用） */
+.teacher-alert-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.teacher-alert-item:last-child {
+  border-bottom: none;
+}
+
+.teacher-alert-icon {
+  font-size: 18px;
+}
+
+.teacher-alert-content {
+  flex: 1;
+}
+
+.teacher-alert-message {
+  font-size: 13px;
+  color: var(--summit);
+}
+
+.teacher-alert-time {
+  font-size: 10px;
+  color: var(--rock);
+  margin-top: 2px;
+}
+
+.teacher-alert-item.warning .teacher-alert-message {
+  color: #d97706;
+}
+
+.teacher-alert-item.success .teacher-alert-message {
+  color: #059669;
+}
+
+/* ハイライトアイテム */
+.teacher-highlight-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.teacher-highlight-item:last-child {
+  border-bottom: none;
+}
+
+.teacher-highlight-emoji {
+  font-size: 24px;
+}
+
+.teacher-highlight-content {
+  flex: 1;
+}
+
+.teacher-highlight-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--teacher);
+}
+
+.teacher-highlight-message {
+  font-size: 13px;
+  color: var(--summit);
+}
+
+/* カテゴリ進捗 */
+.category-progress-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.category-progress-emoji {
+  font-size: 20px;
+  width: 28px;
+  text-align: center;
+}
+
+.category-progress-info {
+  flex: 1;
+}
+
+.category-progress-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--summit);
+  margin-bottom: 4px;
+}
+
+.category-progress-bar {
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.category-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--teacher), #34d399);
+  border-radius: 4px;
+  transition: width 0.3s;
+}
+
+.category-progress-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--teacher);
+  min-width: 45px;
+  text-align: right;
+}
+
+/* クイズ統計 */
+.quiz-distribution-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.quiz-distribution-emoji {
+  font-size: 20px;
+}
+
+.quiz-distribution-label {
+  flex: 1;
+  font-size: 13px;
+  color: var(--summit);
+}
+
+.quiz-distribution-count {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--teacher);
+}
+
+.quiz-distribution-bar {
+  width: 60px;
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.quiz-distribution-fill {
+  height: 100%;
+  background: var(--teacher);
+  border-radius: 3px;
+}
+
+/* 難しいトピック */
+.difficult-topic-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.difficult-topic-item:last-child {
+  border-bottom: none;
+}
+
+.difficult-topic-name {
+  font-size: 13px;
+  color: var(--summit);
+}
+
+.difficult-topic-score {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ef4444;
+}
+
+/* ギャラリーグリッド */
+.teacher-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.gallery-item {
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.gallery-item:hover {
+  transform: translateY(-2px);
+}
+
+.gallery-item-emoji {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.gallery-item-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--summit);
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gallery-item-author {
+  font-size: 10px;
+  color: var(--rock);
+  margin-bottom: 6px;
+}
+
+.gallery-item-likes {
+  font-size: 11px;
+  color: #ec4899;
+}
+
+/* 課題リスト */
+.assignment-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.assignment-item:last-child {
+  border-bottom: none;
+}
+
+.assignment-status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.assignment-status-indicator.active {
+  background: var(--meadow);
+}
+
+.assignment-status-indicator.completed {
+  background: var(--rock);
+}
+
+.assignment-status-indicator.urgent {
+  background: #ef4444;
+}
+
+.assignment-emoji {
+  font-size: 24px;
+}
+
+.assignment-info {
+  flex: 1;
+}
+
+.assignment-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--summit);
+}
+
+.assignment-meta {
+  font-size: 11px;
+  color: var(--rock);
+  margin-top: 4px;
+}
+
+.assignment-progress {
+  text-align: right;
+}
+
+.assignment-submitted {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--teacher);
+}
+
+.assignment-total {
+  font-size: 10px;
+  color: var(--rock);
+}
+
+/* 先生用フッターナビゲーション */
+.teacher-footer-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(6, 78, 59, 0.98);
+  backdrop-filter: blur(20px);
+  display: flex;
+  justify-content: space-around;
+  padding: 12px 16px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  z-index: 1000;
+}
+
+.teacher-footer-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: rgba(255,255,255,0.6);
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 4px 16px;
+  border-radius: 8px;
+}
+
+.teacher-footer-item:hover {
+  color: rgba(255,255,255,0.9);
+  background: rgba(255,255,255,0.1);
+}
+
+.teacher-footer-item.active {
+  color: #fff;
+  background: rgba(255,255,255,0.15);
+}
+
+.teacher-footer-item span:first-child {
+  font-size: 20px;
+}
+
+.teacher-footer-item span:last-child {
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* モバイルレスポンシブ（先生モード） */
+@media (max-width: 480px) {
+  .teacher-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .teacher-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .teacher-tab {
+    min-width: 70px;
+  }
+
+  .teacher-gallery-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .teacher-search input {
+    width: 120px;
+  }
 }
