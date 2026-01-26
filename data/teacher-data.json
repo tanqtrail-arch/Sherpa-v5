@@ -1,0 +1,389 @@
+{
+  "_comment": "先生モード用データ - Sherupa v5",
+  "_description": "クラスの生徒管理と学習進捗を可視化するためのデータ構造",
+  "version": "1.0",
+  "lastUpdated": "2026-01-26T00:00:00.000Z",
+
+  "classInfo": {
+    "name": "3年2組 理科探究クラス",
+    "grade": "小学3年",
+    "subject": "理科・総合学習",
+    "teacherName": "山田先生"
+  },
+
+  "overview": {
+    "totalStudents": 32,
+    "activeToday": 18,
+    "activeWeek": 28,
+    "avgLearningTime": 23,
+    "avgProgress": 62,
+    "streakOver7Days": 8,
+    "totalSlidesCompleted": 486,
+    "totalQuizzesPassed": 324,
+    "avgQuizScore": 74.5
+  },
+
+  "students": [
+    {
+      "id": "student_001",
+      "name": "山本 太郎",
+      "avatar": "🧑",
+      "progress": 78,
+      "alt": 1250,
+      "slidesCompleted": 24,
+      "quizAvgScore": 82,
+      "streak": 12,
+      "lastActive": "2026-01-26T14:30:00.000Z",
+      "status": "active",
+      "weeklyTime": 145,
+      "achievements": ["宇宙マスター", "連続7日達成"]
+    },
+    {
+      "id": "student_002",
+      "name": "鈴木 花子",
+      "avatar": "👧",
+      "progress": 85,
+      "alt": 1480,
+      "slidesCompleted": 28,
+      "quizAvgScore": 98,
+      "streak": 21,
+      "lastActive": "2026-01-26T09:15:00.000Z",
+      "status": "active",
+      "weeklyTime": 168,
+      "achievements": ["クイズ王", "連続14日達成", "科学マスター"]
+    },
+    {
+      "id": "student_003",
+      "name": "佐藤 健太",
+      "avatar": "🧑",
+      "progress": 45,
+      "alt": 680,
+      "slidesCompleted": 14,
+      "quizAvgScore": 65,
+      "streak": 3,
+      "lastActive": "2026-01-25T16:20:00.000Z",
+      "status": "active",
+      "weeklyTime": 82,
+      "achievements": []
+    },
+    {
+      "id": "student_004",
+      "name": "田中 美咲",
+      "avatar": "👧",
+      "progress": 92,
+      "alt": 1820,
+      "slidesCompleted": 32,
+      "quizAvgScore": 88,
+      "streak": 28,
+      "lastActive": "2026-01-26T11:45:00.000Z",
+      "status": "active",
+      "weeklyTime": 195,
+      "achievements": ["歴史マスター", "連続21日達成", "探究王"]
+    },
+    {
+      "id": "student_005",
+      "name": "高橋 翔",
+      "avatar": "🧑",
+      "progress": 23,
+      "alt": 150,
+      "slidesCompleted": 6,
+      "quizAvgScore": 52,
+      "streak": 0,
+      "lastActive": "2026-01-14T10:30:00.000Z",
+      "status": "inactive",
+      "weeklyTime": 0,
+      "achievements": []
+    },
+    {
+      "id": "student_006",
+      "name": "伊藤 さくら",
+      "avatar": "👧",
+      "progress": 67,
+      "alt": 980,
+      "slidesCompleted": 20,
+      "quizAvgScore": 76,
+      "streak": 8,
+      "lastActive": "2026-01-26T08:00:00.000Z",
+      "status": "active",
+      "weeklyTime": 112,
+      "achievements": ["自然観察達人"]
+    },
+    {
+      "id": "student_007",
+      "name": "渡辺 大輝",
+      "avatar": "🧑",
+      "progress": 56,
+      "alt": 720,
+      "slidesCompleted": 16,
+      "quizAvgScore": 71,
+      "streak": 5,
+      "lastActive": "2026-01-25T19:30:00.000Z",
+      "status": "active",
+      "weeklyTime": 98,
+      "achievements": []
+    },
+    {
+      "id": "student_008",
+      "name": "中村 あおい",
+      "avatar": "👧",
+      "progress": 18,
+      "alt": 120,
+      "slidesCompleted": 4,
+      "quizAvgScore": 48,
+      "streak": 0,
+      "lastActive": "2026-01-18T14:15:00.000Z",
+      "status": "inactive",
+      "weeklyTime": 0,
+      "achievements": []
+    },
+    {
+      "id": "student_009",
+      "name": "小林 陽太",
+      "avatar": "🧑",
+      "progress": 71,
+      "alt": 1050,
+      "slidesCompleted": 22,
+      "quizAvgScore": 79,
+      "streak": 14,
+      "lastActive": "2026-01-26T13:00:00.000Z",
+      "status": "active",
+      "weeklyTime": 134,
+      "achievements": ["テクノロジー探究家"]
+    },
+    {
+      "id": "student_010",
+      "name": "加藤 ひなた",
+      "avatar": "👧",
+      "progress": 88,
+      "alt": 1580,
+      "slidesCompleted": 30,
+      "quizAvgScore": 91,
+      "streak": 18,
+      "lastActive": "2026-01-26T10:30:00.000Z",
+      "status": "active",
+      "weeklyTime": 178,
+      "achievements": ["SDGs活動家", "連続14日達成"]
+    },
+    {
+      "id": "student_011",
+      "name": "松本 蓮",
+      "avatar": "🧑",
+      "progress": 34,
+      "alt": 380,
+      "slidesCompleted": 10,
+      "quizAvgScore": 62,
+      "streak": 2,
+      "lastActive": "2026-01-24T17:45:00.000Z",
+      "status": "active",
+      "weeklyTime": 45,
+      "achievements": []
+    },
+    {
+      "id": "student_012",
+      "name": "井上 結衣",
+      "avatar": "👧",
+      "progress": 75,
+      "alt": 1120,
+      "slidesCompleted": 23,
+      "quizAvgScore": 84,
+      "streak": 9,
+      "lastActive": "2026-01-26T15:20:00.000Z",
+      "status": "active",
+      "weeklyTime": 142,
+      "achievements": ["エネルギー博士"]
+    }
+  ],
+
+  "categoryProgress": [
+    { "id": "science", "name": "科学", "emoji": "🔬", "classAvg": 68, "completions": 89 },
+    { "id": "nature", "name": "自然", "emoji": "🦋", "classAvg": 72, "completions": 76 },
+    { "id": "space", "name": "宇宙", "emoji": "🚀", "classAvg": 58, "completions": 62 },
+    { "id": "history", "name": "歴史", "emoji": "🏯", "classAvg": 45, "completions": 48 },
+    { "id": "sdgs", "name": "SDGs", "emoji": "🌍", "classAvg": 52, "completions": 54 },
+    { "id": "technology", "name": "テクノロジー", "emoji": "🤖", "classAvg": 38, "completions": 42 }
+  ],
+
+  "quizStats": {
+    "classAverage": 74.5,
+    "distribution": [
+      { "range": "90%以上", "count": 8, "emoji": "⭐" },
+      { "range": "70-89%", "count": 15, "emoji": "😊" },
+      { "range": "50-69%", "count": 6, "emoji": "📚" },
+      { "range": "50%未満", "count": 3, "emoji": "💪" }
+    ],
+    "difficultTopics": [
+      { "topic": "ブラックホール", "avgScore": 45 },
+      { "topic": "DNAの構造", "avgScore": 52 },
+      { "topic": "地震のメカニズム", "avgScore": 58 }
+    ]
+  },
+
+  "gallery": [
+    {
+      "id": "work_001",
+      "studentId": "student_001",
+      "studentName": "山本 太郎",
+      "title": "火山の仕組みレポート",
+      "emoji": "🌋",
+      "category": "science",
+      "createdAt": "2026-01-25T10:00:00.000Z",
+      "likes": 12,
+      "description": "マグマがどうやって噴火するか調べました"
+    },
+    {
+      "id": "work_002",
+      "studentId": "student_002",
+      "studentName": "鈴木 花子",
+      "title": "蝶の観察日記",
+      "emoji": "🦋",
+      "category": "nature",
+      "createdAt": "2026-01-24T14:30:00.000Z",
+      "likes": 8,
+      "description": "庭で見つけたアゲハチョウを2週間観察しました"
+    },
+    {
+      "id": "work_003",
+      "studentId": "student_004",
+      "studentName": "田中 美咲",
+      "title": "銀河系の研究",
+      "emoji": "🌌",
+      "category": "space",
+      "createdAt": "2026-01-23T16:00:00.000Z",
+      "likes": 15,
+      "description": "天の川銀河について詳しく調べました"
+    },
+    {
+      "id": "work_004",
+      "studentId": "student_010",
+      "studentName": "加藤 ひなた",
+      "title": "SDGs行動計画",
+      "emoji": "🌍",
+      "category": "sdgs",
+      "createdAt": "2026-01-22T11:00:00.000Z",
+      "likes": 10,
+      "description": "家でできるエコ活動をまとめました"
+    },
+    {
+      "id": "work_005",
+      "studentId": "student_009",
+      "studentName": "小林 陽太",
+      "title": "ロボットの未来",
+      "emoji": "🤖",
+      "category": "technology",
+      "createdAt": "2026-01-21T09:30:00.000Z",
+      "likes": 7,
+      "description": "AIロボットがどう進化するか予想しました"
+    },
+    {
+      "id": "work_006",
+      "studentId": "student_012",
+      "studentName": "井上 結衣",
+      "title": "再生可能エネルギー",
+      "emoji": "⚡",
+      "category": "energy",
+      "createdAt": "2026-01-20T13:45:00.000Z",
+      "likes": 9,
+      "description": "太陽光発電と風力発電を比較しました"
+    }
+  ],
+
+  "assignments": [
+    {
+      "id": "assign_001",
+      "title": "宇宙探検レポート",
+      "emoji": "🚀",
+      "description": "好きな惑星について調べてレポートを書こう",
+      "deadline": "2026-01-31T23:59:59.000Z",
+      "createdAt": "2026-01-15T09:00:00.000Z",
+      "totalStudents": 32,
+      "submitted": 28,
+      "status": "active"
+    },
+    {
+      "id": "assign_002",
+      "title": "昆虫観察日記",
+      "emoji": "🐛",
+      "description": "身近な昆虫を1週間観察して記録しよう",
+      "deadline": "2026-02-07T23:59:59.000Z",
+      "createdAt": "2026-01-20T09:00:00.000Z",
+      "totalStudents": 32,
+      "submitted": 12,
+      "status": "active"
+    },
+    {
+      "id": "assign_003",
+      "title": "自由研究テーマ決定",
+      "emoji": "💡",
+      "description": "自由研究のテーマを決めて提出しよう",
+      "deadline": "2026-02-14T23:59:59.000Z",
+      "createdAt": "2026-01-25T09:00:00.000Z",
+      "totalStudents": 32,
+      "submitted": 3,
+      "status": "active"
+    },
+    {
+      "id": "assign_004",
+      "title": "歴史人物紹介",
+      "emoji": "📜",
+      "description": "好きな歴史上の人物を紹介しよう",
+      "deadline": "2026-01-10T23:59:59.000Z",
+      "createdAt": "2025-12-20T09:00:00.000Z",
+      "totalStudents": 32,
+      "submitted": 30,
+      "status": "completed"
+    }
+  ],
+
+  "alerts": [
+    {
+      "type": "warning",
+      "message": "田中太郎さんが12日間未アクセスです",
+      "studentId": "student_005",
+      "timestamp": "2026-01-26T08:00:00.000Z"
+    },
+    {
+      "type": "warning",
+      "message": "中村あおいさんが8日間未アクセスです",
+      "studentId": "student_008",
+      "timestamp": "2026-01-26T08:00:00.000Z"
+    },
+    {
+      "type": "success",
+      "message": "鈴木花子さんがクイズ正答率98%を達成！",
+      "studentId": "student_002",
+      "timestamp": "2026-01-26T09:15:00.000Z"
+    },
+    {
+      "type": "success",
+      "message": "田中美咲さんが連続28日学習を達成！",
+      "studentId": "student_004",
+      "timestamp": "2026-01-26T11:45:00.000Z"
+    },
+    {
+      "type": "info",
+      "message": "宇宙探検レポートの締切まであと5日です",
+      "timestamp": "2026-01-26T00:00:00.000Z"
+    }
+  ],
+
+  "weeklyHighlights": [
+    {
+      "type": "achievement",
+      "studentName": "山本 太郎",
+      "message": "宇宙カテゴリ完全制覇！",
+      "emoji": "🏆"
+    },
+    {
+      "type": "improvement",
+      "studentName": "佐藤 健太",
+      "message": "クイズ正答率が先週比+15%",
+      "emoji": "📈"
+    },
+    {
+      "type": "streak",
+      "studentName": "田中 美咲",
+      "message": "連続28日学習達成！",
+      "emoji": "🔥"
+    }
+  ]
+}
