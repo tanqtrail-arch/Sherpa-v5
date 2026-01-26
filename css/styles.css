@@ -3510,6 +3510,667 @@ nav.sponsor {
 
 /* 管理者・スポンサー画面のパディング調整 */
 #screen-admin,
-#screen-sponsor {
+#screen-sponsor,
+#screen-parent {
   padding-bottom: 80px;
+}
+
+/* ========================================
+   保護者ダッシュボード
+   ======================================== */
+.parent-header {
+  background: linear-gradient(135deg, rgba(30, 58, 138, .95), rgba(59, 130, 246, .9));
+  border-radius: 16px;
+  padding: 24px 20px;
+  margin-bottom: 16px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(59, 130, 246, .3);
+}
+
+.parent-title {
+  font-size: 22px;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0,0,0,.2);
+}
+
+.parent-subtitle {
+  font-size: 12px;
+  color: rgba(255,255,255,.85);
+  margin-top: 4px;
+}
+
+/* 保護者サマリーグリッド */
+.parent-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.parent-summary-card {
+  background: rgba(255,255,255,.95);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+  transition: transform .2s, box-shadow .2s;
+}
+
+.parent-summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(59, 130, 246, .2);
+}
+
+.parent-summary-card.primary {
+  background: linear-gradient(135deg, #3b82f6, #60a5fa);
+  grid-column: 1 / -1;
+}
+
+.parent-summary-card.primary .parent-summary-icon {
+  background: rgba(255,255,255,.25);
+  color: #fff;
+}
+
+.parent-summary-card.primary .parent-summary-label {
+  color: rgba(255,255,255,.85);
+}
+
+.parent-summary-card.primary .parent-summary-value {
+  color: #fff;
+  font-size: 32px;
+}
+
+.parent-summary-icon {
+  font-size: 24px;
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.parent-summary-info {
+  flex: 1;
+}
+
+.parent-summary-label {
+  font-size: 11px;
+  color: var(--rock);
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.parent-summary-value {
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--summit);
+}
+
+/* 保護者カード */
+.parent-card {
+  background: rgba(255,255,255,.97);
+  border-radius: 16px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.06);
+  overflow: hidden;
+}
+
+.parent-card-header {
+  padding: 14px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--summit);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.parent-card-badge {
+  font-size: 11px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #3b82f6, #60a5fa);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.parent-card-body {
+  padding: 16px;
+}
+
+/* 週間学習グラフ */
+.parent-weekly-chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 120px;
+  gap: 8px;
+  padding: 10px 0;
+}
+
+.parent-chart-bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.parent-chart-bar-inner {
+  width: 100%;
+  max-width: 36px;
+  background: linear-gradient(180deg, #3b82f6, #60a5fa);
+  border-radius: 6px 6px 2px 2px;
+  min-height: 4px;
+  transition: height .5s ease;
+  position: relative;
+}
+
+.parent-chart-bar-inner::after {
+  content: attr(data-alt);
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--parent);
+  white-space: nowrap;
+}
+
+.parent-chart-bar-inner.today {
+  background: linear-gradient(180deg, #2d8659, #4ade80);
+}
+
+.parent-chart-bar-inner.today::after {
+  color: var(--meadow);
+}
+
+.parent-chart-day {
+  font-size: 10px;
+  color: var(--rock);
+  font-weight: 600;
+}
+
+.parent-chart-day.today {
+  color: var(--meadow);
+  font-weight: 700;
+}
+
+/* カテゴリ別学習状況 */
+.parent-category-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.parent-category-item {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.parent-category-emoji {
+  font-size: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.parent-category-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.parent-category-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--summit);
+  margin-bottom: 4px;
+}
+
+.parent-category-progress {
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.parent-category-progress-bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width .5s ease;
+}
+
+.parent-category-count {
+  font-size: 10px;
+  color: var(--rock);
+  margin-top: 3px;
+}
+
+/* ファミリーミッションセクション */
+.family-mission-card {
+  border: 2px solid rgba(236, 72, 153, .3);
+}
+
+.family-mission-card .parent-card-header {
+  background: linear-gradient(135deg, rgba(236, 72, 153, .08), rgba(236, 72, 153, .03));
+}
+
+.parent-action-btn-small {
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--family);
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: transform .2s, box-shadow .2s;
+}
+
+.parent-action-btn-small:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(236, 72, 153, .4);
+}
+
+.parent-family-summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(236, 72, 153, .1), rgba(236, 72, 153, .05));
+  border-radius: 12px;
+  margin-bottom: 14px;
+}
+
+.parent-family-stat {
+  text-align: center;
+}
+
+.parent-family-stat-value {
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--family);
+}
+
+.parent-family-stat-label {
+  font-size: 11px;
+  color: var(--rock);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.parent-family-divider {
+  width: 2px;
+  height: 40px;
+  background: rgba(236, 72, 153, .3);
+  border-radius: 1px;
+}
+
+.parent-today-mission {
+  margin-bottom: 12px;
+}
+
+.parent-today-mission-item {
+  background: linear-gradient(135deg, rgba(236, 72, 153, .12), rgba(236, 72, 153, .06));
+  border: 2px solid var(--family);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.parent-today-mission-badge {
+  position: absolute;
+  top: -8px;
+  left: 12px;
+  background: var(--family);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 10px;
+}
+
+.parent-today-mission-emoji {
+  font-size: 32px;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.parent-today-mission-info {
+  flex: 1;
+}
+
+.parent-today-mission-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--summit);
+  margin-bottom: 3px;
+}
+
+.parent-today-mission-reward {
+  font-size: 12px;
+  color: var(--family);
+  font-weight: 600;
+}
+
+.parent-today-mission-status {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.parent-today-mission-status.pending {
+  background: rgba(236, 72, 153, .15);
+  color: var(--family);
+}
+
+.parent-today-mission-status.completed {
+  background: rgba(45, 134, 89, .15);
+  color: var(--meadow);
+}
+
+.parent-family-missions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.parent-mission-item {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: background .2s;
+}
+
+.parent-mission-item:hover {
+  background: #f1f5f9;
+}
+
+.parent-mission-item.completed {
+  opacity: .7;
+}
+
+.parent-mission-emoji {
+  font-size: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.parent-mission-info {
+  flex: 1;
+}
+
+.parent-mission-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--summit);
+}
+
+.parent-mission-reward {
+  font-size: 11px;
+  color: var(--rock);
+}
+
+.parent-mission-check {
+  color: var(--meadow);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* 学習活動タイムライン */
+.parent-activity-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.parent-activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border-left: 4px solid var(--parent);
+}
+
+.parent-activity-item.slide {
+  border-left-color: var(--meadow);
+}
+
+.parent-activity-item.mountain {
+  border-left-color: var(--sunrise);
+}
+
+.parent-activity-item.family {
+  border-left-color: var(--family);
+}
+
+.parent-activity-icon {
+  font-size: 20px;
+  width: 36px;
+  height: 36px;
+  background: #fff;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,.1);
+}
+
+.parent-activity-content {
+  flex: 1;
+}
+
+.parent-activity-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--summit);
+  margin-bottom: 2px;
+}
+
+.parent-activity-desc {
+  font-size: 11px;
+  color: var(--rock);
+}
+
+.parent-activity-time {
+  font-size: 10px;
+  color: var(--rock);
+  white-space: nowrap;
+}
+
+.parent-activity-empty {
+  text-align: center;
+  padding: 30px;
+  color: var(--rock);
+}
+
+.parent-activity-empty-icon {
+  font-size: 40px;
+  margin-bottom: 10px;
+  opacity: .5;
+}
+
+.parent-activity-empty-text {
+  font-size: 12px;
+}
+
+/* プレミアムカード */
+.premium-card {
+  background: linear-gradient(135deg, #f0f4ff, #dbeafe);
+  border: 2px solid rgba(59, 130, 246, .3);
+}
+
+.parent-premium-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+}
+
+.parent-premium-icon {
+  font-size: 36px;
+}
+
+.parent-premium-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--summit);
+  line-height: 1.4;
+}
+
+.parent-premium-features {
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.parent-premium-feature {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--summit);
+}
+
+.parent-premium-feature .feature-icon {
+  color: var(--meadow);
+  font-size: 16px;
+}
+
+.parent-premium-pricing {
+  text-align: center;
+  padding: 20px 16px 12px;
+}
+
+.parent-premium-price {
+  font-size: 20px;
+  color: var(--summit);
+}
+
+.parent-premium-price strong {
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--parent);
+}
+
+.parent-premium-note {
+  font-size: 11px;
+  color: var(--rock);
+  margin-top: 4px;
+}
+
+.parent-premium-btn {
+  display: block;
+  width: calc(100% - 32px);
+  margin: 12px 16px 16px;
+  padding: 14px;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform .2s, box-shadow .2s;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, .4);
+}
+
+.parent-premium-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, .5);
+}
+
+/* 保護者フッターナビ */
+.parent-footer-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(30, 58, 138, .98);
+  backdrop-filter: blur(20px);
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
+  z-index: 1001;
+}
+
+.parent-footer-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: rgba(255,255,255,.6);
+  cursor: pointer;
+  transition: color .2s;
+  padding: 6px 16px;
+}
+
+.parent-footer-item.active {
+  color: #fff;
+}
+
+.parent-footer-item:hover {
+  color: rgba(255,255,255,.9);
+}
+
+.parent-footer-item span:first-child {
+  font-size: 22px;
+}
+
+.parent-footer-item span:last-child {
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* 保護者モード時のナビ非表示 */
+body.parent-mode #nav {
+  display: none !important;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 400px) {
+  .parent-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .parent-summary-card.primary {
+    grid-column: 1;
+  }
+
+  .parent-category-grid {
+    grid-template-columns: 1fr;
+  }
 }

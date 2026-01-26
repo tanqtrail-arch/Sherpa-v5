@@ -416,6 +416,146 @@
       </div>
     </div>
 
+    <!-- 保護者ダッシュボード画面 -->
+    <div id="screen-parent" class="screen">
+      <div class="parent-header">
+        <div class="parent-title">👨‍👩‍👧 保護者ダッシュボード</div>
+        <div class="parent-subtitle">お子様の学習状況を見守りましょう</div>
+      </div>
+
+      <!-- 子供の学習サマリー -->
+      <div class="parent-summary-grid" id="parentSummaryGrid">
+        <div class="parent-summary-card primary">
+          <div class="parent-summary-icon">⛰️</div>
+          <div class="parent-summary-info">
+            <div class="parent-summary-label">獲得ALT</div>
+            <div class="parent-summary-value" id="parentChildAlt">0</div>
+          </div>
+        </div>
+        <div class="parent-summary-card">
+          <div class="parent-summary-icon">🔥</div>
+          <div class="parent-summary-info">
+            <div class="parent-summary-label">連続学習</div>
+            <div class="parent-summary-value" id="parentChildStreak">0日</div>
+          </div>
+        </div>
+        <div class="parent-summary-card">
+          <div class="parent-summary-icon">📚</div>
+          <div class="parent-summary-info">
+            <div class="parent-summary-label">完了スライド</div>
+            <div class="parent-summary-value" id="parentChildSlides">0</div>
+          </div>
+        </div>
+        <div class="parent-summary-card">
+          <div class="parent-summary-icon">🏔️</div>
+          <div class="parent-summary-info">
+            <div class="parent-summary-label">登頂</div>
+            <div class="parent-summary-value" id="parentChildMountains">0座</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 週間学習グラフ -->
+      <div class="parent-card">
+        <div class="parent-card-header">
+          <span>📊 週間学習グラフ</span>
+          <span class="parent-card-badge" id="parentWeeklyTotal">今週 0 ALT</span>
+        </div>
+        <div class="parent-card-body">
+          <div class="parent-weekly-chart" id="parentWeeklyChart"></div>
+        </div>
+      </div>
+
+      <!-- カテゴリ別学習状況 -->
+      <div class="parent-card">
+        <div class="parent-card-header">
+          <span>🎯 カテゴリ別学習状況</span>
+        </div>
+        <div class="parent-card-body">
+          <div class="parent-category-grid" id="parentCategoryProgress"></div>
+        </div>
+      </div>
+
+      <!-- ファミリーミッションセクション -->
+      <div class="parent-card family-mission-card">
+        <div class="parent-card-header">
+          <span>👨‍👩‍👧 ファミリーミッション</span>
+          <button class="parent-action-btn-small" onclick="openFamilyMissionEditor()">➕ 新規作成</button>
+        </div>
+        <div class="parent-card-body">
+          <div class="parent-family-summary">
+            <div class="parent-family-stat">
+              <div class="parent-family-stat-value" id="parentFamilyCompleted">0</div>
+              <div class="parent-family-stat-label">達成済み</div>
+            </div>
+            <div class="parent-family-divider"></div>
+            <div class="parent-family-stat">
+              <div class="parent-family-stat-value" id="parentFamilyTotal">0</div>
+              <div class="parent-family-stat-label">全ミッション</div>
+            </div>
+          </div>
+          <div id="parentTodayMission" class="parent-today-mission"></div>
+          <div id="parentFamilyMissionsList" class="parent-family-missions-list"></div>
+        </div>
+      </div>
+
+      <!-- 最近の学習活動 -->
+      <div class="parent-card">
+        <div class="parent-card-header">
+          <span>📅 最近の学習活動</span>
+        </div>
+        <div class="parent-card-body">
+          <div class="parent-activity-timeline" id="parentActivityTimeline"></div>
+        </div>
+      </div>
+
+      <!-- 保護者プランのご案内 -->
+      <div class="parent-card premium-card">
+        <div class="parent-premium-header">
+          <div class="parent-premium-icon">💎</div>
+          <div class="parent-premium-title">探究学習で親子の時間をもっと豊かに</div>
+        </div>
+        <div class="parent-premium-features">
+          <div class="parent-premium-feature">
+            <span class="feature-icon">✅</span>
+            <span>お子様の詳細な学習レポート</span>
+          </div>
+          <div class="parent-premium-feature">
+            <span class="feature-icon">✅</span>
+            <span>カスタムファミリーミッション作成</span>
+          </div>
+          <div class="parent-premium-feature">
+            <span class="feature-icon">✅</span>
+            <span>学習アドバイス・コンテンツ推奨</span>
+          </div>
+          <div class="parent-premium-feature">
+            <span class="feature-icon">✅</span>
+            <span>週次・月次レポートメール配信</span>
+          </div>
+        </div>
+        <div class="parent-premium-pricing">
+          <div class="parent-premium-price">月額 <strong>¥980</strong></div>
+          <div class="parent-premium-note">初月無料 • いつでも解約可能</div>
+        </div>
+        <button class="parent-premium-btn" onclick="showToast('プレミアム機能は準備中です')">
+          🚀 プレミアムプランを始める
+        </button>
+      </div>
+
+      <!-- 保護者用フッターナビゲーション -->
+      <div class="parent-footer-nav">
+        <div class="parent-footer-item active" onclick="showScreen('parent'); renderParentDashboard()">
+          <span>📊</span><span>ダッシュボード</span>
+        </div>
+        <div class="parent-footer-item" onclick="showParentFamilyTab()">
+          <span>👨‍👩‍👧</span><span>ミッション</span>
+        </div>
+        <div class="parent-footer-item" onclick="openModeModal()">
+          <span>🔄</span><span>モード切替</span>
+        </div>
+      </div>
+    </div>
+
     <!-- 家族画面 -->
     <div id="screen-family" class="screen">
       <div class="section-title" style="color:#fff">👨‍👩‍👧 ファミリーミッション<span class="free-tag" style="background:var(--family)">家族で挑戦</span></div>

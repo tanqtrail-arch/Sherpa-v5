@@ -2463,18 +2463,26 @@ function switchMode(newMode) {
   document.getElementById('modeBadge').innerHTML = `${modeConfig.emoji} ${modeConfig.name}`;
   document.getElementById('modeBadge').className = `badge ${newMode}`;
 
-  // 管理者・スポンサーモードは下部ナビを非表示にし専用画面を表示
+  // 管理者・スポンサー・保護者モードは下部ナビを非表示にし専用画面を表示
   if (newMode === 'admin') {
     nav.style.display = 'none';
+    document.body.classList.remove('parent-mode');
     showScreen('admin');
     renderAdminDashboard();
   } else if (newMode === 'sponsor') {
     nav.style.display = 'none';
+    document.body.classList.remove('parent-mode');
     showScreen('sponsor');
     renderSponsorDashboard();
+  } else if (newMode === 'parent') {
+    nav.style.display = 'none';
+    document.body.classList.add('parent-mode');
+    showScreen('parent');
+    renderParentDashboard();
   } else {
-    // 子ども、保護者、先生モードは下部ナビを表示
+    // 子ども、先生モードは下部ナビを表示
     nav.style.display = '';
+    document.body.classList.remove('parent-mode');
     showScreen('home');
   }
 
@@ -4273,6 +4281,276 @@ function completeSponsorSlide(slide, correctCount) {
   }
 
   return 0;
+}
+
+// ========================================
+// 保護者ダッシュボード
+// ========================================
+
+function renderParentDashboard() {
+  renderParentSummary();
+  renderParentWeeklyChart();
+  renderParentCategoryProgress();
+  renderParentFamilyMissions();
+  renderParentActivityTimeline();
+}
+
+// 子供の学習サマリーをレンダリング
+function renderParentSummary() {
+  document.getElementById('parentChildAlt').textContent = userProfile.alt.toLocaleString();
+  document.getElementById('parentChildStreak').textContent = `${userProfile.streak || 0}日`;
+  document.getElementById('parentChildSlides').textContent = completedSlides.length;
+  document.getElementById('parentChildMountains').textContent = `${climbedMountains.length}座`;
+}
+
+// 週間学習グラフをレンダリング
+function renderParentWeeklyChart() {
+  const container = document.getElementById('parentWeeklyChart');
+  if (!container) return;
+
+  const days = ['日', '月', '火', '水', '木', '金', '土'];
+  const today = new Date();
+  const todayDay = today.getDay();
+
+  // 週間学習データを生成（デモ用）
+  const weeklyData = [];
+  let totalWeekly = 0;
+
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() - (6 - i));
+    const dayOfWeek = date.getDay();
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+
+    // localStorageから学習データを取得（または推定）
+    let alt = 0;
+    if (i === 6) {
+      // 今日のデータ
+      alt = userProfile.todayAlt || Math.floor(Math.random() * 80) + 20;
+    } else {
+      // 過去データ（デモ用にランダム生成）
+      alt = Math.floor(Math.random() * 120) + 10;
+    }
+
+    weeklyData.push({
+      day: days[dayOfWeek],
+      alt: alt,
+      isToday: i === 6
+    });
+    totalWeekly += alt;
+  }
+
+  document.getElementById('parentWeeklyTotal').textContent = `今週 ${totalWeekly.toLocaleString()} ALT`;
+
+  const maxAlt = Math.max(...weeklyData.map(d => d.alt), 50);
+
+  container.innerHTML = weeklyData.map(d => {
+    const height = Math.max((d.alt / maxAlt) * 80, 4);
+    return `
+      <div class="parent-chart-bar">
+        <div class="parent-chart-bar-inner ${d.isToday ? 'today' : ''}"
+             style="height:${height}px"
+             data-alt="${d.alt}"></div>
+        <div class="parent-chart-day ${d.isToday ? 'today' : ''}">${d.day}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// カテゴリ別学習状況をレンダリング
+function renderParentCategoryProgress() {
+  const container = document.getElementById('parentCategoryProgress');
+  if (!container || !APP.slides) return;
+
+  const categories = {};
+
+  // スライドからカテゴリをカウント
+  APP.slides.forEach(slide => {
+    if (!categories[slide.category]) {
+      categories[slide.category] = { total: 0, completed: 0 };
+    }
+    categories[slide.category].total++;
+    if (completedSlides.includes(slide.id)) {
+      categories[slide.category].completed++;
+    }
+  });
+
+  const categoryConfig = {
+    science: { emoji: '🔬', name: '科学', color: '#8b5cf6' },
+    nature: { emoji: '🌿', name: '自然', color: '#22c55e' },
+    society: { emoji: '🏛️', name: '社会', color: '#f59e0b' },
+    culture: { emoji: '🎨', name: '文化', color: '#ec4899' },
+    space: { emoji: '🚀', name: '宇宙', color: '#3b82f6' },
+    history: { emoji: '📜', name: '歴史', color: '#a855f7' },
+    default: { emoji: '📚', name: 'その他', color: '#64748b' }
+  };
+
+  const categoryList = Object.entries(categories).slice(0, 6);
+
+  container.innerHTML = categoryList.map(([key, data]) => {
+    const config = categoryConfig[key] || categoryConfig.default;
+    const percentage = data.total > 0 ? Math.round((data.completed / data.total) * 100) : 0;
+
+    return `
+      <div class="parent-category-item">
+        <div class="parent-category-emoji" style="background:${config.color}22">${config.emoji}</div>
+        <div class="parent-category-info">
+          <div class="parent-category-name">${config.name}</div>
+          <div class="parent-category-progress">
+            <div class="parent-category-progress-bar" style="width:${percentage}%;background:${config.color}"></div>
+          </div>
+          <div class="parent-category-count">${data.completed}/${data.total} 完了</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ファミリーミッションセクションをレンダリング
+function renderParentFamilyMissions() {
+  const allMissions = getAllFamilyMissions();
+  const completedCount = completedFamilyMissions.length;
+
+  document.getElementById('parentFamilyCompleted').textContent = completedCount;
+  document.getElementById('parentFamilyTotal').textContent = allMissions.length;
+
+  // 今日のミッション
+  const todayContainer = document.getElementById('parentTodayMission');
+  if (todayContainer) {
+    const dailyMission = getDailyFamilyMission();
+    if (dailyMission) {
+      const isCompleted = isDailyFamilyMissionCompleted() || isFamilyMissionCompleted(dailyMission.id);
+      todayContainer.innerHTML = `
+        <div class="parent-today-mission-item" onclick="openFamilyMission('${dailyMission.id}')" style="position:relative;cursor:pointer">
+          <div class="parent-today-mission-badge">🌟 今日のミッション</div>
+          <div class="parent-today-mission-emoji" style="background:linear-gradient(135deg,${dailyMission.color[0]},${dailyMission.color[1]})">${dailyMission.emoji}</div>
+          <div class="parent-today-mission-info">
+            <div class="parent-today-mission-name">${dailyMission.name}</div>
+            <div class="parent-today-mission-reward">${isCompleted ? '✓ 達成済み' : `+${dailyMission.reward} ALT`}</div>
+          </div>
+          <div class="parent-today-mission-status ${isCompleted ? 'completed' : 'pending'}">
+            ${isCompleted ? '達成' : '挑戦中'}
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  // ミッション一覧（最新5件）
+  const listContainer = document.getElementById('parentFamilyMissionsList');
+  if (listContainer) {
+    const displayMissions = allMissions.slice(0, 5);
+    listContainer.innerHTML = displayMissions.map(m => {
+      const isCompleted = isFamilyMissionCompleted(m.id);
+      const isCustom = m.isCustom || m.id.startsWith('custom_');
+
+      return `
+        <div class="parent-mission-item ${isCompleted ? 'completed' : ''}"
+             onclick="${isCustom ? `openFamilyMissionEditor('${m.id}')` : `openFamilyMission('${m.id}')`}">
+          <div class="parent-mission-emoji" style="background:linear-gradient(135deg,${m.color[0]},${m.color[1]})">${m.emoji}</div>
+          <div class="parent-mission-info">
+            <div class="parent-mission-name">${m.name}${isCustom ? ' <span style="font-size:9px;background:#ec4899;color:#fff;padding:2px 6px;border-radius:8px;margin-left:4px">カスタム</span>' : ''}</div>
+            <div class="parent-mission-reward">${isCompleted ? '達成済み' : `+${m.reward} ALT`}</div>
+          </div>
+          ${isCompleted ? '<div class="parent-mission-check">✓</div>' : ''}
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+// 最近の学習活動タイムラインをレンダリング
+function renderParentActivityTimeline() {
+  const container = document.getElementById('parentActivityTimeline');
+  if (!container) return;
+
+  const activities = [];
+
+  // 完了したスライドから活動を生成
+  completedSlides.slice(-5).forEach((slideId, i) => {
+    const slide = APP.slides?.find(s => s.id === slideId);
+    if (slide) {
+      const hoursAgo = (5 - i) * 3 + Math.floor(Math.random() * 5);
+      activities.push({
+        type: 'slide',
+        icon: slide.emoji || '📚',
+        title: `「${slide.title}」を完了`,
+        desc: `+${slide.reward || 30} ALT 獲得`,
+        time: hoursAgo < 24 ? `${hoursAgo}時間前` : `${Math.floor(hoursAgo / 24)}日前`
+      });
+    }
+  });
+
+  // 登頂した山から活動を生成
+  climbedMountains.slice(-3).forEach((mtId, i) => {
+    const mt = APP.mountains?.find(m => m.id === mtId);
+    if (mt) {
+      activities.push({
+        type: 'mountain',
+        icon: '🏔️',
+        title: `「${mt.name}」を登頂！`,
+        desc: `+${mt.altReward || 100} ALT 獲得`,
+        time: `${(3 - i) + 1}日前`
+      });
+    }
+  });
+
+  // ファミリーミッション達成
+  completedFamilyMissions.slice(-3).forEach((record, i) => {
+    const allMissions = getAllFamilyMissions();
+    const mission = allMissions.find(m => m.id === record.missionId);
+    if (mission) {
+      const date = new Date(record.completedAt);
+      const diffHours = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60));
+      activities.push({
+        type: 'family',
+        icon: mission.emoji,
+        title: `ファミリーミッション「${mission.name}」達成`,
+        desc: `+${mission.reward} ALT 獲得`,
+        time: diffHours < 24 ? `${diffHours}時間前` : `${Math.floor(diffHours / 24)}日前`
+      });
+    }
+  });
+
+  if (activities.length === 0) {
+    container.innerHTML = `
+      <div class="parent-activity-empty">
+        <div class="parent-activity-empty-icon">📝</div>
+        <div class="parent-activity-empty-text">まだ学習活動がありません<br>お子様がスライドを学ぶと<br>ここに活動が表示されます</div>
+      </div>
+    `;
+    return;
+  }
+
+  // 時間順にソート（最新が上）
+  activities.sort((a, b) => {
+    const timeA = parseInt(a.time);
+    const timeB = parseInt(b.time);
+    return timeA - timeB;
+  });
+
+  container.innerHTML = activities.slice(0, 8).map(a => `
+    <div class="parent-activity-item ${a.type}">
+      <div class="parent-activity-icon">${a.icon}</div>
+      <div class="parent-activity-content">
+        <div class="parent-activity-title">${a.title}</div>
+        <div class="parent-activity-desc">${a.desc}</div>
+      </div>
+      <div class="parent-activity-time">${a.time}</div>
+    </div>
+  `).join('');
+}
+
+// 保護者モードでファミリータブを表示
+function showParentFamilyTab() {
+  const footerItems = document.querySelectorAll('.parent-footer-item');
+  footerItems.forEach((item, i) => {
+    item.classList.toggle('active', i === 1);
+  });
+
+  // ファミリーミッション編集画面を表示
+  showScreen('family');
+  renderFamilyScreen();
 }
 
 // ========================================
