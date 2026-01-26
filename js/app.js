@@ -2463,7 +2463,21 @@ function switchMode(newMode) {
   document.getElementById('modeBadge').innerHTML = `${modeConfig.emoji} ${modeConfig.name}`;
   document.getElementById('modeBadge').className = `badge ${newMode}`;
 
-  showScreen('home');
+  // 管理者・スポンサーモードは下部ナビを非表示にし専用画面を表示
+  if (newMode === 'admin') {
+    nav.style.display = 'none';
+    showScreen('admin');
+    renderAdminDashboard();
+  } else if (newMode === 'sponsor') {
+    nav.style.display = 'none';
+    showScreen('sponsor');
+    renderSponsorDashboard();
+  } else {
+    // 子ども、保護者、先生モードは下部ナビを表示
+    nav.style.display = '';
+    showScreen('home');
+  }
+
   toast(`${modeConfig.emoji} ${modeConfig.name}モードに切り替えました`);
 }
 

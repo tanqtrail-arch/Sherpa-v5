@@ -301,6 +301,16 @@
           <div class="admin-card-body" id="streakDistribution"></div>
         </div>
       </div>
+
+      <!-- 管理者用フッターナビゲーション -->
+      <div class="admin-footer-nav">
+        <div class="admin-footer-item active" onclick="showScreen('admin'); renderAdminDashboard()">
+          <span>📊</span><span>ダッシュボード</span>
+        </div>
+        <div class="admin-footer-item" onclick="openModeModal()">
+          <span>🔄</span><span>モード切替</span>
+        </div>
+      </div>
     </div>
 
     <!-- スポンサーダッシュボード画面 -->
@@ -392,6 +402,16 @@
         <div class="admin-card">
           <div class="admin-card-header">📜 ALT配布・いいね履歴</div>
           <div class="admin-card-body" id="sponsorHistoryList"></div>
+        </div>
+      </div>
+
+      <!-- スポンサー用フッターナビゲーション -->
+      <div class="sponsor-footer-nav">
+        <div class="sponsor-footer-item active" onclick="showScreen('sponsor'); renderSponsorDashboard()">
+          <span>🎗️</span><span>ダッシュボード</span>
+        </div>
+        <div class="sponsor-footer-item" onclick="openModeModal()">
+          <span>🔄</span><span>モード切替</span>
         </div>
       </div>
     </div>
