@@ -155,7 +155,8 @@ nav {
 }
 nav.parent { background: rgba(30, 58, 138, .95); }
 nav.teacher { background: rgba(6, 78, 59, .95); }
-nav.admin { background: rgba(127, 29, 29, .95); }
+nav.admin { background: rgba(127, 29, 29, .95); display: none !important; }
+nav.sponsor { background: rgba(120, 53, 15, .95); display: none !important; }
 
 .nav-items {
   display: flex;
