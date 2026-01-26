@@ -797,6 +797,39 @@
       <div id="familyHistory"></div>
     </div>
 
+    <!-- 探究レポート画面 -->
+    <div id="screen-reports" class="screen">
+      <div class="section-title" style="color:#fff">📝 探究レポート<span class="free-tag" style="background:linear-gradient(135deg,#8b5cf6,#a78bfa)">みんなの発見</span></div>
+
+      <!-- 投稿ボタン -->
+      <div class="report-post-btn-container">
+        <button class="report-post-btn" onclick="openReportEditor()">
+          <span>✏️</span>
+          <span>レポートを投稿する</span>
+        </button>
+      </div>
+
+      <!-- 自分の今日のいいね状況 -->
+      <div class="report-like-status" id="reportLikeStatus">
+        <div class="like-status-icon">❤️</div>
+        <div class="like-status-info">
+          <div class="like-status-label">今日のいいね</div>
+          <div class="like-status-count"><span id="todayLikeCount">0</span> / 10 回</div>
+        </div>
+      </div>
+
+      <!-- フィルタータブ -->
+      <div class="report-tabs" id="reportTabs">
+        <div class="report-tab active" data-filter="all" onclick="filterReports('all', this)">🌟 すべて</div>
+        <div class="report-tab" data-filter="popular" onclick="filterReports('popular', this)">🔥 人気</div>
+        <div class="report-tab" data-filter="recent" onclick="filterReports('recent', this)">🆕 新着</div>
+        <div class="report-tab" data-filter="mine" onclick="filterReports('mine', this)">📖 自分の</div>
+      </div>
+
+      <!-- レポート一覧 -->
+      <div id="reportList" class="report-list"></div>
+    </div>
+
     <!-- プロフィール画面 -->
     <div id="screen-profile" class="screen">
       <div class="profile-card">
@@ -880,6 +913,9 @@
       </div>
       <div class="nav-item" data-screen="climb" onclick="showScreen('climb'); renderClimb()">
         <span>🏔️</span><span>登頂</span>
+      </div>
+      <div class="nav-item" data-screen="reports" onclick="showScreen('reports'); renderReports()">
+        <span>📝</span><span>レポート</span>
       </div>
       <div class="nav-item" data-screen="ranking" onclick="showScreen('ranking'); renderRanking()">
         <span>🏆</span><span>ランキング</span>
@@ -1362,6 +1398,127 @@
 
       <div style="font-size:12px;font-weight:700;margin:16px 0 8px">📚 提供スライド</div>
       <div id="sponsorDetailSlides"></div>
+
+      <button class="btn btn-secondary" style="width:100%;margin-top:16px" onclick="closeModals()">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<!-- レポート投稿モーダル -->
+<div class="modal-overlay" id="reportEditorModal" onclick="if(event.target===this)closeModals()">
+  <div class="modal-box" style="max-width:400px">
+    <div class="modal-header" style="background:linear-gradient(135deg,#8b5cf6,#a78bfa)">
+      <div style="font-size:32px">✏️</div>
+      <div style="font-weight:700;margin-top:4px" id="reportEditorTitle">探究レポートを投稿</div>
+    </div>
+    <div class="modal-body" style="max-height:70vh;overflow-y:auto">
+      <form id="reportEditorForm" onsubmit="event.preventDefault();submitReport()">
+        <input type="hidden" id="editReportId">
+
+        <div class="form-group">
+          <label class="form-label">📚 関連するスライド（任意）</label>
+          <select class="form-select" id="reportSlideSelect">
+            <option value="">選択しない</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">📛 タイトル</label>
+          <input type="text" class="form-input" id="reportTitle" placeholder="例: 恐竜のひみつを調べたよ！" required maxlength="50">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">📝 学んだこと・発見したこと</label>
+          <textarea class="form-input" id="reportContent" rows="6" placeholder="学んだことや発見したことを書いてね！&#10;&#10;例:&#10;・恐竜は6500万年前に絶滅したこと&#10;・ティラノサウルスは走るのが遅かったかも？&#10;・恐竜の子孫は鳥だということ" required maxlength="500" style="resize:none"></textarea>
+          <div style="text-align:right;font-size:11px;color:var(--rock);margin-top:4px">
+            <span id="reportContentCount">0</span> / 500文字
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">😊 レポートの絵文字</label>
+          <div class="report-emoji-picker" id="reportEmojiPicker">
+            <div class="report-emoji-option selected" data-emoji="💡" onclick="selectReportEmoji('💡', this)">💡</div>
+            <div class="report-emoji-option" data-emoji="🔬" onclick="selectReportEmoji('🔬', this)">🔬</div>
+            <div class="report-emoji-option" data-emoji="🌍" onclick="selectReportEmoji('🌍', this)">🌍</div>
+            <div class="report-emoji-option" data-emoji="🦕" onclick="selectReportEmoji('🦕', this)">🦕</div>
+            <div class="report-emoji-option" data-emoji="🚀" onclick="selectReportEmoji('🚀', this)">🚀</div>
+            <div class="report-emoji-option" data-emoji="🌸" onclick="selectReportEmoji('🌸', this)">🌸</div>
+            <div class="report-emoji-option" data-emoji="📖" onclick="selectReportEmoji('📖', this)">📖</div>
+            <div class="report-emoji-option" data-emoji="⭐" onclick="selectReportEmoji('⭐', this)">⭐</div>
+          </div>
+        </div>
+
+        <div style="background:rgba(139,92,246,.1);border-radius:8px;padding:12px;margin-bottom:12px">
+          <div style="font-size:11px;color:#8b5cf6;font-weight:700">💡 投稿のヒント</div>
+          <div style="font-size:11px;color:var(--rock);margin-top:4px">
+            スライドで学んだことや、自分で調べたことをまとめよう！<br>
+            みんなからいいねをもらうと ALT がもらえるよ！
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width:100%">📤 投稿する</button>
+        <button type="button" id="reportDeleteBtn" class="btn" style="width:100%;margin-top:8px;background:#ef4444;color:#fff;display:none" onclick="deleteReport()">🗑️ 削除</button>
+        <button type="button" class="btn btn-secondary" style="width:100%;margin-top:8px" onclick="closeModals()">キャンセル</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- レポート詳細モーダル -->
+<div class="modal-overlay" id="reportDetailModal" onclick="if(event.target===this)closeModals()">
+  <div class="modal-box" style="max-width:420px">
+    <div class="modal-header" id="reportDetailHeader" style="background:linear-gradient(135deg,#8b5cf6,#a78bfa)">
+      <div style="font-size:48px" id="reportDetailEmoji">💡</div>
+      <div style="font-weight:700;margin-top:8px;font-size:16px" id="reportDetailTitle">レポートタイトル</div>
+      <div style="font-size:11px;opacity:.9;margin-top:4px" id="reportDetailMeta">投稿者 • 日時</div>
+    </div>
+    <div class="modal-body">
+      <!-- 関連スライド -->
+      <div id="reportDetailSlide" style="display:none;margin-bottom:12px">
+        <div style="font-size:11px;color:var(--rock);margin-bottom:4px">📚 関連スライド</div>
+        <div class="report-related-slide" id="reportDetailSlideContent"></div>
+      </div>
+
+      <!-- レポート本文 -->
+      <div class="report-detail-content" id="reportDetailContent">
+        レポートの内容がここに表示されます
+      </div>
+
+      <!-- いいね数表示 -->
+      <div class="report-like-summary" id="reportDetailLikeSummary">
+        <div class="like-summary-total">
+          <span id="reportDetailTotalLikes">0</span> いいね
+        </div>
+        <div class="like-summary-breakdown" id="reportDetailLikeBreakdown"></div>
+      </div>
+
+      <!-- いいねボタン（4種類） -->
+      <div class="report-like-buttons" id="reportLikeButtons">
+        <button class="report-like-btn" data-type="discovery" onclick="likeReport('discovery')">
+          <span class="like-btn-emoji">💡</span>
+          <span class="like-btn-label">すごい発見！</span>
+          <span class="like-btn-count" id="likeCountDiscovery">0</span>
+        </button>
+        <button class="report-like-btn" data-type="effort" onclick="likeReport('effort')">
+          <span class="like-btn-emoji">🔥</span>
+          <span class="like-btn-label">がんばったね！</span>
+          <span class="like-btn-count" id="likeCountEffort">0</span>
+        </button>
+        <button class="report-like-btn" data-type="research" onclick="likeReport('research')">
+          <span class="like-btn-emoji">📚</span>
+          <span class="like-btn-label">よく調べたね！</span>
+          <span class="like-btn-count" id="likeCountResearch">0</span>
+        </button>
+        <button class="report-like-btn" data-type="helpful" onclick="likeReport('helpful')">
+          <span class="like-btn-emoji">⭐</span>
+          <span class="like-btn-label">参考になった！</span>
+          <span class="like-btn-count" id="likeCountHelpful">0</span>
+        </button>
+      </div>
+
+      <!-- いいね済み/制限メッセージ -->
+      <div class="report-like-message" id="reportLikeMessage" style="display:none"></div>
 
       <button class="btn btn-secondary" style="width:100%;margin-top:16px" onclick="closeModals()">閉じる</button>
     </div>

@@ -126,6 +126,23 @@ let sponsorSlideCompletions = JSON.parse(localStorage.getItem('sherupa_sponsor_s
 let currentSponsorSlidePages = [];
 let currentSponsorSlideQuizzes = [];
 
+// ========================================
+// 探究レポートシステム
+// ========================================
+
+// 探究レポート一覧
+// explorationReports: [{ id, authorId, authorName, title, content, emoji, slideId?, createdAt, likes: { discovery: [], effort: [], research: [], helpful: [] } }]
+let explorationReports = JSON.parse(localStorage.getItem('sherupa_exploration_reports')) || [];
+
+// いいね履歴（誰が誰のレポートにいいねしたか）
+// reportLikeHistory: [{ odId, odId, likeType, timestamp }]
+let reportLikeHistory = JSON.parse(localStorage.getItem('sherupa_report_like_history')) || [];
+
+// 現在表示中のレポート
+let currentReportId = null;
+let currentReportFilter = 'all';
+let selectedReportEmoji = '💡';
+
 // ユーザーIDの生成・取得
 if (!userProfile.id) {
   userProfile.id = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
@@ -5669,6 +5686,443 @@ function completeSponsorSlide(slide, correctCount) {
   }
 
   return 0;
+}
+
+// ========================================
+// 探究レポート機能
+// ========================================
+
+// レポート画面のレンダリング
+function renderReports() {
+  updateTodayLikeCount();
+  renderReportList();
+}
+
+// 今日のいいね回数を更新
+function updateTodayLikeCount() {
+  const today = new Date().toDateString();
+  const todayLikes = reportLikeHistory.filter(l =>
+    l.visitorId === userProfile.id && new Date(l.timestamp).toDateString() === today
+  );
+  document.getElementById('todayLikeCount').textContent = todayLikes.length;
+}
+
+// 今日のいいね残り回数を取得
+function getTodayLikesRemaining() {
+  const today = new Date().toDateString();
+  const todayLikes = reportLikeHistory.filter(l =>
+    l.visitorId === userProfile.id && new Date(l.timestamp).toDateString() === today
+  );
+  return 10 - todayLikes.length;
+}
+
+// レポート一覧のレンダリング
+function renderReportList() {
+  const container = document.getElementById('reportList');
+  let reports = [...explorationReports];
+
+  // フィルタリング
+  switch (currentReportFilter) {
+    case 'popular':
+      reports.sort((a, b) => getTotalLikes(b) - getTotalLikes(a));
+      break;
+    case 'recent':
+      reports.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      break;
+    case 'mine':
+      reports = reports.filter(r => r.authorId === userProfile.id);
+      break;
+    default:
+      reports.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }
+
+  if (reports.length === 0) {
+    container.innerHTML = `
+      <div class="report-empty">
+        <div class="report-empty-icon">📝</div>
+        <div class="report-empty-text">
+          ${currentReportFilter === 'mine' ? 'まだレポートを投稿していません' : 'まだレポートがありません'}
+        </div>
+        <div class="report-empty-hint">学んだことを投稿してみよう！</div>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = reports.map(report => {
+    const totalLikes = getTotalLikes(report);
+    const slide = report.slideId ? APP.slides.find(s => s.id === report.slideId) : null;
+    const timeAgo = getTimeAgo(report.createdAt);
+
+    return `
+      <div class="report-card" onclick="openReportDetail('${report.id}')">
+        <div class="report-card-header">
+          <div class="report-card-emoji">${report.emoji}</div>
+          <div class="report-card-info">
+            <div class="report-card-title">${escapeHtml(report.title)}</div>
+            <div class="report-card-meta">
+              <span class="report-author">${escapeHtml(report.authorName)}</span>
+              <span class="report-time">${timeAgo}</span>
+            </div>
+          </div>
+        </div>
+        <div class="report-card-content">${escapeHtml(report.content).substring(0, 100)}${report.content.length > 100 ? '...' : ''}</div>
+        ${slide ? `<div class="report-card-slide">📚 ${slide.title}</div>` : ''}
+        <div class="report-card-footer">
+          <div class="report-card-likes">
+            <span class="like-badge">💡 ${report.likes.discovery.length}</span>
+            <span class="like-badge">🔥 ${report.likes.effort.length}</span>
+            <span class="like-badge">📚 ${report.likes.research.length}</span>
+            <span class="like-badge">⭐ ${report.likes.helpful.length}</span>
+          </div>
+          <div class="report-card-total">${totalLikes} いいね</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// レポートの総いいね数を取得
+function getTotalLikes(report) {
+  return report.likes.discovery.length +
+         report.likes.effort.length +
+         report.likes.research.length +
+         report.likes.helpful.length;
+}
+
+// 時間経過を表示
+function getTimeAgo(dateString) {
+  const now = new Date();
+  const date = new Date(dateString);
+  const diff = Math.floor((now - date) / 1000);
+
+  if (diff < 60) return 'たった今';
+  if (diff < 3600) return `${Math.floor(diff / 60)}分前`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}時間前`;
+  if (diff < 604800) return `${Math.floor(diff / 86400)}日前`;
+  return date.toLocaleDateString('ja-JP');
+}
+
+// HTMLエスケープ
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// レポートフィルター変更
+function filterReports(filter, element) {
+  currentReportFilter = filter;
+  document.querySelectorAll('.report-tab').forEach(t => t.classList.remove('active'));
+  element.classList.add('active');
+  renderReportList();
+}
+
+// レポート投稿モーダルを開く
+function openReportEditor(reportId = null) {
+  const form = document.getElementById('reportEditorForm');
+  form.reset();
+  selectedReportEmoji = '💡';
+
+  // 絵文字選択をリセット
+  document.querySelectorAll('.report-emoji-option').forEach(el => {
+    el.classList.toggle('selected', el.dataset.emoji === '💡');
+  });
+
+  // スライド選択肢を設定
+  const slideSelect = document.getElementById('reportSlideSelect');
+  slideSelect.innerHTML = '<option value="">選択しない</option>';
+  completedSlides.forEach(slideId => {
+    const slide = APP.slides.find(s => s.id === slideId);
+    if (slide) {
+      slideSelect.innerHTML += `<option value="${slide.id}">${slide.emoji} ${slide.title}</option>`;
+    }
+  });
+
+  if (reportId) {
+    // 編集モード
+    const report = explorationReports.find(r => r.id === reportId);
+    if (!report || report.authorId !== userProfile.id) return;
+
+    document.getElementById('reportEditorTitle').textContent = 'レポートを編集';
+    document.getElementById('editReportId').value = report.id;
+    document.getElementById('reportSlideSelect').value = report.slideId || '';
+    document.getElementById('reportTitle').value = report.title;
+    document.getElementById('reportContent').value = report.content;
+    selectedReportEmoji = report.emoji;
+    document.querySelectorAll('.report-emoji-option').forEach(el => {
+      el.classList.toggle('selected', el.dataset.emoji === report.emoji);
+    });
+    document.getElementById('reportDeleteBtn').style.display = 'block';
+    document.getElementById('reportContentCount').textContent = report.content.length;
+  } else {
+    // 新規作成モード
+    document.getElementById('reportEditorTitle').textContent = '探究レポートを投稿';
+    document.getElementById('editReportId').value = '';
+    document.getElementById('reportDeleteBtn').style.display = 'none';
+    document.getElementById('reportContentCount').textContent = '0';
+  }
+
+  // 文字数カウンター
+  document.getElementById('reportContent').oninput = function() {
+    document.getElementById('reportContentCount').textContent = this.value.length;
+  };
+
+  document.getElementById('reportEditorModal').style.display = 'flex';
+}
+
+// レポート絵文字選択
+function selectReportEmoji(emoji, element) {
+  selectedReportEmoji = emoji;
+  document.querySelectorAll('.report-emoji-option').forEach(el => el.classList.remove('selected'));
+  element.classList.add('selected');
+}
+
+// レポート投稿
+function submitReport() {
+  const editId = document.getElementById('editReportId').value;
+  const slideId = document.getElementById('reportSlideSelect').value || null;
+  const title = document.getElementById('reportTitle').value.trim();
+  const content = document.getElementById('reportContent').value.trim();
+
+  if (!title || !content) {
+    toast('⚠️ タイトルと内容を入力してください');
+    return;
+  }
+
+  if (editId) {
+    // 編集
+    const report = explorationReports.find(r => r.id === editId);
+    if (report && report.authorId === userProfile.id) {
+      report.title = title;
+      report.content = content;
+      report.emoji = selectedReportEmoji;
+      report.slideId = slideId;
+      toast('✅ レポートを更新しました');
+    }
+  } else {
+    // 新規投稿
+    const newReport = {
+      id: 'report_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+      authorId: userProfile.id,
+      authorName: userProfile.name,
+      title: title,
+      content: content,
+      emoji: selectedReportEmoji,
+      slideId: slideId,
+      createdAt: new Date().toISOString(),
+      likes: {
+        discovery: [],
+        effort: [],
+        research: [],
+        helpful: []
+      }
+    };
+    explorationReports.unshift(newReport);
+    toast('🎉 レポートを投稿しました！');
+  }
+
+  localStorage.setItem('sherupa_exploration_reports', JSON.stringify(explorationReports));
+  closeModals();
+  renderReportList();
+}
+
+// レポート削除
+function deleteReport() {
+  const editId = document.getElementById('editReportId').value;
+  if (!editId) return;
+
+  if (!confirm('このレポートを削除しますか？')) return;
+
+  explorationReports = explorationReports.filter(r => r.id !== editId);
+  localStorage.setItem('sherupa_exploration_reports', JSON.stringify(explorationReports));
+
+  toast('🗑️ レポートを削除しました');
+  closeModals();
+  renderReportList();
+}
+
+// レポート詳細を開く
+function openReportDetail(reportId) {
+  const report = explorationReports.find(r => r.id === reportId);
+  if (!report) return;
+
+  currentReportId = reportId;
+
+  document.getElementById('reportDetailEmoji').textContent = report.emoji;
+  document.getElementById('reportDetailTitle').textContent = report.title;
+  document.getElementById('reportDetailMeta').textContent = `${report.authorName} • ${getTimeAgo(report.createdAt)}`;
+  document.getElementById('reportDetailContent').textContent = report.content;
+
+  // 関連スライド
+  const slideContainer = document.getElementById('reportDetailSlide');
+  if (report.slideId) {
+    const slide = APP.slides.find(s => s.id === report.slideId);
+    if (slide) {
+      slideContainer.style.display = 'block';
+      document.getElementById('reportDetailSlideContent').innerHTML = `
+        <span class="related-slide-emoji">${slide.emoji}</span>
+        <span class="related-slide-title">${slide.title}</span>
+      `;
+    } else {
+      slideContainer.style.display = 'none';
+    }
+  } else {
+    slideContainer.style.display = 'none';
+  }
+
+  // いいね数表示
+  updateReportLikeDisplay(report);
+
+  // いいねボタンの状態
+  updateReportLikeButtons(report);
+
+  document.getElementById('reportDetailModal').style.display = 'flex';
+}
+
+// いいね表示の更新
+function updateReportLikeDisplay(report) {
+  const totalLikes = getTotalLikes(report);
+  document.getElementById('reportDetailTotalLikes').textContent = totalLikes;
+
+  document.getElementById('likeCountDiscovery').textContent = report.likes.discovery.length;
+  document.getElementById('likeCountEffort').textContent = report.likes.effort.length;
+  document.getElementById('likeCountResearch').textContent = report.likes.research.length;
+  document.getElementById('likeCountHelpful').textContent = report.likes.helpful.length;
+
+  // いいね内訳
+  const breakdown = document.getElementById('reportDetailLikeBreakdown');
+  breakdown.innerHTML = `
+    <span>💡 ${report.likes.discovery.length}</span>
+    <span>🔥 ${report.likes.effort.length}</span>
+    <span>📚 ${report.likes.research.length}</span>
+    <span>⭐ ${report.likes.helpful.length}</span>
+  `;
+}
+
+// いいねボタンの状態更新
+function updateReportLikeButtons(report) {
+  const buttons = document.getElementById('reportLikeButtons');
+  const message = document.getElementById('reportLikeMessage');
+
+  // 自分のレポートかチェック
+  if (report.authorId === userProfile.id) {
+    buttons.style.display = 'none';
+    message.style.display = 'block';
+    message.innerHTML = '<div class="like-message-info">📝 自分のレポートです</div>';
+    return;
+  }
+
+  // すでにいいねしているかチェック
+  const hasLiked = hasUserLikedReport(report);
+  if (hasLiked) {
+    buttons.style.display = 'none';
+    message.style.display = 'block';
+    message.innerHTML = '<div class="like-message-success">✅ いいね済み！ありがとう！</div>';
+    return;
+  }
+
+  // 今日のいいね制限チェック
+  const remaining = getTodayLikesRemaining();
+  if (remaining <= 0) {
+    buttons.style.display = 'none';
+    message.style.display = 'block';
+    message.innerHTML = '<div class="like-message-warning">⚠️ 今日のいいねは10回使い切りました<br>明日また来てね！</div>';
+    return;
+  }
+
+  // いいねボタンを表示
+  buttons.style.display = 'grid';
+  message.style.display = 'block';
+  message.innerHTML = `<div class="like-message-hint">❤️ 残り ${remaining} 回いいねできます</div>`;
+}
+
+// ユーザーがレポートにいいねしたかチェック
+function hasUserLikedReport(report) {
+  return report.likes.discovery.includes(userProfile.id) ||
+         report.likes.effort.includes(userProfile.id) ||
+         report.likes.research.includes(userProfile.id) ||
+         report.likes.helpful.includes(userProfile.id);
+}
+
+// いいねを送る
+function likeReport(likeType) {
+  const report = explorationReports.find(r => r.id === currentReportId);
+  if (!report) return;
+
+  // 自分のレポートにはいいねできない
+  if (report.authorId === userProfile.id) {
+    toast('⚠️ 自分のレポートにはいいねできません');
+    return;
+  }
+
+  // すでにいいねしているかチェック
+  if (hasUserLikedReport(report)) {
+    toast('⚠️ このレポートにはすでにいいねしています');
+    return;
+  }
+
+  // 今日の制限チェック
+  if (getTodayLikesRemaining() <= 0) {
+    toast('⚠️ 今日のいいねは10回使い切りました');
+    return;
+  }
+
+  // いいねを追加
+  report.likes[likeType].push(userProfile.id);
+
+  // いいね履歴を記録
+  reportLikeHistory.push({
+    visitorId: userProfile.id,
+    reportId: report.id,
+    authorId: report.authorId,
+    likeType: likeType,
+    timestamp: new Date().toISOString()
+  });
+
+  // 自分に5ALT付与
+  userProfile.alt += 5;
+  localStorage.setItem('sherupa_profile', JSON.stringify(userProfile));
+
+  // 相手に5ALT付与（デモなので自分のローカルに保存）
+  // 実際のアプリではサーバー経由で相手のALTを更新
+  grantAltToReportAuthor(report.authorId, 5);
+
+  // 保存
+  localStorage.setItem('sherupa_exploration_reports', JSON.stringify(explorationReports));
+  localStorage.setItem('sherupa_report_like_history', JSON.stringify(reportLikeHistory));
+
+  // 表示更新
+  updateReportLikeDisplay(report);
+  updateReportLikeButtons(report);
+  updateHeader();
+  updateTodayLikeCount();
+
+  // いいねタイプごとのメッセージ
+  const likeMessages = {
+    discovery: '💡 すごい発見！',
+    effort: '🔥 がんばったね！',
+    research: '📚 よく調べたね！',
+    helpful: '⭐ 参考になった！'
+  };
+
+  toast(`${likeMessages[likeType]} +5 ALT`);
+}
+
+// レポート作者にALTを付与
+function grantAltToReportAuthor(authorId, amount) {
+  // デモ環境では、自分が作者の場合のみ直接ALTを付与
+  // 実際のアプリではサーバー側で処理
+  if (authorId === userProfile.id) {
+    userProfile.alt += amount;
+    localStorage.setItem('sherupa_profile', JSON.stringify(userProfile));
+  }
+  // 他のユーザーの場合は、allUsersに記録（擬似的）
+  const user = allUsers.find(u => u.id === authorId);
+  if (user) {
+    user.alt = (user.alt || 0) + amount;
+    localStorage.setItem('sherupa_all_users', JSON.stringify(allUsers));
+  }
 }
 
 // ========================================
