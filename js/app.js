@@ -2493,7 +2493,7 @@ function executeSwitchMode(newMode) {
   document.getElementById('modeBadge').innerHTML = `${modeConfig.emoji} ${modeConfig.name}`;
   document.getElementById('modeBadge').className = `badge ${newMode}`;
 
-  // 管理者・スポンサー・先生モードは下部ナビを非表示にし専用画面を表示
+  // 管理者・スポンサー・先生・保護者モードは下部ナビを非表示にし専用画面を表示
   if (newMode === 'admin') {
     nav.style.display = 'none';
     showScreen('admin');
@@ -2506,8 +2506,12 @@ function executeSwitchMode(newMode) {
     nav.style.display = 'none';
     showScreen('teacher');
     renderTeacherDashboard();
+  } else if (newMode === 'parent') {
+    nav.style.display = 'none';
+    showScreen('parent');
+    renderParentDashboard();
   } else {
-    // 子ども、保護者モードは下部ナビを表示
+    // 子どもモードは下部ナビを表示
     nav.style.display = '';
     showScreen('home');
   }
@@ -3542,6 +3546,516 @@ function renderStreakDistribution() {
 }
 
 // モード切り替え拡張コードは上部のswitchMode/executeSwitchMode関数に統合済み
+
+// ========================================
+// 保護者ダッシュボード
+// ========================================
+let currentParentTab = 'overview';
+let parentSettings = JSON.parse(localStorage.getItem('sherupa_parent_settings')) || {
+  dailySlideGoal: 2,
+  dailyTimeGoal: 30,
+  notifyComplete: true,
+  notifyStreak: true,
+  notifyFamily: true
+};
+
+// 保護者ダッシュボードをレンダリング
+function renderParentDashboard() {
+  renderParentSummary();
+  showParentTab(currentParentTab);
+}
+
+// サマリーカードをレンダリング
+function renderParentSummary() {
+  const container = document.getElementById('parentSummaryGrid');
+  if (!container) return;
+
+  // 子どもの学習データを取得
+  const slidesCompleted = completedSlides.length;
+  const quizAvg = calculateQuizAverage();
+  const familyCompleted = completedFamilyMissions.length;
+  const totalAlt = alt;
+  const currentStreak = streak;
+  const todaySlides = getTodaySlidesCount();
+
+  container.innerHTML = `
+    <div class="parent-summary-card">
+      <div class="parent-summary-icon">📚</div>
+      <div class="parent-summary-value">${slidesCompleted}</div>
+      <div class="parent-summary-label">完了スライド</div>
+    </div>
+    <div class="parent-summary-card">
+      <div class="parent-summary-icon">⛰️</div>
+      <div class="parent-summary-value">${totalAlt}</div>
+      <div class="parent-summary-label">獲得ALT</div>
+    </div>
+    <div class="parent-summary-card">
+      <div class="parent-summary-icon">🔥</div>
+      <div class="parent-summary-value">${currentStreak}日</div>
+      <div class="parent-summary-label">連続学習</div>
+    </div>
+    <div class="parent-summary-card">
+      <div class="parent-summary-icon">📝</div>
+      <div class="parent-summary-value">${quizAvg}%</div>
+      <div class="parent-summary-label">クイズ平均</div>
+    </div>
+    <div class="parent-summary-card">
+      <div class="parent-summary-icon">👨‍👩‍👧</div>
+      <div class="parent-summary-value">${familyCompleted}</div>
+      <div class="parent-summary-label">家族ミッション</div>
+    </div>
+    <div class="parent-summary-card">
+      <div class="parent-summary-icon">📅</div>
+      <div class="parent-summary-value">${todaySlides}</div>
+      <div class="parent-summary-label">今日の学習</div>
+    </div>
+  `;
+}
+
+// クイズ平均点を計算
+function calculateQuizAverage() {
+  const quizResults = JSON.parse(localStorage.getItem('sherupa_quiz_results')) || [];
+  if (quizResults.length === 0) return 0;
+  const total = quizResults.reduce((sum, r) => sum + (r.score / r.total * 100), 0);
+  return Math.round(total / quizResults.length);
+}
+
+// 今日完了したスライド数を取得
+function getTodaySlidesCount() {
+  const today = new Date().toDateString();
+  const slideHistory = JSON.parse(localStorage.getItem('sherupa_slide_history')) || [];
+  return slideHistory.filter(h => new Date(h.date).toDateString() === today).length;
+}
+
+// タブ切り替え
+function showParentTab(tabId, element) {
+  currentParentTab = tabId;
+
+  // タブのアクティブ状態を切り替え
+  document.querySelectorAll('.parent-tab').forEach(t => t.classList.remove('active'));
+  if (element) {
+    element.classList.add('active');
+  } else {
+    const tab = document.querySelector(`.parent-tab[data-tab="${tabId}"]`);
+    if (tab) tab.classList.add('active');
+  }
+
+  // コンテンツの表示切り替え
+  document.querySelectorAll('.parent-tab-content').forEach(c => c.classList.remove('active'));
+  const content = document.getElementById(`parentTab${tabId.charAt(0).toUpperCase() + tabId.slice(1)}`);
+  if (content) content.classList.add('active');
+
+  // タブごとのレンダリング
+  switch (tabId) {
+    case 'overview':
+      renderParentOverviewTab();
+      break;
+    case 'progress':
+      renderParentProgressTab();
+      break;
+    case 'family':
+      renderParentFamilyTab();
+      break;
+    case 'settings':
+      renderParentSettingsTab();
+      break;
+  }
+}
+
+// 概要タブ
+function renderParentOverviewTab() {
+  renderParentWeeklyStats();
+  renderParentRecentAchievements();
+  renderParentRecommendations();
+}
+
+// 週間統計
+function renderParentWeeklyStats() {
+  const container = document.getElementById('parentWeeklyStats');
+  if (!container) return;
+
+  const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
+  const slideHistory = JSON.parse(localStorage.getItem('sherupa_slide_history')) || [];
+  const today = new Date();
+
+  // 過去7日間のデータを集計
+  const weekData = [];
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(date.getDate() - i);
+    const dateStr = date.toDateString();
+    const count = slideHistory.filter(h => new Date(h.date).toDateString() === dateStr).length;
+    weekData.push({
+      day: weekDays[date.getDay()],
+      count: count,
+      isToday: i === 0
+    });
+  }
+
+  const maxCount = Math.max(...weekData.map(d => d.count), 1);
+
+  container.innerHTML = `
+    <div class="parent-weekly-chart">
+      ${weekData.map(d => `
+        <div class="parent-weekly-bar">
+          <div class="parent-weekly-bar-fill" style="height:${(d.count / maxCount) * 60 + 10}px;${d.isToday ? 'background:linear-gradient(180deg, #10b981, #34d399);' : ''}"></div>
+          <div class="parent-weekly-bar-label" style="${d.isToday ? 'font-weight:700;color:var(--meadow);' : ''}">${d.day}</div>
+        </div>
+      `).join('')}
+    </div>
+    <div style="text-align:center;font-size:12px;color:var(--rock);margin-top:8px">
+      今週の学習: <strong style="color:var(--parent)">${weekData.reduce((s, d) => s + d.count, 0)}スライド</strong>
+    </div>
+  `;
+}
+
+// 最近の成果
+function renderParentRecentAchievements() {
+  const container = document.getElementById('parentRecentAchievements');
+  if (!container) return;
+
+  const achievements = [];
+
+  // 完了したスライドから最近の成果を取得
+  const slideHistory = JSON.parse(localStorage.getItem('sherupa_slide_history')) || [];
+  const recentSlides = slideHistory.slice(-3).reverse();
+
+  recentSlides.forEach(h => {
+    achievements.push({
+      icon: '📚',
+      title: `「${h.title || 'スライド'}」を完了`,
+      time: formatTimeAgo(h.date)
+    });
+  });
+
+  // ファミリーミッション完了
+  const recentFamily = completedFamilyMissions.slice(-2).reverse();
+  recentFamily.forEach(fm => {
+    const mission = APP.missions?.familyMissions?.find(m => m.id === fm.missionId) ||
+                    customFamilyMissions.find(m => m.id === fm.missionId);
+    if (mission) {
+      achievements.push({
+        icon: '👨‍👩‍👧',
+        title: `ファミリーミッション「${mission.name}」達成`,
+        time: formatTimeAgo(fm.completedAt)
+      });
+    }
+  });
+
+  // 連続学習の成果
+  if (streak >= 7) {
+    achievements.unshift({
+      icon: '🔥',
+      title: `${streak}日連続学習中！`,
+      time: '継続中'
+    });
+  }
+
+  if (achievements.length === 0) {
+    container.innerHTML = '<div style="text-align:center;color:var(--rock);font-size:12px;padding:16px">まだ成果がありません</div>';
+    return;
+  }
+
+  container.innerHTML = achievements.slice(0, 5).map(a => `
+    <div class="parent-achievement-item">
+      <div class="parent-achievement-icon">${a.icon}</div>
+      <div class="parent-achievement-content">
+        <div class="parent-achievement-title">${a.title}</div>
+        <div class="parent-achievement-time">${a.time}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// おすすめアクション
+function renderParentRecommendations() {
+  const container = document.getElementById('parentRecommendations');
+  if (!container) return;
+
+  const recommendations = [];
+
+  // 今日の学習状況をチェック
+  const todaySlides = getTodaySlidesCount();
+  if (todaySlides < parentSettings.dailySlideGoal) {
+    recommendations.push({
+      icon: '📚',
+      title: '今日の学習目標まであと少し！',
+      desc: `目標${parentSettings.dailySlideGoal}スライド中、${todaySlides}スライド完了`
+    });
+  }
+
+  // ファミリーミッションの提案
+  const allMissions = [...(APP.missions?.familyMissions || []), ...customFamilyMissions];
+  const pendingFamilyMissions = allMissions.filter(m =>
+    !completedFamilyMissions.some(c => c.missionId === m.id)
+  );
+  if (pendingFamilyMissions.length > 0) {
+    recommendations.push({
+      icon: '👨‍👩‍👧',
+      title: 'ファミリーミッションに挑戦！',
+      desc: `${pendingFamilyMissions.length}個のミッションが待っています`
+    });
+  }
+
+  // 連続学習の励まし
+  if (streak > 0 && streak < 7) {
+    recommendations.push({
+      icon: '🔥',
+      title: '連続学習を続けよう！',
+      desc: `あと${7 - streak}日で1週間連続達成`
+    });
+  }
+
+  // 新しいスライドの提案
+  const uncompletedSlides = (APP.slides || []).filter(s =>
+    !completedSlides.includes(s.id)
+  );
+  if (uncompletedSlides.length > 0) {
+    recommendations.push({
+      icon: '🆕',
+      title: '新しいトピックを学ぼう',
+      desc: `${uncompletedSlides.length}個の未学習スライドがあります`
+    });
+  }
+
+  if (recommendations.length === 0) {
+    container.innerHTML = '<div style="text-align:center;color:var(--rock);font-size:12px;padding:16px">すべて順調です！</div>';
+    return;
+  }
+
+  container.innerHTML = recommendations.map(r => `
+    <div class="parent-recommendation-item">
+      <div class="parent-recommendation-icon">${r.icon}</div>
+      <div class="parent-recommendation-content">
+        <div class="parent-recommendation-title">${r.title}</div>
+        <div class="parent-recommendation-desc">${r.desc}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// 学習進捗タブ
+function renderParentProgressTab() {
+  renderParentCategoryProgress();
+  renderParentQuizStats();
+  renderParentCompletedSlides();
+}
+
+// カテゴリ別進捗
+function renderParentCategoryProgress() {
+  const container = document.getElementById('parentCategoryProgress');
+  if (!container) return;
+
+  const categories = APP.categories || [];
+  const slides = APP.slides || [];
+
+  const categoryProgress = categories.map(cat => {
+    const catSlides = slides.filter(s => s.category === cat.id);
+    const completed = catSlides.filter(s => completedSlides.includes(s.id)).length;
+    const total = catSlides.length;
+    const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+    return {
+      emoji: cat.emoji,
+      name: cat.name,
+      completed,
+      total,
+      progress
+    };
+  });
+
+  if (categoryProgress.length === 0) {
+    container.innerHTML = '<div style="text-align:center;color:var(--rock);font-size:12px;padding:16px">カテゴリデータがありません</div>';
+    return;
+  }
+
+  container.innerHTML = categoryProgress.map(cat => `
+    <div class="parent-progress-item">
+      <div class="parent-progress-emoji">${cat.emoji}</div>
+      <div class="parent-progress-info">
+        <div class="parent-progress-name">${cat.name} (${cat.completed}/${cat.total})</div>
+        <div class="parent-progress-bar">
+          <div class="parent-progress-fill" style="width:${cat.progress}%"></div>
+        </div>
+      </div>
+      <div class="parent-progress-value">${cat.progress}%</div>
+    </div>
+  `).join('');
+}
+
+// クイズ成績
+function renderParentQuizStats() {
+  const container = document.getElementById('parentQuizStats');
+  if (!container) return;
+
+  const quizResults = JSON.parse(localStorage.getItem('sherupa_quiz_results')) || [];
+
+  if (quizResults.length === 0) {
+    container.innerHTML = '<div style="text-align:center;color:var(--rock);font-size:12px;padding:16px">まだクイズを受けていません</div>';
+    return;
+  }
+
+  const totalQuizzes = quizResults.length;
+  const avgScore = calculateQuizAverage();
+  const perfectCount = quizResults.filter(r => r.score === r.total).length;
+  const recentResults = quizResults.slice(-5).reverse();
+
+  container.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+      <div style="text-align:center;background:rgba(59,130,246,0.1);padding:12px;border-radius:10px">
+        <div style="font-size:20px;font-weight:900;color:var(--parent)">${totalQuizzes}</div>
+        <div style="font-size:10px;color:var(--rock)">受験回数</div>
+      </div>
+      <div style="text-align:center;background:rgba(16,185,129,0.1);padding:12px;border-radius:10px">
+        <div style="font-size:20px;font-weight:900;color:var(--meadow)">${avgScore}%</div>
+        <div style="font-size:10px;color:var(--rock)">平均点</div>
+      </div>
+      <div style="text-align:center;background:rgba(245,158,11,0.1);padding:12px;border-radius:10px">
+        <div style="font-size:20px;font-weight:900;color:var(--sponsor)">${perfectCount}</div>
+        <div style="font-size:10px;color:var(--rock)">満点回数</div>
+      </div>
+    </div>
+    <div style="font-size:12px;font-weight:600;color:var(--summit);margin-bottom:8px">最近の結果</div>
+    ${recentResults.map(r => {
+      const pct = Math.round(r.score / r.total * 100);
+      return `
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.05)">
+          <div style="font-size:11px;color:var(--rock);flex:1">${r.slideTitle || 'クイズ'}</div>
+          <div style="font-size:12px;font-weight:700;color:${pct >= 80 ? 'var(--meadow)' : pct >= 60 ? 'var(--sponsor)' : 'var(--sunset)'}">${r.score}/${r.total} (${pct}%)</div>
+        </div>
+      `;
+    }).join('')}
+  `;
+}
+
+// 完了したスライド
+function renderParentCompletedSlides() {
+  const container = document.getElementById('parentCompletedSlides');
+  if (!container) return;
+
+  const slideHistory = JSON.parse(localStorage.getItem('sherupa_slide_history')) || [];
+  const recentCompleted = slideHistory.slice(-10).reverse();
+
+  if (recentCompleted.length === 0) {
+    container.innerHTML = '<div style="text-align:center;color:var(--rock);font-size:12px;padding:16px">まだスライドを完了していません</div>';
+    return;
+  }
+
+  container.innerHTML = recentCompleted.map(h => `
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.05)">
+      <div style="font-size:24px">${h.emoji || '📖'}</div>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:600;color:var(--summit)">${h.title || 'スライド'}</div>
+        <div style="font-size:10px;color:var(--rock)">${formatTimeAgo(h.date)}</div>
+      </div>
+      <div style="font-size:11px;color:var(--meadow);font-weight:600">+${h.alt || 0} ALT</div>
+    </div>
+  `).join('');
+}
+
+// ファミリーミッションタブ
+function renderParentFamilyTab() {
+  renderParentFamilyMissions();
+  renderParentFamilyHistory();
+}
+
+// ファミリーミッション一覧
+function renderParentFamilyMissions() {
+  const container = document.getElementById('parentFamilyMissions');
+  if (!container) return;
+
+  const allMissions = [...(APP.missions?.familyMissions || []), ...customFamilyMissions];
+
+  if (allMissions.length === 0) {
+    container.innerHTML = '<div style="text-align:center;color:var(--rock);font-size:12px;padding:16px">ファミリーミッションがありません</div>';
+    return;
+  }
+
+  container.innerHTML = allMissions.map(m => {
+    const isCompleted = completedFamilyMissions.some(c => c.missionId === m.id);
+    const isCustom = customFamilyMissions.some(c => c.id === m.id);
+
+    return `
+      <div class="parent-family-mission-item ${isCompleted ? 'completed' : ''}" onclick="${isCustom ? `openFamilyMissionEditor('${m.id}')` : `openFamilyMission('${m.id}')`}">
+        <div class="parent-family-mission-emoji">${m.emoji}</div>
+        <div class="parent-family-mission-info">
+          <div class="parent-family-mission-name">${m.name} ${isCustom ? '✏️' : ''}</div>
+          <div class="parent-family-mission-reward">+${m.reward} ALT</div>
+        </div>
+        <div class="parent-family-mission-status">${isCompleted ? '✅' : '⏳'}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ファミリーミッション履歴
+function renderParentFamilyHistory() {
+  const container = document.getElementById('parentFamilyHistory');
+  if (!container) return;
+
+  if (completedFamilyMissions.length === 0) {
+    container.innerHTML = '<div style="text-align:center;color:var(--rock);font-size:12px;padding:16px">まだ達成したミッションがありません</div>';
+    return;
+  }
+
+  const historyItems = completedFamilyMissions.slice(-10).reverse().map(fm => {
+    const mission = APP.missions?.familyMissions?.find(m => m.id === fm.missionId) ||
+                    customFamilyMissions.find(m => m.id === fm.missionId);
+    return {
+      emoji: mission?.emoji || '👨‍👩‍👧',
+      name: mission?.name || 'ミッション',
+      reward: mission?.reward || 0,
+      date: fm.completedAt
+    };
+  });
+
+  container.innerHTML = historyItems.map(h => `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.05)">
+      <div style="font-size:24px">${h.emoji}</div>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:600;color:var(--summit)">${h.name}</div>
+        <div style="font-size:10px;color:var(--rock)">${formatTimeAgo(h.date)}</div>
+      </div>
+      <div style="font-size:11px;color:var(--meadow);font-weight:600">+${h.reward} ALT</div>
+    </div>
+  `).join('');
+}
+
+// 設定タブ
+function renderParentSettingsTab() {
+  // 設定値を反映
+  const dailySlideGoal = document.getElementById('parentDailySlideGoal');
+  const dailyTimeGoal = document.getElementById('parentDailyTimeGoal');
+  const notifyComplete = document.getElementById('parentNotifyComplete');
+  const notifyStreak = document.getElementById('parentNotifyStreak');
+  const notifyFamily = document.getElementById('parentNotifyFamily');
+
+  if (dailySlideGoal) dailySlideGoal.value = parentSettings.dailySlideGoal;
+  if (dailyTimeGoal) dailyTimeGoal.value = parentSettings.dailyTimeGoal;
+  if (notifyComplete) notifyComplete.checked = parentSettings.notifyComplete;
+  if (notifyStreak) notifyStreak.checked = parentSettings.notifyStreak;
+  if (notifyFamily) notifyFamily.checked = parentSettings.notifyFamily;
+}
+
+// 設定を保存
+function saveParentSettings() {
+  const dailySlideGoal = document.getElementById('parentDailySlideGoal');
+  const dailyTimeGoal = document.getElementById('parentDailyTimeGoal');
+  const notifyComplete = document.getElementById('parentNotifyComplete');
+  const notifyStreak = document.getElementById('parentNotifyStreak');
+  const notifyFamily = document.getElementById('parentNotifyFamily');
+
+  parentSettings = {
+    dailySlideGoal: parseInt(dailySlideGoal?.value || 2),
+    dailyTimeGoal: parseInt(dailyTimeGoal?.value || 30),
+    notifyComplete: notifyComplete?.checked ?? true,
+    notifyStreak: notifyStreak?.checked ?? true,
+    notifyFamily: notifyFamily?.checked ?? true
+  };
+
+  localStorage.setItem('sherupa_parent_settings', JSON.stringify(parentSettings));
+  toast('✅ 設定を保存しました');
+}
 
 // ========================================
 // 先生ダッシュボード

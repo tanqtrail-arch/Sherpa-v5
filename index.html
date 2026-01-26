@@ -416,6 +416,136 @@
       </div>
     </div>
 
+    <!-- 保護者ダッシュボード画面 -->
+    <div id="screen-parent" class="screen">
+      <div class="parent-header">
+        <div class="parent-title">👨‍👩‍👧 保護者ダッシュボード</div>
+        <div class="parent-subtitle">お子さまの学習状況を確認</div>
+      </div>
+
+      <!-- 子どもの学習サマリー -->
+      <div class="parent-summary-grid" id="parentSummaryGrid">
+        <!-- JSで動的にレンダリング -->
+      </div>
+
+      <!-- タブナビゲーション -->
+      <div class="parent-tabs" id="parentTabs">
+        <div class="parent-tab active" data-tab="overview" onclick="showParentTab('overview', this)">📊 概要</div>
+        <div class="parent-tab" data-tab="progress" onclick="showParentTab('progress', this)">📚 学習進捗</div>
+        <div class="parent-tab" data-tab="family" onclick="showParentTab('family', this)">👨‍👩‍👧 ミッション</div>
+        <div class="parent-tab" data-tab="settings" onclick="showParentTab('settings', this)">⚙️ 設定</div>
+      </div>
+
+      <!-- 概要タブ -->
+      <div id="parentTabOverview" class="parent-tab-content active">
+        <div class="parent-card">
+          <div class="parent-card-header">📅 今週の学習状況</div>
+          <div class="parent-card-body" id="parentWeeklyStats"></div>
+        </div>
+        <div class="parent-card">
+          <div class="parent-card-header">🌟 最近の成果</div>
+          <div class="parent-card-body" id="parentRecentAchievements"></div>
+        </div>
+        <div class="parent-card">
+          <div class="parent-card-header">💡 おすすめアクション</div>
+          <div class="parent-card-body" id="parentRecommendations"></div>
+        </div>
+      </div>
+
+      <!-- 学習進捗タブ -->
+      <div id="parentTabProgress" class="parent-tab-content">
+        <div class="parent-card">
+          <div class="parent-card-header">📊 カテゴリ別進捗</div>
+          <div class="parent-card-body" id="parentCategoryProgress"></div>
+        </div>
+        <div class="parent-card">
+          <div class="parent-card-header">📝 クイズ成績</div>
+          <div class="parent-card-body" id="parentQuizStats"></div>
+        </div>
+        <div class="parent-card">
+          <div class="parent-card-header">📚 最近完了したスライド</div>
+          <div class="parent-card-body" id="parentCompletedSlides"></div>
+        </div>
+      </div>
+
+      <!-- ファミリーミッションタブ -->
+      <div id="parentTabFamily" class="parent-tab-content">
+        <div class="parent-card">
+          <div class="parent-card-header">👨‍👩‍👧 ファミリーミッション
+            <button class="btn" style="margin-left:auto;background:var(--parent);color:#fff;font-size:11px;padding:6px 12px" onclick="openFamilyMissionEditor()">➕ 新規作成</button>
+          </div>
+          <div class="parent-card-body" id="parentFamilyMissions"></div>
+        </div>
+        <div class="parent-card">
+          <div class="parent-card-header">🏆 達成履歴</div>
+          <div class="parent-card-body" id="parentFamilyHistory"></div>
+        </div>
+      </div>
+
+      <!-- 設定タブ -->
+      <div id="parentTabSettings" class="parent-tab-content">
+        <div class="parent-card">
+          <div class="parent-card-header">🎯 学習目標設定</div>
+          <div class="parent-card-body" id="parentGoalSettings">
+            <div class="form-group">
+              <label class="form-label">📚 1日の目標スライド数</label>
+              <select class="form-select" id="parentDailySlideGoal" onchange="saveParentSettings()">
+                <option value="1">1スライド</option>
+                <option value="2" selected>2スライド</option>
+                <option value="3">3スライド</option>
+                <option value="5">5スライド</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">⏰ 学習時間の目安</label>
+              <select class="form-select" id="parentDailyTimeGoal" onchange="saveParentSettings()">
+                <option value="15">15分</option>
+                <option value="30" selected>30分</option>
+                <option value="45">45分</option>
+                <option value="60">60分</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="parent-card">
+          <div class="parent-card-header">🔔 通知設定</div>
+          <div class="parent-card-body" id="parentNotificationSettings">
+            <div class="setting-item">
+              <div class="setting-label">学習完了通知</div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="parentNotifyComplete" checked onchange="saveParentSettings()">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <div class="setting-label">連続学習達成通知</div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="parentNotifyStreak" checked onchange="saveParentSettings()">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <div class="setting-label">ファミリーミッション通知</div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="parentNotifyFamily" checked onchange="saveParentSettings()">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 保護者用フッターナビゲーション -->
+      <div class="parent-footer-nav">
+        <div class="parent-footer-item active" onclick="showScreen('parent'); renderParentDashboard()">
+          <span>👨‍👩‍👧</span><span>ダッシュボード</span>
+        </div>
+        <div class="parent-footer-item" onclick="openModeModal()">
+          <span>🔄</span><span>モード切替</span>
+        </div>
+      </div>
+    </div>
+
     <!-- 先生ダッシュボード画面 -->
     <div id="screen-teacher" class="screen">
       <div class="teacher-header">

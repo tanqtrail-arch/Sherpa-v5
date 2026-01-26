@@ -3516,6 +3516,452 @@ nav.sponsor {
   padding-bottom: 80px;
 }
 
+#screen-parent {
+  padding-bottom: 80px;
+}
+
+/* ========================================
+   保護者モード専用スタイル
+   ======================================== */
+
+.parent-header {
+  text-align: center;
+  padding: 20px 0 16px;
+  color: #fff;
+}
+
+.parent-title {
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.parent-subtitle {
+  font-size: 12px;
+  opacity: 0.8;
+  margin-top: 4px;
+}
+
+/* 保護者サマリーグリッド */
+.parent-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.parent-summary-card {
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 12px 8px;
+  text-align: center;
+}
+
+.parent-summary-icon {
+  font-size: 24px;
+  margin-bottom: 4px;
+}
+
+.parent-summary-value {
+  font-size: 18px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.parent-summary-label {
+  font-size: 10px;
+  color: rgba(255,255,255,0.8);
+  margin-top: 2px;
+}
+
+/* 保護者タブナビゲーション */
+.parent-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 14px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 10px;
+  padding: 3px;
+  overflow-x: auto;
+}
+
+.parent-tab {
+  flex: 1;
+  padding: 10px 6px;
+  text-align: center;
+  color: rgba(255,255,255,0.6);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 8px;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.parent-tab:hover {
+  color: rgba(255,255,255,0.9);
+  background: rgba(255,255,255,0.1);
+}
+
+.parent-tab.active {
+  background: rgba(255,255,255,0.25);
+  color: #fff;
+}
+
+/* 保護者タブコンテンツ */
+.parent-tab-content {
+  display: none;
+}
+
+.parent-tab-content.active {
+  display: block;
+}
+
+/* 保護者カード */
+.parent-card {
+  background: rgba(255,255,255,0.95);
+  border-radius: 16px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.parent-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--summit);
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.parent-card-body {
+  padding: 12px 14px;
+}
+
+/* 保護者フッターナビゲーション */
+.parent-footer-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-width: 480px;
+  margin: 0 auto;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(10px);
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 0;
+  padding-bottom: calc(8px + env(safe-area-inset-bottom));
+  border-top: 1px solid rgba(0,0,0,0.1);
+  z-index: 100;
+}
+
+.parent-footer-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 16px;
+  color: var(--rock);
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 8px;
+}
+
+.parent-footer-item:hover {
+  background: rgba(59,130,246,0.1);
+}
+
+.parent-footer-item.active {
+  color: var(--parent);
+}
+
+.parent-footer-item span:first-child {
+  font-size: 20px;
+}
+
+/* 保護者週間統計 */
+.parent-weekly-chart {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  height: 100px;
+  padding: 10px 0;
+}
+
+.parent-weekly-bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.parent-weekly-bar-fill {
+  width: 24px;
+  background: linear-gradient(180deg, var(--parent), #60a5fa);
+  border-radius: 4px 4px 0 0;
+  transition: height 0.3s;
+}
+
+.parent-weekly-bar-label {
+  font-size: 10px;
+  color: var(--rock);
+}
+
+/* 保護者成果アイテム */
+.parent-achievement-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.parent-achievement-item:last-child {
+  border-bottom: none;
+}
+
+.parent-achievement-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--parent), #60a5fa);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.parent-achievement-content {
+  flex: 1;
+}
+
+.parent-achievement-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--summit);
+}
+
+.parent-achievement-time {
+  font-size: 11px;
+  color: var(--rock);
+  margin-top: 2px;
+}
+
+/* 保護者推奨アクション */
+.parent-recommendation-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(96,165,250,0.05));
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
+.parent-recommendation-item:last-child {
+  margin-bottom: 0;
+}
+
+.parent-recommendation-icon {
+  font-size: 24px;
+}
+
+.parent-recommendation-content {
+  flex: 1;
+}
+
+.parent-recommendation-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--summit);
+}
+
+.parent-recommendation-desc {
+  font-size: 11px;
+  color: var(--rock);
+  margin-top: 2px;
+}
+
+/* カテゴリ進捗バー（保護者用） */
+.parent-progress-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.parent-progress-item:last-child {
+  border-bottom: none;
+}
+
+.parent-progress-emoji {
+  font-size: 24px;
+}
+
+.parent-progress-info {
+  flex: 1;
+}
+
+.parent-progress-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--summit);
+  margin-bottom: 4px;
+}
+
+.parent-progress-bar {
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.parent-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--parent), #60a5fa);
+  border-radius: 4px;
+  transition: width 0.3s;
+}
+
+.parent-progress-value {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--parent);
+  min-width: 40px;
+  text-align: right;
+}
+
+/* 設定項目 */
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.setting-label {
+  font-size: 13px;
+  color: var(--summit);
+}
+
+/* トグルスイッチ */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 26px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.3s;
+  border-radius: 26px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background-color: var(--parent);
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+  transform: translateX(22px);
+}
+
+/* ファミリーミッションリスト（保護者用） */
+.parent-family-mission-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(0,0,0,0.02);
+  border-radius: 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.parent-family-mission-item:hover {
+  background: rgba(59,130,246,0.08);
+}
+
+.parent-family-mission-item.completed {
+  opacity: 0.6;
+}
+
+.parent-family-mission-emoji {
+  font-size: 32px;
+}
+
+.parent-family-mission-info {
+  flex: 1;
+}
+
+.parent-family-mission-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--summit);
+}
+
+.parent-family-mission-reward {
+  font-size: 11px;
+  color: var(--meadow);
+  margin-top: 2px;
+}
+
+.parent-family-mission-status {
+  font-size: 20px;
+}
+
+/* モバイルレスポンシブ（保護者モード） */
+@media (max-width: 480px) {
+  .parent-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .parent-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .parent-tab {
+    min-width: 70px;
+  }
+}
+
 /* ========================================
    先生モード専用スタイル
    ======================================== */
