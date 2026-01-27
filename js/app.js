@@ -3103,7 +3103,10 @@ function openModeModal() {
 }
 
 function closeModals() {
-  document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+  document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.classList.remove('active');
+    m.style.display = 'none';
+  });
 }
 
 function switchMode(newMode) {
@@ -7403,6 +7406,7 @@ function cancelSchoolApplication() {
 
   if (!userSchool) {
     toast('申請情報が見つかりません');
+    document.getElementById('schoolStatusModal').style.display = 'none';
     closeModals();
     return;
   }
@@ -7419,6 +7423,8 @@ function cancelSchoolApplication() {
   userSchool = null;
   localStorage.setItem('sherupa_user_school', JSON.stringify(null));
 
+  // モーダルを明示的に閉じる
+  document.getElementById('schoolStatusModal').style.display = 'none';
   closeModals();
   renderSchoolSection();
   toast('申請をキャンセルしました');
