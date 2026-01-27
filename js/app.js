@@ -377,6 +377,7 @@ function resetAllData() {
   customFamilyMissions = [];
   dailyFamilyMissionHistory = {};
   sponsorLikesReceived = [];
+  diaryEntries = [];
 
   // LocalStorageをクリア
   localStorage.removeItem('sherupa_s');
@@ -392,6 +393,7 @@ function resetAllData() {
   localStorage.removeItem('sherupa_daily_family_history');
   localStorage.removeItem('sherupa_sponsor_likes_received');
   localStorage.removeItem('sherupa_all_users');
+  localStorage.removeItem('sherupa_diary');
 }
 
 // ========================================
@@ -4451,6 +4453,7 @@ let selectedChildEmoji = '👦';
 function renderParentDashboard() {
   renderChildSelector();
   renderParentSummary();
+  renderParentDiarySection();
   showParentTab(currentParentTab);
 }
 
@@ -5280,6 +5283,7 @@ async function renderTeacherDashboard() {
   }
 
   renderTeacherSummary();
+  renderTeacherDiarySection();
   showTeacherTab(currentTeacherTab);
 }
 
@@ -7651,6 +7655,502 @@ function renderSchoolStudentsTab() {
       </div>
     `;
   }).join('');
+}
+
+// ========================================
+// 学び日記システム
+// ========================================
+
+// 日記データ
+// diaryEntries: [{ id, date, emotion, rating, reflection, wantToLearn, showToParent, showToTeacher, rewarded, timestamp }]
+let diaryEntries = JSON.parse(localStorage.getItem('sherupa_diary')) || [];
+
+// 日記用のカレンダー表示月（年月）
+let diaryCalendarDate = new Date();
+
+// 日記フォーム状態
+let diaryFormState = {
+  emotion: null,
+  rating: 0
+};
+
+// 日記画面をレンダリング
+function renderDiaryScreen() {
+  renderDiaryStats();
+  renderDiaryCalendar();
+  renderDiaryRewardInfo();
+  renderDiaryEntryList();
+}
+
+// 日記統計をレンダリング
+function renderDiaryStats() {
+  const totalCount = diaryEntries.length;
+  const streakCount = calculateDiaryStreak();
+  const now = new Date();
+  const monthCount = diaryEntries.filter(e => {
+    const d = new Date(e.timestamp);
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+  }).length;
+
+  document.getElementById('diaryTotalCount').textContent = totalCount;
+  document.getElementById('diaryStreakCount').textContent = `🔥 ${streakCount}`;
+  document.getElementById('diaryMonthCount').textContent = monthCount;
+}
+
+// 日記連続日数を計算
+function calculateDiaryStreak() {
+  if (diaryEntries.length === 0) return 0;
+
+  // 日付でソート（降順）
+  const sortedEntries = [...diaryEntries].sort((a, b) => b.timestamp - a.timestamp);
+
+  let streak = 0;
+  let checkDate = new Date();
+  checkDate.setHours(0, 0, 0, 0);
+
+  for (let i = 0; i < 365; i++) {
+    const dateStr = checkDate.toDateString();
+    const hasEntry = sortedEntries.some(e => new Date(e.timestamp).toDateString() === dateStr);
+
+    if (hasEntry) {
+      streak++;
+    } else if (i > 0) {
+      // 最初の日（今日）はスキップして連続をチェック
+      break;
+    }
+
+    checkDate.setDate(checkDate.getDate() - 1);
+  }
+
+  return streak;
+}
+
+// カレンダーをレンダリング
+function renderDiaryCalendar() {
+  const year = diaryCalendarDate.getFullYear();
+  const month = diaryCalendarDate.getMonth();
+
+  document.getElementById('diaryCalendarTitle').textContent = `${year}年${month + 1}月`;
+
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const startDayOfWeek = firstDay.getDay();
+  const daysInMonth = lastDay.getDate();
+
+  const today = new Date();
+  const todayStr = today.toDateString();
+
+  // 日記がある日のリストを作成
+  const diaryDates = new Set(diaryEntries.map(e => new Date(e.timestamp).toDateString()));
+
+  let html = '';
+
+  // 空白セル（月初めの曜日調整）
+  for (let i = 0; i < startDayOfWeek; i++) {
+    html += '<div class="diary-calendar-day empty"></div>';
+  }
+
+  // 日付セル
+  for (let day = 1; day <= daysInMonth; day++) {
+    const date = new Date(year, month, day);
+    const dateStr = date.toDateString();
+    const isToday = dateStr === todayStr;
+    const hasDiary = diaryDates.has(dateStr);
+
+    let classes = 'diary-calendar-day';
+    if (isToday) classes += ' today';
+    if (hasDiary) classes += ' has-diary';
+
+    html += `<div class="${classes}" onclick="viewDiaryByDate('${dateStr}')">${day}</div>`;
+  }
+
+  document.getElementById('diaryCalendarDays').innerHTML = html;
+}
+
+// カレンダーの前月へ
+function prevDiaryMonth() {
+  diaryCalendarDate.setMonth(diaryCalendarDate.getMonth() - 1);
+  renderDiaryCalendar();
+}
+
+// カレンダーの次月へ
+function nextDiaryMonth() {
+  diaryCalendarDate.setMonth(diaryCalendarDate.getMonth() + 1);
+  renderDiaryCalendar();
+}
+
+// 特定の日付の日記を表示
+function viewDiaryByDate(dateStr) {
+  const entry = diaryEntries.find(e => new Date(e.timestamp).toDateString() === dateStr);
+  if (entry) {
+    openDiaryViewModal(entry.id);
+  }
+}
+
+// ALT報酬情報をレンダリング
+function renderDiaryRewardInfo() {
+  const container = document.getElementById('diaryRewardInfo');
+  const todayRewarded = hasTodayDiaryReward();
+
+  if (todayRewarded) {
+    container.className = 'diary-reward-info rewarded';
+    container.innerHTML = `
+      <span>✅</span>
+      <span>今日はもう日記を書いて <strong>+30 ALT</strong> をもらったよ！</span>
+    `;
+  } else {
+    container.className = 'diary-reward-info';
+    container.innerHTML = `
+      <span>✨</span>
+      <span>今日日記を書くと <strong>+30 ALT</strong> もらえるよ！</span>
+    `;
+  }
+}
+
+// 今日既に報酬を受け取ったかチェック
+function hasTodayDiaryReward() {
+  const todayStr = new Date().toDateString();
+  return diaryEntries.some(e =>
+    new Date(e.timestamp).toDateString() === todayStr && e.rewarded
+  );
+}
+
+// 日記一覧をレンダリング
+function renderDiaryEntryList() {
+  const container = document.getElementById('diaryEntryList');
+  const noEntries = document.getElementById('noDiaryEntries');
+
+  if (diaryEntries.length === 0) {
+    container.innerHTML = '';
+    noEntries.style.display = 'block';
+    return;
+  }
+
+  noEntries.style.display = 'none';
+
+  // 最新10件を表示
+  const recentEntries = [...diaryEntries]
+    .sort((a, b) => b.timestamp - a.timestamp)
+    .slice(0, 10);
+
+  container.innerHTML = recentEntries.map(entry => {
+    const date = new Date(entry.timestamp);
+    const dateStr = `${date.getMonth() + 1}/${date.getDate()}`;
+    const stars = '⭐'.repeat(entry.rating) + '☆'.repeat(5 - entry.rating);
+
+    const parentVisible = entry.showToParent ? 'visible' : '';
+    const teacherVisible = entry.showToTeacher ? 'visible' : '';
+
+    return `
+      <div class="diary-entry-card" onclick="openDiaryViewModal('${entry.id}')">
+        <div class="diary-entry-header">
+          <div class="diary-entry-emoji">${entry.emotion}</div>
+          <div class="diary-entry-meta">
+            <div class="diary-entry-date">${dateStr}</div>
+            <div class="diary-entry-rating">${stars}</div>
+          </div>
+          <div class="diary-entry-visibility">
+            <span class="${parentVisible}">👨‍👩‍👧</span>
+            <span class="${teacherVisible}">🏫</span>
+          </div>
+        </div>
+        <div class="diary-entry-content">${escapeHtml(entry.reflection)}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// HTMLエスケープ
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// 日記作成モーダルを開く
+function openDiaryModal() {
+  // フォーム状態をリセット
+  diaryFormState = { emotion: null, rating: 0 };
+
+  // 日付を設定
+  const today = new Date();
+  document.getElementById('diaryModalDate').textContent =
+    `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日`;
+
+  // フォームをリセット
+  document.querySelectorAll('.diary-emotion').forEach(e => e.classList.remove('selected'));
+  document.querySelectorAll('.diary-star').forEach(s => {
+    s.classList.remove('filled');
+    s.textContent = '☆';
+  });
+  document.getElementById('diaryReflection').value = '';
+  document.getElementById('diaryCharCount').textContent = '0';
+  document.getElementById('diaryWantToLearn').value = '';
+  document.getElementById('diaryShowToParent').checked = true;
+  document.getElementById('diaryShowToTeacher').checked = true;
+
+  // モーダルを表示
+  document.getElementById('diaryModal').style.display = 'flex';
+}
+
+// 気持ちを選択
+function selectDiaryEmotion(emotion, element) {
+  document.querySelectorAll('.diary-emotion').forEach(e => e.classList.remove('selected'));
+  element.classList.add('selected');
+  diaryFormState.emotion = emotion;
+}
+
+// 星評価を選択
+function selectDiaryRating(rating) {
+  diaryFormState.rating = rating;
+  document.querySelectorAll('.diary-star').forEach((star, index) => {
+    if (index < rating) {
+      star.classList.add('filled');
+      star.textContent = '⭐';
+    } else {
+      star.classList.remove('filled');
+      star.textContent = '☆';
+    }
+  });
+}
+
+// 日記を保存
+function saveDiaryEntry() {
+  const reflection = document.getElementById('diaryReflection').value.trim();
+  const wantToLearn = document.getElementById('diaryWantToLearn').value.trim();
+  const showToParent = document.getElementById('diaryShowToParent').checked;
+  const showToTeacher = document.getElementById('diaryShowToTeacher').checked;
+
+  // バリデーション
+  if (!diaryFormState.emotion) {
+    toast('気持ちを選んでね！😊');
+    return;
+  }
+
+  if (diaryFormState.rating === 0) {
+    toast('おもしろさ度を選んでね！⭐');
+    return;
+  }
+
+  if (!reflection) {
+    toast('今日学んだことを書いてね！✏️');
+    document.getElementById('diaryReflection').focus();
+    return;
+  }
+
+  if (reflection.length < 10) {
+    toast('もう少し詳しく書いてみよう！📝');
+    document.getElementById('diaryReflection').focus();
+    return;
+  }
+
+  // 今日既に報酬を受け取っているかチェック
+  const canGetReward = !hasTodayDiaryReward();
+
+  // 日記エントリを作成
+  const entry = {
+    id: 'diary_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+    date: new Date().toISOString().split('T')[0],
+    emotion: diaryFormState.emotion,
+    rating: diaryFormState.rating,
+    reflection: reflection,
+    wantToLearn: wantToLearn,
+    showToParent: showToParent,
+    showToTeacher: showToTeacher,
+    rewarded: canGetReward,
+    timestamp: Date.now()
+  };
+
+  // 保存
+  diaryEntries.push(entry);
+  localStorage.setItem('sherupa_diary', JSON.stringify(diaryEntries));
+
+  // ALT報酬（1日1回のみ）
+  if (canGetReward) {
+    userProfile.alt += 30;
+    localStorage.setItem('sherupa_profile', JSON.stringify(userProfile));
+    updateHeader();
+    toast('📓 日記を保存したよ！+30 ALT 🎉');
+  } else {
+    toast('📓 日記を保存したよ！');
+  }
+
+  // モーダルを閉じる
+  closeModals();
+
+  // 画面を更新
+  renderDiaryScreen();
+}
+
+// 日記詳細モーダルを開く
+function openDiaryViewModal(entryId) {
+  const entry = diaryEntries.find(e => e.id === entryId);
+  if (!entry) return;
+
+  const date = new Date(entry.timestamp);
+  document.getElementById('diaryViewDate').textContent =
+    `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+
+  document.getElementById('diaryViewEmoji').textContent = entry.emotion;
+  document.getElementById('diaryViewRating').textContent = '⭐'.repeat(entry.rating) + '☆'.repeat(5 - entry.rating);
+  document.getElementById('diaryViewContent').textContent = entry.reflection;
+
+  // もっと知りたいこと
+  const wantSection = document.getElementById('diaryViewWant');
+  if (entry.wantToLearn) {
+    wantSection.style.display = 'block';
+    document.getElementById('diaryViewWantText').textContent = entry.wantToLearn;
+  } else {
+    wantSection.style.display = 'none';
+  }
+
+  // 公開設定
+  let visibilityText = '';
+  if (entry.showToParent && entry.showToTeacher) {
+    visibilityText = 'おうちの人・先生にみせる';
+  } else if (entry.showToParent) {
+    visibilityText = 'おうちの人にみせる';
+  } else if (entry.showToTeacher) {
+    visibilityText = '先生にみせる';
+  } else {
+    visibilityText = '自分だけの日記';
+  }
+  document.getElementById('diaryViewVisibilityText').textContent = visibilityText;
+
+  document.getElementById('diaryViewModal').style.display = 'flex';
+}
+
+// テキストエリアの文字数カウント
+document.addEventListener('DOMContentLoaded', function() {
+  const textarea = document.getElementById('diaryReflection');
+  if (textarea) {
+    textarea.addEventListener('input', function() {
+      document.getElementById('diaryCharCount').textContent = this.value.length;
+    });
+  }
+});
+
+// ========================================
+// 保護者・教師向け日記表示
+// ========================================
+
+// 子ども（ユーザー）の日記を取得（可視化設定を考慮）
+function getVisibleDiaryEntries(forParent = true) {
+  return diaryEntries.filter(e => {
+    if (forParent) {
+      return e.showToParent;
+    } else {
+      return e.showToTeacher;
+    }
+  });
+}
+
+// 保護者ダッシュボード用の日記セクションをレンダリング
+function renderParentDiarySection() {
+  const container = document.getElementById('parentDiarySection');
+  if (!container) return;
+
+  const visibleEntries = getVisibleDiaryEntries(true);
+
+  if (visibleEntries.length === 0) {
+    container.innerHTML = `
+      <div class="parent-card">
+        <div class="parent-card-header">📓 学び日記</div>
+        <div class="parent-card-body">
+          <div style="text-align:center;color:var(--rock);padding:20px;font-size:12px">
+            まだ公開されている日記はありません
+          </div>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  // 最新5件を表示
+  const recentEntries = [...visibleEntries]
+    .sort((a, b) => b.timestamp - a.timestamp)
+    .slice(0, 5);
+
+  container.innerHTML = `
+    <div class="parent-card">
+      <div class="parent-card-header">📓 学び日記 <span style="font-size:11px;color:var(--rock);font-weight:400">${visibleEntries.length}件</span></div>
+      <div class="parent-card-body">
+        <div class="diary-child-entries">
+          ${recentEntries.map(entry => {
+            const date = new Date(entry.timestamp);
+            const dateStr = `${date.getMonth() + 1}/${date.getDate()}`;
+            const stars = '⭐'.repeat(entry.rating);
+            return `
+              <div class="diary-mini-card" onclick="openDiaryViewModal('${entry.id}')">
+                <div class="diary-mini-emoji">${entry.emotion}</div>
+                <div class="diary-mini-content">
+                  <div class="diary-mini-date">${dateStr} ${stars}</div>
+                  <div class="diary-mini-text">${escapeHtml(entry.reflection)}</div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// 教師ダッシュボード用の日記セクションをレンダリング
+function renderTeacherDiarySection() {
+  const container = document.getElementById('teacherDiarySection');
+  if (!container) return;
+
+  const visibleEntries = getVisibleDiaryEntries(false);
+
+  if (visibleEntries.length === 0) {
+    container.innerHTML = `
+      <div class="teacher-card">
+        <div class="teacher-card-header">📓 生徒の学び日記</div>
+        <div class="teacher-card-body">
+          <div style="text-align:center;color:var(--rock);padding:20px;font-size:12px">
+            まだ公開されている日記はありません
+          </div>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  // 最新5件を表示
+  const recentEntries = [...visibleEntries]
+    .sort((a, b) => b.timestamp - a.timestamp)
+    .slice(0, 5);
+
+  container.innerHTML = `
+    <div class="teacher-card">
+      <div class="teacher-card-header">📓 生徒の学び日記 <span style="font-size:11px;color:var(--rock);font-weight:400">${visibleEntries.length}件</span></div>
+      <div class="teacher-card-body">
+        <div class="diary-child-section">
+          <div class="diary-child-header">
+            <div class="diary-child-avatar">${userProfile.name.charAt(0)}</div>
+            <div class="diary-child-name">${userProfile.name}</div>
+          </div>
+          <div class="diary-child-entries">
+            ${recentEntries.map(entry => {
+              const date = new Date(entry.timestamp);
+              const dateStr = `${date.getMonth() + 1}/${date.getDate()}`;
+              const stars = '⭐'.repeat(entry.rating);
+              return `
+                <div class="diary-mini-card" onclick="openDiaryViewModal('${entry.id}')">
+                  <div class="diary-mini-emoji">${entry.emotion}</div>
+                  <div class="diary-mini-content">
+                    <div class="diary-mini-date">${dateStr} ${stars}</div>
+                    <div class="diary-mini-text">${escapeHtml(entry.reflection)}</div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 // ========================================

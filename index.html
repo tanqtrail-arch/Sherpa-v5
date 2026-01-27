@@ -620,6 +620,8 @@
           <div class="parent-card-header">💡 おすすめアクション</div>
           <div class="parent-card-body" id="parentRecommendations"></div>
         </div>
+        <!-- 日記セクション -->
+        <div id="parentDiarySection"></div>
       </div>
 
       <!-- 学習進捗タブ -->
@@ -751,6 +753,8 @@
           <div class="teacher-card-header">📊 カテゴリ別達成率</div>
           <div class="teacher-card-body" id="teacherCategoryProgress"></div>
         </div>
+        <!-- 日記セクション -->
+        <div id="teacherDiarySection"></div>
       </div>
 
       <!-- 承認タブ -->
@@ -929,6 +933,61 @@
         </div>
       </div>
     </div>
+
+    <!-- 学び日記画面 -->
+    <div id="screen-diary" class="screen">
+      <div class="section-title" style="color:#fff">📓 学び日記<span class="free-tag">ふりかえり</span></div>
+
+      <!-- 日記ヘッダーカード -->
+      <div class="diary-header-card">
+        <div class="diary-header-stats">
+          <div class="diary-stat">
+            <div class="diary-stat-value" id="diaryTotalCount">0</div>
+            <div class="diary-stat-label">日記の数</div>
+          </div>
+          <div class="diary-stat">
+            <div class="diary-stat-value" id="diaryStreakCount">🔥 0</div>
+            <div class="diary-stat-label">連続日数</div>
+          </div>
+          <div class="diary-stat">
+            <div class="diary-stat-value" id="diaryMonthCount">0</div>
+            <div class="diary-stat-label">今月</div>
+          </div>
+        </div>
+        <button class="diary-write-btn" onclick="openDiaryModal()">
+          <span>✏️</span>
+          <span>日記を書く</span>
+        </button>
+      </div>
+
+      <!-- カレンダー -->
+      <div class="diary-calendar-container">
+        <div class="diary-calendar-header">
+          <button class="diary-calendar-nav" onclick="prevDiaryMonth()">←</button>
+          <div class="diary-calendar-title" id="diaryCalendarTitle">2026年1月</div>
+          <button class="diary-calendar-nav" onclick="nextDiaryMonth()">→</button>
+        </div>
+        <div class="diary-calendar-weekdays">
+          <div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div>
+        </div>
+        <div class="diary-calendar-days" id="diaryCalendarDays"></div>
+      </div>
+
+      <!-- ALT報酬情報 -->
+      <div class="diary-reward-info" id="diaryRewardInfo">
+        <span>✨</span>
+        <span>今日日記を書くと <strong>+30 ALT</strong> もらえるよ！</span>
+      </div>
+
+      <!-- 日記一覧 -->
+      <div class="section-title" style="color:#fff;margin-top:16px">📖 最近の日記</div>
+      <div id="diaryEntryList"></div>
+      <div id="noDiaryEntries" style="background:rgba(255,255,255,.1);border-radius:12px;padding:24px;text-align:center;color:rgba(255,255,255,.8);font-size:13px">
+        まだ日記がありません<br>
+        <span style="font-size:11px;opacity:.8">学んだことをふりかえって書いてみよう！</span>
+      </div>
+    </div>
+
   </main>
 
   <!-- ナビゲーション -->
@@ -942,6 +1001,9 @@
       </div>
       <div class="nav-item" data-screen="bookshelf" onclick="showScreen('bookshelf')">
         <span>📚</span><span>本棚</span>
+      </div>
+      <div class="nav-item" data-screen="diary" onclick="showScreen('diary'); renderDiaryScreen()">
+        <span>📓</span><span>日記</span>
       </div>
       <div class="nav-item" data-screen="climb" onclick="showScreen('climb'); renderClimb()">
         <span>🏔️</span><span>登頂</span>
@@ -1014,6 +1076,105 @@
       <div class="quiz-question" id="quizQuestion">問題文がここに表示されます</div>
       <div class="quiz-options" id="quizOptions"></div>
       <div class="quiz-feedback" id="quizFeedback"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 学び日記作成モーダル -->
+<div class="modal-overlay" id="diaryModal" onclick="if(event.target===this)closeModals()">
+  <div class="modal-box diary-modal">
+    <div class="modal-header" style="background:linear-gradient(135deg,#ec4899,#f472b6)">
+      <div style="font-size:32px">📓</div>
+      <div style="font-weight:700;margin-top:4px">学び日記を書こう！</div>
+      <div style="font-size:11px;opacity:.8;margin-top:2px" id="diaryModalDate">2026年1月27日</div>
+    </div>
+    <div class="modal-body" style="max-height:60vh;overflow-y:auto">
+      <!-- 気持ち選択 -->
+      <div class="diary-form-section">
+        <label class="diary-form-label">😊 今日の学びはどうだった？</label>
+        <div class="diary-emotion-picker" id="diaryEmotionPicker">
+          <div class="diary-emotion" data-emotion="😆" onclick="selectDiaryEmotion('😆', this)">😆<span>たのしい</span></div>
+          <div class="diary-emotion" data-emotion="😊" onclick="selectDiaryEmotion('😊', this)">😊<span>うれしい</span></div>
+          <div class="diary-emotion" data-emotion="🤔" onclick="selectDiaryEmotion('🤔', this)">🤔<span>ふしぎ</span></div>
+          <div class="diary-emotion" data-emotion="😮" onclick="selectDiaryEmotion('😮', this)">😮<span>びっくり</span></div>
+          <div class="diary-emotion" data-emotion="💡" onclick="selectDiaryEmotion('💡', this)">💡<span>わかった</span></div>
+        </div>
+      </div>
+
+      <!-- おもしろさ度 -->
+      <div class="diary-form-section">
+        <label class="diary-form-label">⭐ おもしろさ度</label>
+        <div class="diary-star-picker" id="diaryStarPicker">
+          <span class="diary-star" data-rating="1" onclick="selectDiaryRating(1)">☆</span>
+          <span class="diary-star" data-rating="2" onclick="selectDiaryRating(2)">☆</span>
+          <span class="diary-star" data-rating="3" onclick="selectDiaryRating(3)">☆</span>
+          <span class="diary-star" data-rating="4" onclick="selectDiaryRating(4)">☆</span>
+          <span class="diary-star" data-rating="5" onclick="selectDiaryRating(5)">☆</span>
+        </div>
+      </div>
+
+      <!-- ひとこと感想 -->
+      <div class="diary-form-section">
+        <label class="diary-form-label">✏️ 今日学んだこと・感じたこと</label>
+        <textarea class="diary-textarea" id="diaryReflection" placeholder="今日はこんなことを学んだよ！&#10;おもしろかったのは...&#10;びっくりしたのは..." maxlength="300"></textarea>
+        <div class="diary-char-count"><span id="diaryCharCount">0</span>/300</div>
+      </div>
+
+      <!-- もっと知りたいこと -->
+      <div class="diary-form-section">
+        <label class="diary-form-label">🔍 もっと知りたいこと（あれば）</label>
+        <input type="text" class="form-input diary-input" id="diaryWantToLearn" placeholder="例：恐竜のこと、宇宙のこと..." maxlength="100">
+      </div>
+
+      <!-- 公開設定 -->
+      <div class="diary-form-section diary-visibility-section">
+        <label class="diary-form-label">👀 この日記をみせる？</label>
+        <div class="diary-visibility-options">
+          <label class="diary-visibility-option">
+            <input type="checkbox" id="diaryShowToParent" checked>
+            <span class="diary-visibility-icon">👨‍👩‍👧</span>
+            <span>おうちの人</span>
+          </label>
+          <label class="diary-visibility-option">
+            <input type="checkbox" id="diaryShowToTeacher" checked>
+            <span class="diary-visibility-icon">🏫</span>
+            <span>先生</span>
+          </label>
+        </div>
+        <div class="diary-visibility-hint">チェックを外すと、自分だけの日記になるよ</div>
+      </div>
+
+      <!-- 保存ボタン -->
+      <div class="diary-form-actions">
+        <button class="btn btn-secondary" onclick="closeModals()">やめる</button>
+        <button class="btn diary-save-btn" onclick="saveDiaryEntry()">
+          <span>📓</span>
+          <span>日記を保存！</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 日記詳細モーダル -->
+<div class="modal-overlay" id="diaryViewModal" onclick="if(event.target===this)closeModals()">
+  <div class="modal-box diary-view-modal">
+    <div class="modal-header" id="diaryViewHeader" style="background:linear-gradient(135deg,#ec4899,#f472b6)">
+      <div style="font-size:48px" id="diaryViewEmoji">😊</div>
+      <div style="font-weight:700;margin-top:8px" id="diaryViewDate">2026年1月27日</div>
+    </div>
+    <div class="modal-body">
+      <div class="diary-view-rating" id="diaryViewRating">⭐⭐⭐⭐⭐</div>
+      <div class="diary-view-content" id="diaryViewContent">日記の内容がここに表示されます</div>
+      <div class="diary-view-want" id="diaryViewWant" style="display:none">
+        <span>🔍 もっと知りたい：</span>
+        <span id="diaryViewWantText"></span>
+      </div>
+      <div class="diary-view-visibility" id="diaryViewVisibility">
+        <span>👀 公開設定：</span>
+        <span id="diaryViewVisibilityText">おうちの人・先生にみせる</span>
+      </div>
+      <button class="btn btn-primary" style="width:100%;margin-top:16px" onclick="closeModals()">とじる</button>
     </div>
   </div>
 </div>
