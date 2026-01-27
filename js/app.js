@@ -7815,25 +7815,33 @@ function hasTodayDiaryReward() {
   );
 }
 
+// 日記表示件数
+let diaryDisplayCount = 10;
+
 // 日記一覧をレンダリング
-function renderDiaryEntryList() {
+function renderDiaryEntryList(showMore = false) {
   const container = document.getElementById('diaryEntryList');
   const noEntries = document.getElementById('noDiaryEntries');
 
   if (diaryEntries.length === 0) {
     container.innerHTML = '';
     noEntries.style.display = 'block';
+    diaryDisplayCount = 10;
     return;
   }
 
   noEntries.style.display = 'none';
 
-  // 最新10件を表示
-  const recentEntries = [...diaryEntries]
-    .sort((a, b) => b.timestamp - a.timestamp)
-    .slice(0, 10);
+  if (!showMore) {
+    diaryDisplayCount = 10;
+  }
 
-  container.innerHTML = recentEntries.map(entry => {
+  // ソートして表示件数分を取得
+  const sortedEntries = [...diaryEntries].sort((a, b) => b.timestamp - a.timestamp);
+  const displayEntries = sortedEntries.slice(0, diaryDisplayCount);
+  const hasMore = sortedEntries.length > diaryDisplayCount;
+
+  let html = displayEntries.map(entry => {
     const date = new Date(entry.timestamp);
     const dateStr = `${date.getMonth() + 1}/${date.getDate()}`;
     const stars = '⭐'.repeat(entry.rating) + '☆'.repeat(5 - entry.rating);
@@ -7858,6 +7866,23 @@ function renderDiaryEntryList() {
       </div>
     `;
   }).join('');
+
+  // 「もっと見る」ボタン
+  if (hasMore) {
+    html += `
+      <button class="diary-load-more-btn" onclick="loadMoreDiaryEntries()">
+        📖 もっと見る（残り${sortedEntries.length - diaryDisplayCount}件）
+      </button>
+    `;
+  }
+
+  container.innerHTML = html;
+}
+
+// もっと見るボタンをクリック
+function loadMoreDiaryEntries() {
+  diaryDisplayCount += 10;
+  renderDiaryEntryList(true);
 }
 
 // HTMLエスケープ
@@ -8149,6 +8174,220 @@ function renderTeacherDiarySection() {
           </div>
         </div>
       </div>
+    </div>
+  `;
+}
+
+// ========================================
+// 管理者日記トレンド分析
+// ========================================
+
+// 管理者日記タブをレンダリング
+function renderAdminDiaryTab() {
+  renderAdminDiarySummary();
+  renderAdminDiaryWeeklyChart();
+  renderAdminDiaryEmotionChart();
+  renderAdminDiaryKeywords();
+}
+
+// 日記サマリー
+function renderAdminDiarySummary() {
+  const container = document.getElementById('adminDiarySummary');
+  if (!container) return;
+
+  const totalEntries = diaryEntries.length;
+
+  // 今週の日記数
+  const now = new Date();
+  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const weeklyEntries = diaryEntries.filter(e => e.timestamp >= weekAgo.getTime()).length;
+
+  // 平均おもしろさ度
+  const avgRating = totalEntries > 0
+    ? (diaryEntries.reduce((sum, e) => sum + e.rating, 0) / totalEntries).toFixed(1)
+    : 0;
+
+  // 日記を書いている日数の割合（過去30日）
+  const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const daysWithDiary = new Set(
+    diaryEntries
+      .filter(e => e.timestamp >= monthAgo.getTime())
+      .map(e => new Date(e.timestamp).toDateString())
+  ).size;
+  const diaryRate = Math.round((daysWithDiary / 30) * 100);
+
+  container.innerHTML = `
+    <div class="diary-trend-grid">
+      <div class="diary-trend-card">
+        <div class="diary-trend-value">${totalEntries}</div>
+        <div class="diary-trend-label">総日記数</div>
+      </div>
+      <div class="diary-trend-card">
+        <div class="diary-trend-value">${weeklyEntries}</div>
+        <div class="diary-trend-label">今週の投稿</div>
+      </div>
+      <div class="diary-trend-card">
+        <div class="diary-trend-value">⭐ ${avgRating}</div>
+        <div class="diary-trend-label">平均おもしろさ度</div>
+      </div>
+      <div class="diary-trend-card">
+        <div class="diary-trend-value">${diaryRate}%</div>
+        <div class="diary-trend-label">記録率（30日）</div>
+      </div>
+    </div>
+  `;
+}
+
+// 週間投稿数チャート
+function renderAdminDiaryWeeklyChart() {
+  const container = document.getElementById('adminDiaryWeeklyChart');
+  if (!container) return;
+
+  const days = ['日', '月', '火', '水', '木', '金', '土'];
+  const now = new Date();
+  const weekData = [];
+
+  // 過去7日間のデータを集計
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+    const dateStr = date.toDateString();
+    const count = diaryEntries.filter(e => new Date(e.timestamp).toDateString() === dateStr).length;
+    weekData.push({
+      label: days[date.getDay()],
+      count: count,
+      date: `${date.getMonth() + 1}/${date.getDate()}`
+    });
+  }
+
+  const maxCount = Math.max(...weekData.map(d => d.count), 1);
+
+  container.innerHTML = `
+    <div class="diary-weekly-chart">
+      ${weekData.map(d => `
+        <div class="diary-weekly-bar">
+          <div class="diary-weekly-bar-fill" style="height: ${(d.count / maxCount) * 50}px"></div>
+          <div class="diary-weekly-bar-label">${d.label}</div>
+        </div>
+      `).join('')}
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--rock);padding:0 12px">
+      ${weekData.map(d => `<span>${d.count}件</span>`).join('')}
+    </div>
+  `;
+}
+
+// 気持ち分布チャート
+function renderAdminDiaryEmotionChart() {
+  const container = document.getElementById('adminDiaryEmotionChart');
+  if (!container) return;
+
+  const emotions = ['😆', '😊', '🤔', '😮', '💡'];
+  const emotionLabels = ['たのしい', 'うれしい', 'ふしぎ', 'びっくり', 'わかった'];
+  const emotionCounts = {};
+
+  emotions.forEach(e => emotionCounts[e] = 0);
+  diaryEntries.forEach(entry => {
+    if (emotionCounts[entry.emotion] !== undefined) {
+      emotionCounts[entry.emotion]++;
+    }
+  });
+
+  const maxCount = Math.max(...Object.values(emotionCounts), 1);
+
+  container.innerHTML = `
+    <div class="diary-emotion-chart">
+      ${emotions.map((emoji, i) => `
+        <div class="diary-emotion-bar">
+          <div class="diary-emotion-bar-emoji">${emoji}</div>
+          <div class="diary-emotion-bar-fill" style="height: ${(emotionCounts[emoji] / maxCount) * 40}px"></div>
+          <div class="diary-emotion-bar-count">${emotionCounts[emoji]}</div>
+        </div>
+      `).join('')}
+    </div>
+    <div style="text-align:center;font-size:11px;color:var(--rock);margin-top:8px">
+      ${diaryEntries.length > 0 ? `最も多い気持ち: ${getMostCommonEmotion(emotionCounts)}` : 'まだデータがありません'}
+    </div>
+  `;
+}
+
+// 最も多い気持ちを取得
+function getMostCommonEmotion(counts) {
+  const emotionLabels = {
+    '😆': 'たのしい',
+    '😊': 'うれしい',
+    '🤔': 'ふしぎ',
+    '😮': 'びっくり',
+    '💡': 'わかった'
+  };
+
+  let maxEmoji = '😊';
+  let maxCount = 0;
+
+  for (const [emoji, count] of Object.entries(counts)) {
+    if (count > maxCount) {
+      maxCount = count;
+      maxEmoji = emoji;
+    }
+  }
+
+  return `${maxEmoji} ${emotionLabels[maxEmoji] || ''}`;
+}
+
+// 「もっと知りたい」キーワード抽出
+function renderAdminDiaryKeywords() {
+  const container = document.getElementById('adminDiaryKeywords');
+  if (!container) return;
+
+  // 「もっと知りたい」テキストからキーワードを抽出
+  const wantTexts = diaryEntries
+    .filter(e => e.wantToLearn && e.wantToLearn.trim())
+    .map(e => e.wantToLearn);
+
+  if (wantTexts.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center;color:var(--rock);padding:20px;font-size:12px">
+        まだ「もっと知りたい」データがありません
+      </div>
+    `;
+    return;
+  }
+
+  // 簡易的なキーワード抽出（よく出る単語をカウント）
+  const wordCounts = {};
+  const stopWords = ['の', 'こと', 'について', 'もっと', '知りたい', 'を', 'が', 'に', 'は', 'と', 'で', 'も', 'など'];
+
+  wantTexts.forEach(text => {
+    // 簡易的な分割（句読点、スペース、記号で分割）
+    const words = text.split(/[、。！？\s,.\-・]+/).filter(w => w.length >= 2 && !stopWords.includes(w));
+    words.forEach(word => {
+      wordCounts[word] = (wordCounts[word] || 0) + 1;
+    });
+  });
+
+  // 上位10キーワードを取得
+  const topKeywords = Object.entries(wordCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10);
+
+  if (topKeywords.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center;color:var(--rock);padding:20px;font-size:12px">
+        キーワードを抽出できませんでした
+      </div>
+    `;
+    return;
+  }
+
+  const maxKeywordCount = topKeywords[0][1];
+
+  container.innerHTML = `
+    <div class="diary-keywords-list">
+      ${topKeywords.map(([word, count], i) => `
+        <span class="diary-keyword-tag ${i < 3 ? 'highlight' : ''}">${word} (${count})</span>
+      `).join('')}
+    </div>
+    <div style="text-align:center;font-size:11px;color:var(--rock);margin-top:12px">
+      全${wantTexts.length}件の「もっと知りたい」から抽出
     </div>
   `;
 }

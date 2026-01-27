@@ -327,6 +327,7 @@
         <div class="admin-tab" data-tab="registrations" onclick="showAdminTab('registrations', this)">👥 登録</div>
         <div class="admin-tab" data-tab="content" onclick="showAdminTab('content', this)">📚 コンテンツ</div>
         <div class="admin-tab" data-tab="quiz" onclick="showAdminTab('quiz', this)">📝 クイズ</div>
+        <div class="admin-tab" data-tab="diary" onclick="showAdminTab('diary', this); renderAdminDiaryTab()">📓 日記</div>
         <div class="admin-tab" data-tab="engagement" onclick="showAdminTab('engagement', this)">💡 エンゲージ</div>
         <div class="admin-tab" data-tab="slides" onclick="showAdminTab('slides', this)">🎓 スライド</div>
       </div>
@@ -408,6 +409,26 @@
         <div class="admin-card">
           <div class="admin-card-header">📈 カテゴリ別クイズ成績</div>
           <div class="admin-card-body" id="quizByCategory"></div>
+        </div>
+      </div>
+
+      <!-- 日記トレンドタブ -->
+      <div id="adminTabDiary" class="admin-tab-content">
+        <div class="admin-card">
+          <div class="admin-card-header">📊 日記サマリー</div>
+          <div class="admin-card-body" id="adminDiarySummary"></div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-header">📅 週間投稿数推移</div>
+          <div class="admin-card-body" id="adminDiaryWeeklyChart"></div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-header">😊 気持ちの分布</div>
+          <div class="admin-card-body" id="adminDiaryEmotionChart"></div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-header">🔍 「もっと知りたい」キーワード</div>
+          <div class="admin-card-body" id="adminDiaryKeywords"></div>
         </div>
       </div>
 

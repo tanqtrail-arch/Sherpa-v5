@@ -5622,3 +5622,140 @@ body.demo-mode #nav {
   font-size: 10px;
   color: #f59e0b;
 }
+
+/* もっと見るボタン */
+.diary-load-more-btn {
+  width: 100%;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 8px;
+}
+
+.diary-load-more-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: #fff;
+}
+
+/* 管理者日記トレンド分析 */
+.diary-trend-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.diary-trend-card {
+  background: linear-gradient(145deg, #f8fafc, #fff);
+  border-radius: 12px;
+  padding: 14px;
+  text-align: center;
+}
+
+.diary-trend-value {
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--summit);
+}
+
+.diary-trend-label {
+  font-size: 11px;
+  color: var(--rock);
+  margin-top: 4px;
+}
+
+.diary-emotion-chart {
+  display: flex;
+  justify-content: space-around;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.diary-emotion-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.diary-emotion-bar-emoji {
+  font-size: 24px;
+}
+
+.diary-emotion-bar-fill {
+  width: 24px;
+  background: linear-gradient(to top, #ec4899, #f472b6);
+  border-radius: 4px;
+  min-height: 4px;
+  transition: height 0.3s;
+}
+
+.diary-emotion-bar-count {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--summit);
+}
+
+.diary-weekly-chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 80px;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.diary-weekly-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+}
+
+.diary-weekly-bar-fill {
+  width: 20px;
+  background: linear-gradient(to top, #8b5cf6, #a78bfa);
+  border-radius: 4px 4px 0 0;
+  min-height: 4px;
+  transition: height 0.3s;
+}
+
+.diary-weekly-bar-label {
+  font-size: 9px;
+  color: var(--rock);
+}
+
+.diary-keywords-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 12px;
+}
+
+.diary-keyword-tag {
+  padding: 6px 12px;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.diary-keyword-tag.highlight {
+  background: linear-gradient(135deg, #ec4899, #f472b6);
+  color: #fff;
+}
