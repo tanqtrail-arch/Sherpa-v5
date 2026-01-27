@@ -174,6 +174,9 @@ let userSchool = JSON.parse(localStorage.getItem('sherupa_user_school')) || null
 // schoolStudents: { [schoolId]: [{ userId, userName, fullName, birthDate, grade, region, approvedAt, progress, alt, lastActive }] }
 let schoolStudents = JSON.parse(localStorage.getItem('sherupa_school_students')) || {};
 
+// 現在ログイン中のスクールID
+let currentSchoolId = localStorage.getItem('sherupa_current_school_id') || null;
+
 // ユーザーIDの生成・取得
 if (!userProfile.id) {
   userProfile.id = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
@@ -3129,12 +3132,21 @@ function switchMode(newMode) {
 
     // スポンサーモードの場合は企業選択を表示
     const sponsorSelect = document.getElementById('sponsorCompanySelect');
+    const schoolSelect = document.getElementById('schoolSelectForLogin');
+
     if (newMode === 'sponsor') {
       sponsorSelect.style.display = 'block';
+      schoolSelect.style.display = 'none';
       populateSponsorCompanyDropdown();
       document.getElementById('passwordModalDesc').textContent = '企業を選択してパスワードを入力してください';
+    } else if (newMode === 'teacher') {
+      sponsorSelect.style.display = 'none';
+      schoolSelect.style.display = 'block';
+      populateSchoolDropdown();
+      document.getElementById('passwordModalDesc').textContent = 'スクールを選択してパスワードを入力してください';
     } else {
       sponsorSelect.style.display = 'none';
+      schoolSelect.style.display = 'none';
       document.getElementById('passwordModalDesc').textContent = 'このモードに切り替えるにはパスワードが必要です';
     }
 
@@ -3177,6 +3189,39 @@ function onSponsorCompanyChange() {
     document.getElementById('passwordModalHeader').style.background = 'linear-gradient(135deg,#f59e0b,#fbbf24)';
     document.getElementById('passwordModalEmoji').textContent = '🔒';
     document.getElementById('passwordModalTitle').textContent = '🎗️ スポンサーモード';
+  }
+}
+
+// スクールドロップダウンを生成
+function populateSchoolDropdown() {
+  const dropdown = document.getElementById('schoolDropdown');
+  if (!dropdown || !schoolsData) return;
+
+  dropdown.innerHTML = '<option value="">-- スクールを選択してください --</option>';
+  schoolsData.forEach(school => {
+    const option = document.createElement('option');
+    option.value = school.id;
+    option.textContent = `${school.emoji} ${school.name}`;
+    dropdown.appendChild(option);
+  });
+}
+
+// スクール選択時の処理
+function onSchoolChange() {
+  const dropdown = document.getElementById('schoolDropdown');
+  const selectedId = dropdown.value;
+
+  if (selectedId && schoolsData) {
+    const school = schoolsData.find(s => s.id === selectedId);
+    if (school) {
+      document.getElementById('passwordModalHeader').style.background = `linear-gradient(135deg, ${school.color}, ${school.color}99)`;
+      document.getElementById('passwordModalEmoji').textContent = school.emoji;
+      document.getElementById('passwordModalTitle').textContent = school.name;
+    }
+  } else {
+    document.getElementById('passwordModalHeader').style.background = 'linear-gradient(135deg,#10b981,#34d399)';
+    document.getElementById('passwordModalEmoji').textContent = '🏫';
+    document.getElementById('passwordModalTitle').textContent = 'スクールモード';
   }
 }
 
@@ -3238,6 +3283,35 @@ async function verifyPassword() {
   if (!pendingMode || !input) {
     errorElement.textContent = 'パスワードを入力してください';
     errorElement.style.display = 'block';
+    return;
+  }
+
+  // スクールモードの場合はスクール別認証
+  if (pendingMode === 'teacher') {
+    const dropdown = document.getElementById('schoolDropdown');
+    const selectedSchoolId = dropdown?.value;
+
+    if (!selectedSchoolId) {
+      errorElement.textContent = 'スクールを選択してください';
+      errorElement.style.display = 'block';
+      return;
+    }
+
+    const school = schoolsData.find(s => s.id === selectedSchoolId);
+    if (school && input === school.password) {
+      errorElement.style.display = 'none';
+      // 選択したスクールでログイン
+      currentSchoolId = selectedSchoolId;
+      localStorage.setItem('sherupa_current_school_id', selectedSchoolId);
+      executeSwitchMode(pendingMode);
+      pendingMode = null;
+      toast(`${school.emoji} ${school.name}にログインしました`);
+    } else {
+      errorElement.textContent = 'パスワードが違います';
+      errorElement.style.display = 'block';
+      document.getElementById('passwordInput').value = '';
+      document.getElementById('passwordInput').focus();
+    }
     return;
   }
 
@@ -5190,8 +5264,17 @@ async function renderTeacherDashboard() {
     return;
   }
 
-  // クラス名を設定
-  document.getElementById('teacherClassName').textContent = teacherData.classInfo.name;
+  // 現在ログイン中のスクール名を設定
+  if (currentSchoolId && schoolsData) {
+    const school = schoolsData.find(s => s.id === currentSchoolId);
+    if (school) {
+      document.getElementById('teacherClassName').textContent = `${school.emoji} ${school.name}`;
+    } else {
+      document.getElementById('teacherClassName').textContent = '生徒管理・学習進捗';
+    }
+  } else {
+    document.getElementById('teacherClassName').textContent = '生徒管理・学習進捗';
+  }
 
   renderTeacherSummary();
   showTeacherTab(currentTeacherTab);
@@ -7318,15 +7401,23 @@ function openSchoolStatusModal() {
 function cancelSchoolApplication() {
   if (!confirm('申請をキャンセルしますか？')) return;
 
+  if (!userSchool) {
+    toast('申請情報が見つかりません');
+    closeModals();
+    return;
+  }
+
+  const schoolIdToCancel = userSchool.schoolId;
+
   // 申請リストから削除
   schoolApplications = schoolApplications.filter(
-    a => !(a.userId === userProfile.id && a.schoolId === userSchool.schoolId && a.status === 'pending')
+    a => !(a.userId === userProfile.id && a.schoolId === schoolIdToCancel && a.status === 'pending')
   );
   localStorage.setItem('sherupa_school_applications', JSON.stringify(schoolApplications));
 
   // ユーザーのスクール参加状況をクリア
   userSchool = null;
-  localStorage.removeItem('sherupa_user_school');
+  localStorage.setItem('sherupa_user_school', JSON.stringify(null));
 
   closeModals();
   renderSchoolSection();

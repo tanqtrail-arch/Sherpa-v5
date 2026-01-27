@@ -1451,6 +1451,13 @@
           <option value="">-- 企業を選択してください --</option>
         </select>
       </div>
+      <!-- スクール選択（スクールモード時のみ表示） -->
+      <div id="schoolSelectForLogin" style="display:none;margin-bottom:16px">
+        <label style="font-size:12px;font-weight:600;color:var(--rock);display:block;margin-bottom:6px">🏫 スクールを選択</label>
+        <select id="schoolDropdown" style="width:100%;padding:12px;border:2px solid #e5e7eb;border-radius:12px;font-size:14px;background:#fff;cursor:pointer" onchange="onSchoolChange()">
+          <option value="">-- スクールを選択してください --</option>
+        </select>
+      </div>
       <input type="password" id="passwordInput" placeholder="パスワード"
         style="width:100%;padding:14px;border:2px solid #e5e7eb;border-radius:12px;font-size:16px;text-align:center;box-sizing:border-box"
         onkeypress="if(event.key==='Enter')verifyPassword()">
