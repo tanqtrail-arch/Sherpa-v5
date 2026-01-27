@@ -2982,10 +2982,24 @@ function switchMode(newMode) {
     document.getElementById('passwordModalHeader').style.background =
       newMode === 'admin'
         ? 'linear-gradient(135deg,#6366f1,#8b5cf6)'
-        : 'linear-gradient(135deg,#f59e0b,#fbbf24)';
+        : newMode === 'sponsor'
+          ? 'linear-gradient(135deg,#f59e0b,#fbbf24)'
+          : 'linear-gradient(135deg,#10b981,#34d399)';
     document.getElementById('passwordInput').value = '';
     document.getElementById('passwordError').style.display = 'none';
     document.getElementById('passwordError').textContent = 'パスワードが違います';
+
+    // スポンサーモードの場合は企業選択を表示
+    const sponsorSelect = document.getElementById('sponsorCompanySelect');
+    if (newMode === 'sponsor') {
+      sponsorSelect.style.display = 'block';
+      populateSponsorCompanyDropdown();
+      document.getElementById('passwordModalDesc').textContent = '企業を選択してパスワードを入力してください';
+    } else {
+      sponsorSelect.style.display = 'none';
+      document.getElementById('passwordModalDesc').textContent = 'このモードに切り替えるにはパスワードが必要です';
+    }
+
     document.getElementById('passwordModal').classList.add('active');
     document.getElementById('passwordInput').focus();
     return;
@@ -2993,6 +3007,39 @@ function switchMode(newMode) {
 
   // パスワード不要のモードはそのまま切り替え
   executeSwitchMode(newMode);
+}
+
+// スポンサー企業ドロップダウンを生成
+function populateSponsorCompanyDropdown() {
+  const dropdown = document.getElementById('sponsorCompanyDropdown');
+  if (!dropdown || !APP.missions?.sponsorAccounts) return;
+
+  dropdown.innerHTML = '<option value="">-- 企業を選択してください --</option>';
+  APP.missions.sponsorAccounts.forEach(account => {
+    const option = document.createElement('option');
+    option.value = account.id;
+    option.textContent = `${account.logo} ${account.name}`;
+    dropdown.appendChild(option);
+  });
+}
+
+// 企業選択時の処理
+function onSponsorCompanyChange() {
+  const dropdown = document.getElementById('sponsorCompanyDropdown');
+  const selectedId = dropdown.value;
+
+  if (selectedId && APP.missions?.sponsorAccounts) {
+    const account = APP.missions.sponsorAccounts.find(a => a.id === selectedId);
+    if (account) {
+      document.getElementById('passwordModalHeader').style.background = `linear-gradient(135deg, ${account.color}, ${account.color}99)`;
+      document.getElementById('passwordModalEmoji').textContent = account.logo;
+      document.getElementById('passwordModalTitle').textContent = account.name;
+    }
+  } else {
+    document.getElementById('passwordModalHeader').style.background = 'linear-gradient(135deg,#f59e0b,#fbbf24)';
+    document.getElementById('passwordModalEmoji').textContent = '🔒';
+    document.getElementById('passwordModalTitle').textContent = '🎗️ スポンサーモード';
+  }
 }
 
 function executeSwitchMode(newMode) {
@@ -3038,6 +3085,14 @@ function executeSwitchMode(newMode) {
   toast(`${modeConfig.emoji} ${modeConfig.name}モードに切り替えました`);
 }
 
+// スポンサー企業別パスワード
+const sponsorCompanyPasswords = {
+  'sponsor_mirai_tech': 'mirai2026',
+  'sponsor_green_earth': 'green2026',
+  'sponsor_health_lab': 'health2026',
+  'sponsor_star_nav': 'star2026'
+};
+
 async function verifyPassword() {
   const input = document.getElementById('passwordInput').value;
   const errorElement = document.getElementById('passwordError');
@@ -3048,7 +3103,61 @@ async function verifyPassword() {
     return;
   }
 
-  // SherpaAuthを使用して検証
+  // スポンサーモードの場合は企業別認証
+  if (pendingMode === 'sponsor') {
+    const dropdown = document.getElementById('sponsorCompanyDropdown');
+    const selectedCompanyId = dropdown?.value;
+
+    if (!selectedCompanyId) {
+      errorElement.textContent = '企業を選択してください';
+      errorElement.style.display = 'block';
+      return;
+    }
+
+    const correctPassword = sponsorCompanyPasswords[selectedCompanyId];
+    if (input === correctPassword) {
+      errorElement.style.display = 'none';
+      // 選択した企業でログイン
+      currentSponsorId = selectedCompanyId;
+      localStorage.setItem('sherupa_current_sponsor_id', selectedCompanyId);
+      initializeSponsorAccounts();
+      if (sponsorAccounts[selectedCompanyId]) {
+        sponsorProfile = { ...sponsorAccounts[selectedCompanyId] };
+        localStorage.setItem('sherupa_sponsor_profile', JSON.stringify(sponsorProfile));
+      }
+      executeSwitchMode(pendingMode);
+      pendingMode = null;
+      const account = APP.missions?.sponsorAccounts?.find(a => a.id === selectedCompanyId);
+      if (account) {
+        toast(`${account.logo} ${account.name}にログインしました`);
+      }
+    } else {
+      errorElement.textContent = 'パスワードが違います';
+      errorElement.style.display = 'block';
+      document.getElementById('passwordInput').value = '';
+      document.getElementById('passwordInput').focus();
+    }
+    return;
+  }
+
+  // スポンサー企業切り替えの場合
+  if (pendingMode === 'sponsor_switch' && pendingSponsorSwitch) {
+    const correctPassword = sponsorCompanyPasswords[pendingSponsorSwitch];
+    if (input === correctPassword) {
+      errorElement.style.display = 'none';
+      switchToSponsorAccount(pendingSponsorSwitch);
+      pendingMode = null;
+      pendingSponsorSwitch = null;
+    } else {
+      errorElement.textContent = 'パスワードが違います';
+      errorElement.style.display = 'block';
+      document.getElementById('passwordInput').value = '';
+      document.getElementById('passwordInput').focus();
+    }
+    return;
+  }
+
+  // その他のモード（teacher, admin）はSherpaAuthを使用
   if (window.SherpaAuth) {
     const result = await SherpaAuth.verifyPassword(pendingMode, input);
 
@@ -3089,6 +3198,7 @@ async function verifyPassword() {
 
 function cancelPassword() {
   pendingMode = null;
+  pendingSponsorSwitch = null;
   document.getElementById('passwordModal').classList.remove('active');
 }
 
@@ -5367,8 +5477,39 @@ function openSponsorSelectModal() {
   document.getElementById('sponsorSelectModal').classList.add('active');
 }
 
-// スポンサーアカウントを選択
+// スポンサーアカウントを選択（パスワード認証が必要）
 function selectSponsorAccount(sponsorId) {
+  // 同じ企業なら何もしない
+  if (sponsorId === currentSponsorId) {
+    closeModals();
+    return;
+  }
+
+  // パスワード入力モーダルを表示
+  closeModals();
+  const account = APP.missions?.sponsorAccounts?.find(a => a.id === sponsorId);
+  if (!account) return;
+
+  pendingSponsorSwitch = sponsorId;
+  document.getElementById('passwordModalHeader').style.background = `linear-gradient(135deg, ${account.color}, ${account.color}99)`;
+  document.getElementById('passwordModalEmoji').textContent = account.logo;
+  document.getElementById('passwordModalTitle').textContent = account.name;
+  document.getElementById('passwordModalDesc').textContent = 'パスワードを入力してください';
+  document.getElementById('sponsorCompanySelect').style.display = 'none';
+  document.getElementById('passwordInput').value = '';
+  document.getElementById('passwordError').style.display = 'none';
+  document.getElementById('passwordModal').classList.add('active');
+  document.getElementById('passwordInput').focus();
+
+  // 一時的にpendingModeを設定してスポンサー切り替え用のフラグとする
+  pendingMode = 'sponsor_switch';
+}
+
+// 企業切り替え用の変数
+let pendingSponsorSwitch = null;
+
+// 直接企業を切り替え（パスワード認証後に呼び出される内部関数）
+function switchToSponsorAccount(sponsorId) {
   currentSponsorId = sponsorId;
   localStorage.setItem('sherupa_current_sponsor_id', sponsorId);
 
@@ -5381,7 +5522,10 @@ function selectSponsorAccount(sponsorId) {
 
   closeModals();
   renderSponsorDashboard();
-  toast(`${account.logo} ${account.name}にログインしました`);
+  const accountDef = APP.missions?.sponsorAccounts?.find(a => a.id === sponsorId);
+  if (accountDef) {
+    toast(`${accountDef.logo} ${accountDef.name}に切り替えました`);
+  }
 }
 
 // 現在のスポンサープロフィールを保存
