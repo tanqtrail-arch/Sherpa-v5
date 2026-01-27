@@ -196,6 +196,9 @@
       <!-- スポンサースライド -->
       <div id="sponsorSlidesSection" style="margin-top:12px"></div>
 
+      <!-- 学習スライド（管理者登録） -->
+      <div id="adminSlidesSection"></div>
+
       <!-- 学びの本棚 -->
       <div class="section-title">📚 学びの本棚<span class="free-tag">タップしてカリキュラムへ</span></div>
       <div id="homeBookshelf" class="bookshelf-container"></div>
@@ -325,6 +328,7 @@
         <div class="admin-tab" data-tab="content" onclick="showAdminTab('content', this)">📚 コンテンツ</div>
         <div class="admin-tab" data-tab="quiz" onclick="showAdminTab('quiz', this)">📝 クイズ</div>
         <div class="admin-tab" data-tab="engagement" onclick="showAdminTab('engagement', this)">💡 エンゲージ</div>
+        <div class="admin-tab" data-tab="slides" onclick="showAdminTab('slides', this)">🎓 スライド</div>
       </div>
 
       <!-- 概要タブ -->
@@ -424,6 +428,17 @@
         <div class="admin-card">
           <div class="admin-card-header">🔥 ログイン連続日数分布</div>
           <div class="admin-card-body" id="streakDistribution"></div>
+        </div>
+      </div>
+
+      <!-- スライド管理タブ -->
+      <div id="adminTabSlides" class="admin-tab-content">
+        <div class="admin-card">
+          <div class="admin-card-header" style="display:flex;align-items:center;justify-content:space-between">
+            <span>🎓 登録スライド一覧</span>
+            <button class="btn" style="font-size:11px;padding:6px 12px;background:var(--admin);color:#fff" onclick="openAdminSlideEditor()">➕ 新規作成</button>
+          </div>
+          <div class="admin-card-body" id="adminSlidesList"></div>
         </div>
       </div>
 
@@ -846,6 +861,14 @@
         <div class="card-body">
           <div id="completedSlideList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px"></div>
           <div id="noCompletedSlide" style="text-align:center;color:var(--rock);font-size:12px;padding:20px">まだ完了したスライドがありません<br>スライドを学んで作品を作ろう！</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:12px">
+        <div class="card-header">🎓 学習スライド <span id="adminSlideCompletionCount" style="font-size:11px;color:var(--rock);font-weight:400">0件</span></div>
+        <div class="card-body">
+          <div id="adminSlideCompletionList" style="display:flex;flex-direction:column;gap:8px"></div>
+          <div id="noAdminSlideCompletion" style="text-align:center;color:var(--rock);font-size:12px;padding:20px">まだ学習スライドを完了していません<br>スライドを見てクイズに挑戦しよう！</div>
         </div>
       </div>
 
@@ -1512,6 +1535,89 @@
         <button type="button" id="childDeleteBtn" class="btn" style="width:100%;margin-top:8px;background:#ef4444;color:#fff;display:none" onclick="deleteChild()">🗑️ 削除</button>
         <button type="button" class="btn btn-secondary" style="width:100%;margin-top:8px" onclick="closeModals()">キャンセル</button>
       </form>
+    </div>
+  </div>
+</div>
+
+<!-- 管理者スライド編集モーダル -->
+<div class="modal-overlay" id="adminSlideEditorModal" onclick="if(event.target===this)closeModals()">
+  <div class="modal-box" style="max-width:500px;max-height:85vh;overflow-y:auto">
+    <div class="modal-header" style="background:linear-gradient(135deg,var(--admin),#64748b)">
+      <div style="font-size:32px">🎓</div>
+      <div style="font-weight:700;margin-top:4px" id="adminSlideEditorTitle">新規スライド登録</div>
+    </div>
+    <div class="modal-body">
+      <form id="adminSlideForm" onsubmit="event.preventDefault();saveAdminSlide()">
+        <input type="hidden" id="editAdminSlideId">
+
+        <div class="form-group">
+          <label class="form-label">📛 スライドタイトル</label>
+          <input type="text" class="form-input" id="adminSlideTitle" placeholder="例: 環境問題を学ぼう" required>
+        </div>
+
+        <div style="display:flex;gap:8px">
+          <div class="form-group" style="flex:1">
+            <label class="form-label">😊 絵文字</label>
+            <input type="text" class="form-input" id="adminSlideEmoji" placeholder="📚" maxlength="2" style="text-align:center;font-size:20px">
+          </div>
+          <div class="form-group" style="flex:1">
+            <label class="form-label">🏷️ カテゴリ</label>
+            <select class="form-select" id="adminSlideCategory">
+              <option value="science">🔬 理科</option>
+              <option value="social">🌍 社会</option>
+              <option value="math">📐 算数</option>
+              <option value="language">📖 国語</option>
+              <option value="art">🎨 美術</option>
+              <option value="other">📦 その他</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">📝 説明</label>
+          <textarea class="form-input" id="adminSlideDescription" rows="2" placeholder="このスライドの概要" style="resize:none"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">🔗 Google スライドURL</label>
+          <input type="text" class="form-input" id="adminSlideGoogleUrl" placeholder="https://docs.google.com/presentation/d/..." required>
+          <div style="font-size:10px;color:var(--rock);margin-top:4px">※ Google スライドの「ウェブに公開」から埋め込みURLを取得してください</div>
+        </div>
+
+        <!-- クイズ編集エリア -->
+        <div class="form-group">
+          <label class="form-label">📝 4択クイズ（5問）</label>
+          <div id="adminSlideQuizzes" style="display:flex;flex-direction:column;gap:12px">
+            <!-- 5問のクイズをJSで生成 -->
+          </div>
+        </div>
+
+        <div style="background:rgba(71,85,105,.1);border-radius:8px;padding:12px;margin-bottom:12px">
+          <div style="font-size:11px;color:var(--admin);font-weight:700">💡 報酬について</div>
+          <div style="font-size:11px;color:var(--rock);margin-top:4px">
+            クイズ完了で <strong>15 ALT</strong>（初回のみ）<br>
+            全問正解で追加 <strong>25 ALT</strong> ボーナス！
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width:100%">💾 保存</button>
+        <button type="button" id="adminSlideDeleteBtn" class="btn" style="width:100%;margin-top:8px;background:#ef4444;color:#fff;display:none" onclick="deleteAdminSlide()">🗑️ 削除</button>
+        <button type="button" class="btn btn-secondary" style="width:100%;margin-top:8px" onclick="closeModals()">キャンセル</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- スライドビューモーダル（Google Slides埋め込み） -->
+<div class="modal-overlay" id="adminSlideViewModal" onclick="if(event.target===this)quitAdminSlideView()">
+  <div class="modal-box" style="max-width:600px;max-height:90vh;overflow:hidden">
+    <div class="modal-header" id="adminSlideViewHeader" style="background:linear-gradient(135deg,var(--meadow),#6ee7b7)">
+      <div style="font-size:32px" id="adminSlideViewEmoji">📚</div>
+      <div style="font-weight:700;margin-top:4px" id="adminSlideViewTitle">スライド</div>
+      <div style="font-size:11px;opacity:.9;margin-top:4px" id="adminSlideViewStats">👥 0人挑戦 ・ 正答率 --%</div>
+    </div>
+    <div class="modal-body" id="adminSlideViewContent" style="padding:0;overflow-y:auto;max-height:calc(90vh - 200px)">
+      <!-- Google Slides埋め込みまたはクイズ -->
     </div>
   </div>
 </div>
