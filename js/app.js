@@ -5850,12 +5850,6 @@ function renderSponsorAnalytics() {
   container.innerHTML = html;
 }
 
-// スライド一覧を表示
-  renderSponsorSlidesList();
-  renderSponsorChildrenList();
-  renderSponsorHistoryList();
-}
-
 // スポンサータブ切り替え
 function showSponsorTab(tabName, element) {
   document.querySelectorAll('#sponsorTabs .admin-tab').forEach(t => {
