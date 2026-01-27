@@ -133,6 +133,20 @@ let sponsorSlideCompletions = JSON.parse(localStorage.getItem('sherupa_sponsor_s
 // sponsorMissionCompletions: [{ missionId, sponsorId, childId, childName, timestamp, reward, score }]
 let sponsorMissionCompletions = JSON.parse(localStorage.getItem('sherupa_sponsor_mission_completions')) || [];
 
+// ========================================
+// 管理者スライドシステム
+// ========================================
+// adminSlides: [{ id, title, emoji, category, description, googleUrl, quizzes: [{question, options[], answer}], createdAt }]
+let adminSlides = JSON.parse(localStorage.getItem('sherupa_admin_slides')) || [];
+
+// adminSlideCompletions: [{ slideId, childId, childName, score, correctCount, timestamp, rewarded }]
+let adminSlideCompletions = JSON.parse(localStorage.getItem('sherupa_admin_slide_completions')) || [];
+
+// 現在挑戦中の管理者スライド
+let currentAdminSlide = null;
+let currentAdminSlideQuiz = { answers: [], currentQ: 0 };
+let adminSlideViewState = 'slide'; // 'slide' | 'quiz' | 'result'
+
 // 現在編集中のスポンサースライド
 let currentSponsorSlidePages = [];
 let currentSponsorSlideQuizzes = [];
@@ -393,8 +407,55 @@ function renderHome() {
   renderDailyMission();
   renderFamilyMissions();
   renderSponsorMissions();
+  renderAdminSlidesSection();
   renderHomeBookshelf();
   renderNewSlides();
+}
+
+// ホーム画面に管理者スライドセクションを表示
+function renderAdminSlidesSection() {
+  const container = document.getElementById('adminSlidesSection');
+  if (!container) return;
+
+  // 管理者スライドがない場合は非表示
+  if (adminSlides.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+
+  // 各スライドの統計情報を計算
+  const slidesWithStats = adminSlides.map(slide => {
+    const completions = adminSlideCompletions.filter(c => c.slideId === slide.id);
+    const challengeCount = completions.length;
+    const avgScore = challengeCount > 0
+      ? Math.round(completions.reduce((sum, c) => sum + c.score, 0) / challengeCount)
+      : 0;
+
+    // 現在のユーザーが完了したかどうか
+    const userCompletion = completions.find(c => c.childId === userProfile.id);
+    const isCompleted = !!userCompletion;
+    const userScore = userCompletion ? userCompletion.score : null;
+
+    return { ...slide, challengeCount, avgScore, isCompleted, userScore };
+  });
+
+  container.innerHTML = `
+    <div class="section-title">🎓 学習スライド<span style="background:linear-gradient(135deg,var(--admin),#64748b);color:#fff;font-size:9px;padding:2px 8px;border-radius:10px;margin-left:6px">クイズ付き</span></div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
+      ${slidesWithStats.map(slide => `
+        <div style="background:linear-gradient(145deg,#fff,#f9fafb);border-radius:12px;padding:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);cursor:pointer;position:relative" onclick="openAdminSlideView('${slide.id}')">
+          ${slide.isCompleted ? `<div style="position:absolute;top:8px;right:8px;background:${slide.userScore === 100 ? '#22c55e' : '#8b5cf6'};color:#fff;font-size:9px;padding:2px 6px;border-radius:8px">${slide.userScore === 100 ? '🎉 完了' : '✓ 完了'}</div>` : ''}
+          <div style="font-size:32px;margin-bottom:8px">${slide.emoji || '📚'}</div>
+          <div style="font-size:12px;font-weight:700;color:var(--summit);margin-bottom:4px;line-height:1.3">${slide.title}</div>
+          <div style="font-size:10px;color:var(--rock);margin-bottom:8px">👥 ${slide.challengeCount}人挑戦 ・ 正答率 ${slide.avgScore}%</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:10px;background:linear-gradient(135deg,#fef3c7,#fde68a);color:#92400e;padding:2px 8px;border-radius:8px">⛰️ ${slide.isCompleted ? '再挑戦可' : '15 ALT'}</span>
+            ${!slide.isCompleted ? '<span style="font-size:9px;color:var(--rock)">+パーフェクト25ALT</span>' : ''}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
 }
 
 function renderDailyMission() {
@@ -2008,6 +2069,60 @@ function renderProfile() {
 
   // スポンサーからの応援履歴を表示
   renderSponsorLikesReceived();
+
+  // 管理者スライドの完了情報を表示
+  renderAdminSlideCompletions();
+}
+
+// 管理者スライドの完了情報を表示
+function renderAdminSlideCompletions() {
+  const container = document.getElementById('adminSlideCompletionList');
+  const noCompletion = document.getElementById('noAdminSlideCompletion');
+  const countEl = document.getElementById('adminSlideCompletionCount');
+
+  if (!container) return;
+
+  // ユーザーの完了記録をスライドごとにまとめる（最新のスコアを表示）
+  const userCompletions = adminSlideCompletions.filter(c => c.childId === userProfile.id);
+  const slideScores = {};
+  userCompletions.forEach(c => {
+    if (!slideScores[c.slideId] || new Date(c.timestamp) > new Date(slideScores[c.slideId].timestamp)) {
+      slideScores[c.slideId] = c;
+    }
+  });
+
+  const completedSlideIds = Object.keys(slideScores);
+  countEl.textContent = `${completedSlideIds.length}件`;
+
+  if (completedSlideIds.length === 0) {
+    noCompletion.style.display = 'block';
+    container.innerHTML = '';
+    return;
+  }
+
+  noCompletion.style.display = 'none';
+  container.innerHTML = completedSlideIds.map(slideId => {
+    const slide = adminSlides.find(s => s.id === slideId);
+    if (!slide) return '';
+
+    const completion = slideScores[slideId];
+    const scoreColor = completion.score === 100 ? '#22c55e' : completion.score >= 60 ? '#8b5cf6' : '#f59e0b';
+    const scoreLabel = completion.score === 100 ? '🎉 パーフェクト' : `${completion.score}%`;
+
+    return `
+      <div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--cloud);border-radius:10px;cursor:pointer" onclick="openAdminSlideView('${slideId}')">
+        <div style="font-size:24px;width:44px;height:44px;background:linear-gradient(135deg,var(--admin),#64748b);border-radius:8px;display:flex;align-items:center;justify-content:center">${slide.emoji || '📚'}</div>
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:700;color:var(--summit)">${slide.title}</div>
+          <div style="font-size:11px;color:var(--rock);margin-top:2px">${completion.correctCount}/${slide.quizzes?.length || 5}問正解</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:14px;font-weight:700;color:${scoreColor}">${scoreLabel}</div>
+          <div style="font-size:10px;color:var(--rock)">クリック: 再挑戦</div>
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
 // スポンサーからの応援履歴を表示
@@ -3572,6 +3687,9 @@ function showAdminTab(tabId, element) {
       break;
     case 'engagement':
       renderEngagementTab();
+      break;
+    case 'slides':
+      renderAdminSlidesTab();
       break;
   }
 }
@@ -6486,6 +6604,506 @@ function completeSponsorSlide(slide, correctCount) {
   }
 
   return 0;
+}
+
+// ========================================
+// 管理者スライドシステム
+// ========================================
+
+// スライド管理タブをレンダリング
+function renderAdminSlidesTab() {
+  const container = document.getElementById('adminSlidesList');
+  if (!container) return;
+
+  if (adminSlides.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center;color:var(--rock);padding:30px">
+        <div style="font-size:48px;margin-bottom:12px">📚</div>
+        <div style="font-size:14px;margin-bottom:8px">まだスライドが登録されていません</div>
+        <div style="font-size:12px">「新規作成」ボタンからスライドを登録してください</div>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = adminSlides.map(slide => {
+    const completions = adminSlideCompletions.filter(c => c.slideId === slide.id);
+    const challengeCount = completions.length;
+    const avgScore = challengeCount > 0
+      ? Math.round(completions.reduce((sum, c) => sum + c.score, 0) / challengeCount)
+      : 0;
+    const categoryLabels = {
+      science: '🔬 理科',
+      social: '🌍 社会',
+      math: '📐 算数',
+      language: '📖 国語',
+      art: '🎨 美術',
+      other: '📦 その他'
+    };
+
+    return `
+      <div style="display:flex;align-items:center;gap:12px;padding:12px;background:#f9fafb;border-radius:10px;margin-bottom:10px">
+        <div style="font-size:32px;width:50px;height:50px;background:linear-gradient(135deg,var(--admin),#64748b);border-radius:10px;display:flex;align-items:center;justify-content:center">${slide.emoji || '📚'}</div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:700;color:var(--summit)">${slide.title}</div>
+          <div style="font-size:11px;color:var(--rock);margin-top:2px">${categoryLabels[slide.category] || '📦 その他'}</div>
+          <div style="font-size:10px;color:var(--rock);margin-top:4px">👥 ${challengeCount}人挑戦 ・ 正答率 ${avgScore}%</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn" style="font-size:10px;padding:6px 10px;background:var(--meadow);color:#fff" onclick="previewAdminSlide('${slide.id}')">👁️</button>
+          <button class="btn" style="font-size:10px;padding:6px 10px;background:var(--admin);color:#fff" onclick="editAdminSlide('${slide.id}')">✏️</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// スライド編集モーダルを開く（新規作成）
+function openAdminSlideEditor() {
+  document.getElementById('adminSlideEditorTitle').textContent = '新規スライド登録';
+  document.getElementById('editAdminSlideId').value = '';
+  document.getElementById('adminSlideTitle').value = '';
+  document.getElementById('adminSlideEmoji').value = '📚';
+  document.getElementById('adminSlideCategory').value = 'other';
+  document.getElementById('adminSlideDescription').value = '';
+  document.getElementById('adminSlideGoogleUrl').value = '';
+  document.getElementById('adminSlideDeleteBtn').style.display = 'none';
+
+  // 5問のクイズフォームを生成
+  renderAdminSlideQuizForms([]);
+
+  document.getElementById('adminSlideEditorModal').classList.add('active');
+}
+
+// 既存スライドを編集
+function editAdminSlide(slideId) {
+  const slide = adminSlides.find(s => s.id === slideId);
+  if (!slide) return;
+
+  document.getElementById('adminSlideEditorTitle').textContent = 'スライド編集';
+  document.getElementById('editAdminSlideId').value = slide.id;
+  document.getElementById('adminSlideTitle').value = slide.title;
+  document.getElementById('adminSlideEmoji').value = slide.emoji || '📚';
+  document.getElementById('adminSlideCategory').value = slide.category || 'other';
+  document.getElementById('adminSlideDescription').value = slide.description || '';
+  document.getElementById('adminSlideGoogleUrl').value = slide.googleUrl || '';
+  document.getElementById('adminSlideDeleteBtn').style.display = 'block';
+
+  // 既存クイズを表示
+  renderAdminSlideQuizForms(slide.quizzes || []);
+
+  document.getElementById('adminSlideEditorModal').classList.add('active');
+}
+
+// クイズフォームを生成（5問固定）
+function renderAdminSlideQuizForms(existingQuizzes = []) {
+  const container = document.getElementById('adminSlideQuizzes');
+  let html = '';
+
+  for (let i = 0; i < 5; i++) {
+    const quiz = existingQuizzes[i] || { question: '', options: ['', '', '', ''], answer: 0 };
+    html += `
+      <div style="background:#f3f4f6;border-radius:8px;padding:12px;border:1px solid #e5e7eb">
+        <div style="font-size:11px;font-weight:700;color:var(--admin);margin-bottom:8px">問題 ${i + 1}</div>
+        <input type="text" class="form-input" placeholder="問題文を入力" style="margin-bottom:8px;font-size:12px"
+          id="adminQuizQ${i}" value="${escapeHtml(quiz.question)}">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          ${[0, 1, 2, 3].map(j => `
+            <div style="display:flex;align-items:center;gap:4px">
+              <input type="radio" name="adminQuizAnswer${i}" value="${j}" ${quiz.answer === j ? 'checked' : ''}>
+              <input type="text" class="form-input" placeholder="選択肢${j + 1}" style="flex:1;font-size:11px;padding:6px"
+                id="adminQuizO${i}_${j}" value="${escapeHtml(quiz.options[j] || '')}">
+            </div>
+          `).join('')}
+        </div>
+        <div style="font-size:9px;color:var(--rock);margin-top:4px">※ラジオボタンで正解を選択</div>
+      </div>
+    `;
+  }
+
+  container.innerHTML = html;
+}
+
+// スライドを保存
+function saveAdminSlide() {
+  const slideId = document.getElementById('editAdminSlideId').value;
+  const title = document.getElementById('adminSlideTitle').value.trim();
+  const emoji = document.getElementById('adminSlideEmoji').value || '📚';
+  const category = document.getElementById('adminSlideCategory').value;
+  const description = document.getElementById('adminSlideDescription').value.trim();
+  const googleUrl = document.getElementById('adminSlideGoogleUrl').value.trim();
+
+  if (!title || !googleUrl) {
+    toast('❌ タイトルとGoogle スライドURLは必須です');
+    return;
+  }
+
+  // クイズデータを収集
+  const quizzes = [];
+  for (let i = 0; i < 5; i++) {
+    const question = document.getElementById(`adminQuizQ${i}`).value.trim();
+    const options = [
+      document.getElementById(`adminQuizO${i}_0`).value.trim(),
+      document.getElementById(`adminQuizO${i}_1`).value.trim(),
+      document.getElementById(`adminQuizO${i}_2`).value.trim(),
+      document.getElementById(`adminQuizO${i}_3`).value.trim()
+    ];
+    const answerRadio = document.querySelector(`input[name="adminQuizAnswer${i}"]:checked`);
+    const answer = answerRadio ? parseInt(answerRadio.value) : 0;
+
+    if (question && options.every(o => o)) {
+      quizzes.push({ question, options, answer });
+    }
+  }
+
+  if (quizzes.length < 5) {
+    toast('❌ 5問すべてのクイズを入力してください');
+    return;
+  }
+
+  if (slideId) {
+    // 既存スライドを更新
+    const index = adminSlides.findIndex(s => s.id === slideId);
+    if (index !== -1) {
+      adminSlides[index] = {
+        ...adminSlides[index],
+        title, emoji, category, description, googleUrl, quizzes,
+        updatedAt: new Date().toISOString()
+      };
+    }
+  } else {
+    // 新規スライド作成
+    adminSlides.push({
+      id: 'admin_slide_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+      title, emoji, category, description, googleUrl, quizzes,
+      createdAt: new Date().toISOString()
+    });
+  }
+
+  localStorage.setItem('sherupa_admin_slides', JSON.stringify(adminSlides));
+  closeModals();
+  renderAdminSlidesTab();
+  toast('💾 スライドを保存しました');
+}
+
+// スライドを削除
+function deleteAdminSlide() {
+  const slideId = document.getElementById('editAdminSlideId').value;
+  if (!slideId) return;
+
+  if (!confirm('このスライドを削除しますか？')) return;
+
+  adminSlides = adminSlides.filter(s => s.id !== slideId);
+  localStorage.setItem('sherupa_admin_slides', JSON.stringify(adminSlides));
+  closeModals();
+  renderAdminSlidesTab();
+  toast('🗑️ スライドを削除しました');
+}
+
+// スライドをプレビュー（管理者用）
+function previewAdminSlide(slideId) {
+  openAdminSlideView(slideId);
+}
+
+// ========================================
+// 子ども向けスライドビュー
+// ========================================
+
+// スライドビューを開く
+function openAdminSlideView(slideId) {
+  const slide = adminSlides.find(s => s.id === slideId);
+  if (!slide) {
+    toast('スライドが見つかりません');
+    return;
+  }
+
+  currentAdminSlide = slide;
+  currentAdminSlideQuiz = { answers: [], currentQ: 0 };
+  adminSlideViewState = 'slide';
+
+  // 統計情報を計算
+  const completions = adminSlideCompletions.filter(c => c.slideId === slideId);
+  const challengeCount = completions.length;
+  const avgScore = challengeCount > 0
+    ? Math.round(completions.reduce((sum, c) => sum + c.score, 0) / challengeCount)
+    : 0;
+
+  // ヘッダーを設定
+  document.getElementById('adminSlideViewEmoji').textContent = slide.emoji || '📚';
+  document.getElementById('adminSlideViewTitle').textContent = slide.title;
+  document.getElementById('adminSlideViewStats').textContent = `👥 ${challengeCount}人挑戦 ・ 正答率 ${avgScore}%`;
+
+  // Google Slides埋め込みを表示
+  showAdminSlideEmbed();
+
+  document.getElementById('adminSlideViewModal').classList.add('active');
+}
+
+// Google Slides埋め込みを表示
+function showAdminSlideEmbed() {
+  const slide = currentAdminSlide;
+  if (!slide) return;
+
+  // Google Slides URLを埋め込み用に変換
+  let embedUrl = slide.googleUrl;
+  if (embedUrl.includes('/pub')) {
+    // すでに公開URLの場合
+    embedUrl = embedUrl.replace('/pub', '/embed');
+  } else if (embedUrl.includes('/edit')) {
+    // 編集URLの場合
+    embedUrl = embedUrl.replace('/edit', '/embed');
+  } else if (!embedUrl.includes('/embed')) {
+    // その他の場合
+    embedUrl = embedUrl.replace(/\/d\/([^/]+).*/, '/d/$1/embed');
+  }
+
+  const content = `
+    <div style="padding:16px">
+      <div style="margin-bottom:12px;font-size:13px;color:var(--rock)">${slide.description || ''}</div>
+      <div style="position:relative;padding-bottom:60%;height:0;overflow:hidden;border-radius:8px;background:#000">
+        <iframe src="${embedUrl}?start=false&loop=false&delayms=3000"
+          frameborder="0" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"
+          style="position:absolute;top:0;left:0;width:100%;height:100%"></iframe>
+      </div>
+      <div style="margin-top:16px;text-align:center">
+        <button class="btn btn-primary" style="width:100%;padding:14px;font-size:15px;background:linear-gradient(135deg,#8b5cf6,#a78bfa)" onclick="startAdminSlideQuiz()">
+          📝 テストを始める
+        </button>
+        <button class="btn btn-secondary" style="width:100%;margin-top:8px" onclick="quitAdminSlideView()">
+          ✖️ やめる
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('adminSlideViewContent').innerHTML = content;
+}
+
+// クイズを開始
+function startAdminSlideQuiz() {
+  if (!currentAdminSlide) return;
+
+  adminSlideViewState = 'quiz';
+  currentAdminSlideQuiz = { answers: [], currentQ: 0 };
+  showAdminSlideQuizQuestion();
+}
+
+// クイズ問題を表示
+function showAdminSlideQuizQuestion() {
+  const slide = currentAdminSlide;
+  if (!slide) return;
+
+  const quizzes = slide.quizzes || [];
+  const q = quizzes[currentAdminSlideQuiz.currentQ];
+
+  if (!q) {
+    finishAdminSlideQuiz();
+    return;
+  }
+
+  const total = quizzes.length;
+  const current = currentAdminSlideQuiz.currentQ + 1;
+
+  const content = `
+    <div style="padding:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <span style="font-size:12px;background:linear-gradient(135deg,#8b5cf6,#a78bfa);color:#fff;padding:6px 12px;border-radius:12px">
+          問題 ${current} / ${total}
+        </span>
+        <button class="btn btn-secondary" style="font-size:11px;padding:6px 12px" onclick="quitAdminSlideQuiz()">
+          やめる
+        </button>
+      </div>
+      <div style="height:4px;background:#e5e7eb;border-radius:2px;overflow:hidden;margin-bottom:20px">
+        <div style="height:100%;width:${(current / total) * 100}%;background:linear-gradient(135deg,#8b5cf6,#a78bfa);transition:width .3s"></div>
+      </div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:20px;line-height:1.5">${q.question}</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        ${q.options.map((opt, i) => `
+          <button class="admin-quiz-option" style="
+            padding:14px;background:#f9fafb;border:2px solid #e5e7eb;border-radius:10px;
+            font-size:14px;text-align:left;cursor:pointer;transition:all .2s
+          " onclick="answerAdminSlideQuiz(${i})">${opt}</button>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('adminSlideViewContent').innerHTML = content;
+}
+
+// クイズに回答
+function answerAdminSlideQuiz(answerIndex) {
+  const slide = currentAdminSlide;
+  if (!slide) return;
+
+  const quizzes = slide.quizzes || [];
+  const q = quizzes[currentAdminSlideQuiz.currentQ];
+  if (!q) return;
+
+  const isCorrect = answerIndex === q.answer;
+  currentAdminSlideQuiz.answers.push({
+    questionIndex: currentAdminSlideQuiz.currentQ,
+    answer: answerIndex,
+    correct: isCorrect
+  });
+
+  // フィードバック表示
+  const options = document.querySelectorAll('.admin-quiz-option');
+  options.forEach((btn, i) => {
+    btn.disabled = true;
+    btn.style.cursor = 'default';
+    if (i === q.answer) {
+      btn.style.background = '#dcfce7';
+      btn.style.borderColor = '#22c55e';
+    } else if (i === answerIndex && !isCorrect) {
+      btn.style.background = '#fee2e2';
+      btn.style.borderColor = '#ef4444';
+    }
+  });
+
+  // 次の問題へ
+  setTimeout(() => {
+    currentAdminSlideQuiz.currentQ++;
+    if (currentAdminSlideQuiz.currentQ < quizzes.length) {
+      showAdminSlideQuizQuestion();
+    } else {
+      finishAdminSlideQuiz();
+    }
+  }, 1000);
+}
+
+// クイズ終了
+function finishAdminSlideQuiz() {
+  adminSlideViewState = 'result';
+
+  const slide = currentAdminSlide;
+  if (!slide) return;
+
+  const correctCount = currentAdminSlideQuiz.answers.filter(a => a.correct).length;
+  const totalQuestions = slide.quizzes?.length || 5;
+  const score = Math.round((correctCount / totalQuestions) * 100);
+  const isPerfect = correctCount === totalQuestions;
+
+  // 初回かどうかを確認
+  const existingCompletion = adminSlideCompletions.find(
+    c => c.slideId === slide.id && c.childId === userProfile.id
+  );
+  const isFirstTime = !existingCompletion;
+
+  // 報酬計算
+  let reward = 0;
+  if (isFirstTime) {
+    reward = 15; // 初回報酬
+    if (isPerfect) {
+      reward += 25; // パーフェクトボーナス
+    }
+  }
+
+  // 完了記録を保存
+  adminSlideCompletions.push({
+    slideId: slide.id,
+    childId: userProfile.id,
+    childName: userProfile.name,
+    score: score,
+    correctCount: correctCount,
+    timestamp: new Date().toISOString(),
+    rewarded: reward
+  });
+  localStorage.setItem('sherupa_admin_slide_completions', JSON.stringify(adminSlideCompletions));
+
+  // ALT付与
+  if (reward > 0) {
+    userProfile.alt += reward;
+    userProfile.weeklyAlt = (userProfile.weeklyAlt || 0) + reward;
+    localStorage.setItem('sherupa_profile', JSON.stringify(userProfile));
+    syncCurrentUserToRanking();
+    updateHeader();
+  }
+
+  // 結果画面を表示
+  showAdminSlideResult(correctCount, totalQuestions, score, reward, isPerfect, isFirstTime);
+}
+
+// 結果画面を表示
+function showAdminSlideResult(correctCount, totalQuestions, score, reward, isPerfect, isFirstTime) {
+  const resultEmoji = isPerfect ? '🎉' : score >= 60 ? '👏' : '📚';
+  const resultTitle = isPerfect ? 'パーフェクト！' : score >= 60 ? 'よくできました！' : 'もう一度挑戦しよう';
+  const headerColor = isPerfect ? '#22c55e,#4ade80' : score >= 60 ? '#8b5cf6,#a78bfa' : '#f59e0b,#fbbf24';
+
+  document.getElementById('adminSlideViewHeader').style.background = `linear-gradient(135deg,${headerColor})`;
+
+  const content = `
+    <div style="padding:20px;text-align:center">
+      <div style="font-size:64px;margin-bottom:16px">${resultEmoji}</div>
+      <div style="font-size:20px;font-weight:700;margin-bottom:8px">${resultTitle}</div>
+      <div style="font-size:48px;font-weight:900;color:${isPerfect ? '#22c55e' : '#8b5cf6'};margin-bottom:8px">
+        ${correctCount}<span style="font-size:20px;color:var(--rock)"> / ${totalQuestions}問正解</span>
+      </div>
+      <div style="font-size:14px;color:var(--rock);margin-bottom:20px">正答率: ${score}%</div>
+
+      ${reward > 0 ? `
+        <div style="background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:12px;padding:16px;margin-bottom:16px">
+          <div style="font-size:12px;color:#92400e;margin-bottom:4px">${isFirstTime ? '🎁 初回クリア報酬' : '報酬'}</div>
+          <div style="font-size:28px;font-weight:900;color:#d97706">+${reward} ALT</div>
+          ${isPerfect && isFirstTime ? '<div style="font-size:11px;color:#92400e;margin-top:4px">🌟 パーフェクトボーナス +25 ALT 含む</div>' : ''}
+        </div>
+      ` : `
+        <div style="background:#f3f4f6;border-radius:12px;padding:16px;margin-bottom:16px">
+          <div style="font-size:12px;color:var(--rock)">ALT報酬は初回のみです</div>
+          <div style="font-size:11px;color:var(--rock);margin-top:4px">何度でも挑戦して正答率を上げよう！</div>
+        </div>
+      `}
+
+      <button class="btn btn-primary" style="width:100%;padding:14px" onclick="closeModals()">
+        完了
+      </button>
+      <button class="btn btn-secondary" style="width:100%;margin-top:8px" onclick="retryAdminSlideQuiz()">
+        もう一度挑戦する
+      </button>
+    </div>
+  `;
+
+  document.getElementById('adminSlideViewContent').innerHTML = content;
+}
+
+// クイズをやり直す
+function retryAdminSlideQuiz() {
+  currentAdminSlideQuiz = { answers: [], currentQ: 0 };
+  adminSlideViewState = 'quiz';
+  showAdminSlideQuizQuestion();
+}
+
+// クイズを途中でやめる
+function quitAdminSlideQuiz() {
+  if (confirm('テストを中断しますか？')) {
+    adminSlideViewState = 'slide';
+    showAdminSlideEmbed();
+  }
+}
+
+// スライドビューを閉じる
+function quitAdminSlideView() {
+  if (adminSlideViewState === 'quiz') {
+    if (!confirm('テスト中です。終了しますか？')) {
+      return;
+    }
+  }
+  currentAdminSlide = null;
+  currentAdminSlideQuiz = { answers: [], currentQ: 0 };
+  adminSlideViewState = 'slide';
+  closeModals();
+}
+
+// HTMLエスケープ
+function escapeHtml(text) {
+  if (!text) return '';
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
 // ========================================
