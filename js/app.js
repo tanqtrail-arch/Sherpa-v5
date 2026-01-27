@@ -2100,6 +2100,12 @@ function renderProfile() {
 
   // スクールセクションを表示
   renderSchoolSection();
+
+  // 保護者連携セクションを表示
+  renderParentLinkSection();
+
+  // 兄弟セクションを表示
+  renderSiblingSection();
 }
 
 // 管理者スライドの完了情報を表示
@@ -3111,7 +3117,43 @@ function closeModals() {
   });
 }
 
+// 保護者登録案内モーダルを表示
+function showParentRegistrationGuide() {
+  const modal = document.getElementById('parentGuideModal');
+  if (modal) {
+    modal.classList.add('active');
+  }
+}
+
 function switchMode(newMode) {
+  // 保護者モードの特別処理
+  if (newMode === 'parent') {
+    // 保護者アカウントが登録されているかチェック
+    const storedParentAccount = JSON.parse(localStorage.getItem('sherupa_parent_account'));
+    if (!storedParentAccount) {
+      // 保護者アカウントが登録されていない場合、案内を表示
+      closeModals();
+      showParentRegistrationGuide();
+      return;
+    }
+
+    // パスワード認証を要求
+    pendingMode = newMode;
+    closeModals();
+    const modeConfig = APP.config.roles[newMode];
+    document.getElementById('passwordModalTitle').textContent = `${modeConfig.emoji} ${modeConfig.name}モード`;
+    document.getElementById('passwordModalHeader').style.background = 'linear-gradient(135deg,#3b82f6,#60a5fa)';
+    document.getElementById('passwordInput').value = '';
+    document.getElementById('passwordError').style.display = 'none';
+    document.getElementById('passwordError').textContent = 'パスワードが違います';
+    document.getElementById('sponsorCompanySelect').style.display = 'none';
+    document.getElementById('schoolSelectForLogin').style.display = 'none';
+    document.getElementById('passwordModalDesc').textContent = '保護者モードに入るには4桁のパスワードを入力してください';
+    document.getElementById('passwordModal').classList.add('active');
+    document.getElementById('passwordInput').focus();
+    return;
+  }
+
   // パスワード保護が必要なモードの場合
   if (protectedModes.includes(newMode)) {
     // ロックアウトチェック
@@ -3288,6 +3330,25 @@ async function verifyPassword() {
   if (!pendingMode || !input) {
     errorElement.textContent = 'パスワードを入力してください';
     errorElement.style.display = 'block';
+    return;
+  }
+
+  // 保護者モードの場合はparentAccountで認証
+  if (pendingMode === 'parent') {
+    const storedParentAccount = JSON.parse(localStorage.getItem('sherupa_parent_account'));
+    if (storedParentAccount && input === storedParentAccount.password) {
+      errorElement.style.display = 'none';
+      // parentAccountをグローバル変数に反映
+      parentAccount = storedParentAccount;
+      executeSwitchMode(pendingMode);
+      pendingMode = null;
+      toast(`${storedParentAccount.emoji} ${storedParentAccount.name}さん、ようこそ`);
+    } else {
+      errorElement.textContent = 'パスワードが違います';
+      errorElement.style.display = 'block';
+      document.getElementById('passwordInput').value = '';
+      document.getElementById('passwordInput').focus();
+    }
     return;
   }
 
@@ -4469,13 +4530,36 @@ function renderChildSelector() {
     document.getElementById('parentTabs').style.display = 'none';
     document.querySelectorAll('.parent-tab-content').forEach(c => c.style.display = 'none');
 
-    // 子どもなし状態を表示
+    // 保護者アカウントが登録されているかチェック
+    const hasParentAccount = localStorage.getItem('sherupa_parent_account');
+
+    // 子どもなし状態を表示（子供のマイページから登録するよう促す）
     const noChildrenHtml = `
       <div class="parent-no-children">
-        <div class="parent-no-children-icon">👶</div>
-        <div class="parent-no-children-title">お子さまを登録しましょう</div>
-        <div class="parent-no-children-desc">お子さまを登録すると、学習状況を確認できます</div>
-        <button class="btn btn-primary" onclick="openChildEditor()">➕ お子さまを登録</button>
+        <div class="parent-no-children-icon">👨‍👩‍👧</div>
+        <div class="parent-no-children-title">${hasParentAccount ? 'お子さまが紐づけられていません' : '保護者登録がまだです'}</div>
+        <div class="parent-no-children-desc">
+          ${hasParentAccount
+            ? 'お子さまのマイページから兄弟を追加してください'
+            : 'お子さまのマイページから保護者を登録すると、自動で紐づけされます'}
+        </div>
+        <div class="parent-no-children-steps">
+          <div class="parent-no-children-step">
+            <span class="step-number">1</span>
+            <span>お子さまがログイン</span>
+          </div>
+          <div class="parent-no-children-step">
+            <span class="step-number">2</span>
+            <span>マイページ（プロフィール）を開く</span>
+          </div>
+          <div class="parent-no-children-step">
+            <span class="step-number">3</span>
+            <span>「保護者を登録する」をタップ</span>
+          </div>
+        </div>
+        <div style="background:rgba(59,130,246,.1);border-radius:8px;padding:12px;margin-top:16px;font-size:11px;color:var(--rock)">
+          💡 この方法で登録すると、お子さまの学習データが確実に紐づけられます
+        </div>
       </div>
     `;
     container.innerHTML = noChildrenHtml;
@@ -4680,6 +4764,295 @@ function deleteChild() {
   toast('🗑️ お子さまを削除しました');
   closeModals();
   renderParentDashboard();
+}
+
+// ===============================
+// 子供のマイページからの保護者・兄弟登録
+// ===============================
+
+// 保護者登録情報を保存するキー
+let parentAccount = JSON.parse(localStorage.getItem('sherupa_parent_account')) || null;
+let selectedParentEmoji = '👨';
+let selectedSiblingEmoji = '👧';
+
+// 保護者登録モーダルを開く（子供のマイページから）
+function openParentRegistrationModal() {
+  const modal = document.getElementById('parentRegistrationModal');
+  if (!modal) return;
+
+  // 現在の子供の名前を表示
+  const childNameEl1 = document.getElementById('parentRegChildName');
+  const childNameEl2 = document.getElementById('parentRegChildName2');
+  if (childNameEl1) childNameEl1.textContent = userProfile.name;
+  if (childNameEl2) childNameEl2.textContent = userProfile.name;
+
+  // フォームをリセット
+  document.getElementById('parentRegName').value = '';
+  document.getElementById('parentRegPassword').value = '';
+  selectedParentEmoji = '👨';
+
+  // 絵文字選択をリセット
+  document.querySelectorAll('#parentEmojiPicker .child-emoji-option').forEach(opt => {
+    opt.classList.toggle('selected', opt.dataset.emoji === '👨');
+  });
+
+  modal.classList.add('active');
+}
+
+// 保護者絵文字を選択
+function selectParentEmoji(emoji, element) {
+  selectedParentEmoji = emoji;
+  document.querySelectorAll('#parentEmojiPicker .child-emoji-option').forEach(opt => {
+    opt.classList.remove('selected');
+  });
+  element.classList.add('selected');
+}
+
+// 子供のマイページから保護者を登録
+function registerParentFromChild() {
+  const name = document.getElementById('parentRegName').value.trim();
+  const password = document.getElementById('parentRegPassword').value;
+
+  if (!name) {
+    toast('❌ ニックネームを入力してください');
+    return;
+  }
+
+  if (!password || password.length !== 4 || !/^\d{4}$/.test(password)) {
+    toast('❌ 4桁の数字を入力してください');
+    return;
+  }
+
+  // 保護者アカウントを作成
+  parentAccount = {
+    id: 'parent_' + Date.now(),
+    name: name,
+    emoji: selectedParentEmoji,
+    password: password, // 実際の実装ではハッシュ化すべき
+    createdAt: new Date().toISOString()
+  };
+
+  // 現在の子供を保護者の子供リストに自動追加
+  const currentChildInfo = {
+    id: userProfile.id,
+    name: userProfile.name,
+    emoji: getChildEmojiFromGrade(userProfile.grade),
+    grade: userProfile.grade || 'middle',
+    createdAt: new Date().toISOString(),
+    linkedFromChildAccount: true // 子供のアカウントから紐づけられた
+  };
+
+  // 現在の子供の学習データを保護者用にコピー
+  const childData = {
+    alt: userProfile.alt || 0,
+    streak: userProfile.streak || 0,
+    completedSlides: JSON.parse(localStorage.getItem('sherupa_completed')) || [],
+    completedFamilyMissions: JSON.parse(localStorage.getItem('sherupa_family_missions')) || [],
+    quizResults: JSON.parse(localStorage.getItem('sherupa_quiz_results')) || [],
+    slideHistory: []
+  };
+
+  // 保護者の子供リストを更新
+  parentChildren = [currentChildInfo];
+  selectedChildId = userProfile.id;
+
+  // 保存
+  localStorage.setItem('sherupa_parent_account', JSON.stringify(parentAccount));
+  localStorage.setItem('sherupa_parent_children', JSON.stringify(parentChildren));
+  localStorage.setItem('sherupa_selected_child', selectedChildId);
+  saveChildData(userProfile.id, childData);
+
+  toast('✅ 保護者を登録しました');
+  closeModals();
+
+  // プロフィール画面を更新
+  renderParentLinkSection();
+  renderSiblingSection();
+}
+
+// 子供の学年から絵文字を取得
+function getChildEmojiFromGrade(grade) {
+  switch (grade) {
+    case 'lower': return '🌱';
+    case 'middle': return '⭐';
+    case 'upper': return '🚀';
+    default: return '👦';
+  }
+}
+
+// 兄弟登録モーダルを開く
+function openSiblingRegistrationModal() {
+  // 保護者が登録されていない場合は先に保護者を登録するよう促す
+  if (!parentAccount) {
+    toast('❌ 先に保護者を登録してください');
+    openParentRegistrationModal();
+    return;
+  }
+
+  const modal = document.getElementById('siblingRegistrationModal');
+  if (!modal) return;
+
+  // フォームをリセット
+  document.getElementById('siblingName').value = '';
+  document.getElementById('siblingGrade').value = 'middle';
+  selectedSiblingEmoji = '👧';
+
+  // 絵文字選択をリセット
+  document.querySelectorAll('#siblingEmojiPicker .child-emoji-option').forEach(opt => {
+    opt.classList.toggle('selected', opt.dataset.emoji === '👧');
+  });
+
+  modal.classList.add('active');
+}
+
+// 兄弟絵文字を選択
+function selectSiblingEmoji(emoji, element) {
+  selectedSiblingEmoji = emoji;
+  document.querySelectorAll('#siblingEmojiPicker .child-emoji-option').forEach(opt => {
+    opt.classList.remove('selected');
+  });
+  element.classList.add('selected');
+}
+
+// 兄弟を登録
+function registerSibling() {
+  const name = document.getElementById('siblingName').value.trim();
+  const grade = document.getElementById('siblingGrade').value;
+
+  if (!name) {
+    toast('❌ ニックネームを入力してください');
+    return;
+  }
+
+  // 同じ名前の兄弟がいないか確認
+  if (parentChildren.some(c => c.name === name)) {
+    toast('❌ 同じ名前の兄弟・姉妹がすでに登録されています');
+    return;
+  }
+
+  const siblingId = 'child_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+  const siblingInfo = {
+    id: siblingId,
+    name: name,
+    emoji: selectedSiblingEmoji,
+    grade: grade,
+    createdAt: new Date().toISOString(),
+    linkedFromChildAccount: true,
+    addedBy: userProfile.id // 誰が追加したか記録
+  };
+
+  // 兄弟の初期データを作成
+  saveChildData(siblingId, {
+    alt: 0,
+    streak: 0,
+    completedSlides: [],
+    completedFamilyMissions: [],
+    quizResults: [],
+    slideHistory: []
+  });
+
+  // 保護者の子供リストに追加
+  parentChildren.push(siblingInfo);
+  localStorage.setItem('sherupa_parent_children', JSON.stringify(parentChildren));
+
+  toast(`✅ ${selectedSiblingEmoji} ${name}さんを追加しました`);
+  closeModals();
+
+  // 兄弟セクションを更新
+  renderSiblingSection();
+}
+
+// 保護者連携セクションをレンダリング
+function renderParentLinkSection() {
+  const statusEl = document.getElementById('parentLinkStatus');
+  const infoEl = document.getElementById('parentLinkInfo');
+  const noParentEl = document.getElementById('noParentLink');
+
+  if (!statusEl || !infoEl || !noParentEl) return;
+
+  if (parentAccount) {
+    statusEl.textContent = '登録済み';
+    statusEl.style.color = 'var(--parent)';
+    noParentEl.style.display = 'none';
+    infoEl.style.display = 'block';
+
+    infoEl.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;padding:8px;background:rgba(59,130,246,.1);border-radius:8px">
+        <div style="font-size:32px">${parentAccount.emoji}</div>
+        <div style="flex:1">
+          <div style="font-weight:700;color:var(--text)">${parentAccount.name}</div>
+          <div style="font-size:11px;color:var(--rock)">保護者モードでダッシュボードを確認できます</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;font-size:11px;color:var(--rock);text-align:center">
+        🔗 紐づけ済み: あなたの学習データは保護者に共有されています
+      </div>
+    `;
+  } else {
+    statusEl.textContent = '未登録';
+    statusEl.style.color = 'var(--rock)';
+    noParentEl.style.display = 'block';
+    infoEl.style.display = 'none';
+  }
+}
+
+// 兄弟セクションをレンダリング
+function renderSiblingSection() {
+  const countEl = document.getElementById('siblingCount');
+  const listEl = document.getElementById('siblingList');
+  const noSiblingEl = document.getElementById('noSibling');
+
+  if (!countEl || !listEl || !noSiblingEl) return;
+
+  // 自分以外の兄弟を取得
+  const siblings = parentChildren.filter(c => c.id !== userProfile.id);
+
+  countEl.textContent = `${siblings.length}人`;
+
+  if (siblings.length > 0) {
+    noSiblingEl.style.display = 'none';
+    listEl.style.display = 'block';
+
+    listEl.innerHTML = siblings.map(sibling => {
+      const siblingData = getChildData(sibling.id);
+      const gradeLabel = sibling.grade === 'lower' ? '低学年' : sibling.grade === 'upper' ? '高学年' : '中学年';
+      return `
+        <div style="display:flex;align-items:center;gap:12px;padding:10px;background:rgba(45,134,89,.1);border-radius:8px;margin-bottom:8px">
+          <div style="font-size:28px">${sibling.emoji}</div>
+          <div style="flex:1">
+            <div style="font-weight:700;color:var(--text)">${sibling.name}</div>
+            <div style="font-size:11px;color:var(--rock)">${gradeLabel} | ${siblingData.alt} ALT</div>
+          </div>
+          <div style="font-size:11px;color:var(--meadow)">🔗 紐づけ済み</div>
+        </div>
+      `;
+    }).join('');
+
+    // 追加ボタン
+    if (parentAccount) {
+      listEl.innerHTML += `
+        <button class="btn" style="width:100%;margin-top:8px;background:var(--meadow);color:#fff" onclick="openSiblingRegistrationModal()">
+          ➕ 兄弟・姉妹を追加
+        </button>
+      `;
+    }
+  } else {
+    listEl.style.display = 'none';
+    // 保護者が登録されていれば追加ボタンを表示
+    if (parentAccount) {
+      noSiblingEl.innerHTML = `
+        まだ兄弟・姉妹が登録されていません
+        <button class="btn" style="margin-top:12px;background:var(--meadow);color:#fff;width:100%" onclick="openSiblingRegistrationModal()">👫 兄弟・姉妹を追加</button>
+      `;
+    } else {
+      noSiblingEl.innerHTML = `
+        兄弟・姉妹を追加するには、先に保護者を登録してください
+        <button class="btn" style="margin-top:12px;background:var(--parent);color:#fff;width:100%" onclick="openParentRegistrationModal()">👨‍👩‍👧 保護者を登録する</button>
+      `;
+    }
+    noSiblingEl.style.display = 'block';
+  }
 }
 
 // サマリーカードをレンダリング

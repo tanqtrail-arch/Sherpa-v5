@@ -901,6 +901,30 @@
         </div>
       </div>
 
+      <!-- 保護者連携セクション -->
+      <div class="card" style="margin-bottom:12px" id="parentLinkCard">
+        <div class="card-header">👨‍👩‍👧 保護者 <span id="parentLinkStatus" style="font-size:11px;color:var(--rock);font-weight:400">未登録</span></div>
+        <div class="card-body">
+          <div id="parentLinkInfo"></div>
+          <div id="noParentLink" style="text-align:center;color:var(--rock);font-size:12px;padding:20px">
+            保護者を登録すると、学習の様子を見守ってもらえます
+            <button class="btn" style="margin-top:12px;background:var(--parent);color:#fff;width:100%" onclick="openParentRegistrationModal()">👨‍👩‍👧 保護者を登録する</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 兄弟連携セクション -->
+      <div class="card" style="margin-bottom:12px" id="siblingLinkCard">
+        <div class="card-header">👫 兄弟・姉妹 <span id="siblingCount" style="font-size:11px;color:var(--rock);font-weight:400">0人</span></div>
+        <div class="card-body">
+          <div id="siblingList"></div>
+          <div id="noSibling" style="text-align:center;color:var(--rock);font-size:12px;padding:20px">
+            兄弟・姉妹を追加して一緒に学ぼう
+            <button class="btn" style="margin-top:12px;background:var(--meadow);color:#fff;width:100%" onclick="openSiblingRegistrationModal()">👫 兄弟・姉妹を追加</button>
+          </div>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-header">📝 プロフィール設定</div>
         <div class="card-body">
@@ -1038,6 +1062,42 @@
         <button class="btn" style="background:var(--admin);color:#fff" onclick="switchMode('admin')">⚙️ 管理者モード</button>
       </div>
       <button class="btn btn-secondary" style="margin-top:16px" onclick="closeModals()">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<!-- 保護者登録案内モーダル -->
+<div class="modal-overlay" id="parentGuideModal" onclick="if(event.target===this)closeModals()">
+  <div class="modal-box" style="max-width:400px">
+    <div class="modal-header" style="background:linear-gradient(135deg,#3b82f6,#60a5fa)">
+      <div style="font-size:32px">👨‍👩‍👧</div>
+      <div style="font-weight:700;margin-top:4px">保護者登録が必要です</div>
+    </div>
+    <div class="modal-body">
+      <div style="text-align:center;padding:8px 0;color:var(--rock);font-size:13px">
+        保護者モードを使うには、お子さまのマイページから<br>保護者を登録してください
+      </div>
+
+      <div class="parent-no-children-steps" style="margin:16px 0">
+        <div class="parent-no-children-step">
+          <span class="step-number">1</span>
+          <span>お子さまがログイン</span>
+        </div>
+        <div class="parent-no-children-step">
+          <span class="step-number">2</span>
+          <span>マイページ（プロフィール）を開く</span>
+        </div>
+        <div class="parent-no-children-step">
+          <span class="step-number">3</span>
+          <span>「保護者を登録する」をタップ</span>
+        </div>
+      </div>
+
+      <div style="background:rgba(59,130,246,.1);border-radius:8px;padding:12px;font-size:11px;color:var(--rock)">
+        💡 この方法で登録すると、お子さまの学習データが確実に紐づけられ、間違いがありません
+      </div>
+
+      <button class="btn btn-secondary" style="width:100%;margin-top:16px" onclick="closeModals()">閉じる</button>
     </div>
   </div>
 </div>
@@ -1718,6 +1778,110 @@
 
         <button type="submit" class="btn btn-primary" style="width:100%">💾 保存</button>
         <button type="button" id="childDeleteBtn" class="btn" style="width:100%;margin-top:8px;background:#ef4444;color:#fff;display:none" onclick="deleteChild()">🗑️ 削除</button>
+        <button type="button" class="btn btn-secondary" style="width:100%;margin-top:8px" onclick="closeModals()">キャンセル</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 保護者登録モーダル（子供のマイページから） -->
+<div class="modal-overlay" id="parentRegistrationModal" onclick="if(event.target===this)closeModals()">
+  <div class="modal-box" style="max-width:400px">
+    <div class="modal-header" style="background:linear-gradient(135deg,#3b82f6,#60a5fa)">
+      <div style="font-size:32px">👨‍👩‍👧</div>
+      <div style="font-weight:700;margin-top:4px">保護者を登録</div>
+    </div>
+    <div class="modal-body">
+      <div style="background:rgba(59,130,246,.1);border-radius:8px;padding:12px;margin-bottom:16px">
+        <div style="font-size:11px;color:var(--parent);font-weight:700">🔗 自動紐づけ</div>
+        <div style="font-size:11px;color:var(--rock);margin-top:4px">
+          あなた（<span id="parentRegChildName" style="font-weight:700"></span>）が自動的に保護者アカウントに紐づけられます。
+        </div>
+      </div>
+
+      <form id="parentRegistrationForm" onsubmit="event.preventDefault();registerParentFromChild()">
+        <div class="form-group">
+          <label class="form-label">📛 保護者のニックネーム</label>
+          <input type="text" class="form-input" id="parentRegName" placeholder="例: お父さん、ママ" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">😊 アイコン</label>
+          <div class="child-emoji-picker" id="parentEmojiPicker">
+            <div class="child-emoji-option selected" data-emoji="👨" onclick="selectParentEmoji('👨', this)">👨</div>
+            <div class="child-emoji-option" data-emoji="👩" onclick="selectParentEmoji('👩', this)">👩</div>
+            <div class="child-emoji-option" data-emoji="👴" onclick="selectParentEmoji('👴', this)">👴</div>
+            <div class="child-emoji-option" data-emoji="👵" onclick="selectParentEmoji('👵', this)">👵</div>
+            <div class="child-emoji-option" data-emoji="🧑" onclick="selectParentEmoji('🧑', this)">🧑</div>
+            <div class="child-emoji-option" data-emoji="👪" onclick="selectParentEmoji('👪', this)">👪</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">🔐 保護者モードパスワード（4桁）</label>
+          <input type="password" class="form-input" id="parentRegPassword" placeholder="4桁の数字" pattern="[0-9]{4}" maxlength="4" required>
+          <div style="font-size:10px;color:var(--rock);margin-top:4px">※保護者モードに入るときに使います</div>
+        </div>
+
+        <div style="background:rgba(34,197,94,.1);border-radius:8px;padding:12px;margin-bottom:12px">
+          <div style="font-size:11px;color:#16a34a;font-weight:700">✅ 紐づけ確認</div>
+          <div style="font-size:11px;color:var(--rock);margin-top:4px">
+            登録すると、<span id="parentRegChildName2" style="font-weight:700"></span>の学習データが保護者ダッシュボードに表示されます。
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width:100%">👨‍👩‍👧 登録して紐づける</button>
+        <button type="button" class="btn btn-secondary" style="width:100%;margin-top:8px" onclick="closeModals()">キャンセル</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 兄弟・姉妹追加モーダル（子供のマイページから） -->
+<div class="modal-overlay" id="siblingRegistrationModal" onclick="if(event.target===this)closeModals()">
+  <div class="modal-box" style="max-width:400px">
+    <div class="modal-header" style="background:linear-gradient(135deg,#2d8659,#4ade80)">
+      <div style="font-size:32px">👫</div>
+      <div style="font-weight:700;margin-top:4px">兄弟・姉妹を追加</div>
+    </div>
+    <div class="modal-body">
+      <div style="background:rgba(45,134,89,.1);border-radius:8px;padding:12px;margin-bottom:16px">
+        <div style="font-size:11px;color:var(--meadow);font-weight:700">👨‍👩‍👧 家族紐づけ</div>
+        <div style="font-size:11px;color:var(--rock);margin-top:4px">
+          追加した兄弟・姉妹は、同じ保護者アカウントに自動で紐づけられます。
+        </div>
+      </div>
+
+      <form id="siblingRegistrationForm" onsubmit="event.preventDefault();registerSibling()">
+        <div class="form-group">
+          <label class="form-label">📛 ニックネーム</label>
+          <input type="text" class="form-input" id="siblingName" placeholder="例: はなこ" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">😊 アイコン</label>
+          <div class="child-emoji-picker" id="siblingEmojiPicker">
+            <div class="child-emoji-option" data-emoji="👦" onclick="selectSiblingEmoji('👦', this)">👦</div>
+            <div class="child-emoji-option selected" data-emoji="👧" onclick="selectSiblingEmoji('👧', this)">👧</div>
+            <div class="child-emoji-option" data-emoji="🧒" onclick="selectSiblingEmoji('🧒', this)">🧒</div>
+            <div class="child-emoji-option" data-emoji="👶" onclick="selectSiblingEmoji('👶', this)">👶</div>
+            <div class="child-emoji-option" data-emoji="🐻" onclick="selectSiblingEmoji('🐻', this)">🐻</div>
+            <div class="child-emoji-option" data-emoji="🐰" onclick="selectSiblingEmoji('🐰', this)">🐰</div>
+            <div class="child-emoji-option" data-emoji="🐱" onclick="selectSiblingEmoji('🐱', this)">🐱</div>
+            <div class="child-emoji-option" data-emoji="🌟" onclick="selectSiblingEmoji('🌟', this)">🌟</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">🎓 学年</label>
+          <select class="form-select" id="siblingGrade">
+            <option value="lower">🌱 低学年（小1〜小2）</option>
+            <option value="middle" selected>⭐ 中学年（小3〜小4）</option>
+            <option value="upper">🚀 高学年（小5〜中学）</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width:100%">👫 追加する</button>
         <button type="button" class="btn btn-secondary" style="width:100%;margin-top:8px" onclick="closeModals()">キャンセル</button>
       </form>
     </div>
