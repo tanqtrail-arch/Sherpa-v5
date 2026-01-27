@@ -89,7 +89,14 @@ let pendingMode = null;
 // スポンサーシステム
 // ========================================
 
-// スポンサープロフィール
+// 全スポンサー企業アカウント（複数企業対応）
+// sponsorAccounts: { [sponsorId]: { id, name, logo, category, message, color, altBalance, sponsorLikes, totalAltDistributed, totalLikesGiven, totalChildrenSupported, createdAt } }
+let sponsorAccounts = JSON.parse(localStorage.getItem('sherupa_sponsor_accounts')) || {};
+
+// 現在選択中のスポンサーID
+let currentSponsorId = localStorage.getItem('sherupa_current_sponsor_id') || null;
+
+// スポンサープロフィール（現在のアカウント - 後方互換性のため保持）
 let sponsorProfile = JSON.parse(localStorage.getItem('sherupa_sponsor_profile')) || {
   id: 'sponsor_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
   name: 'スポンサー企業',
@@ -115,16 +122,25 @@ let sponsorLikesSent = JSON.parse(localStorage.getItem('sherupa_sponsor_likes_se
 let sponsorLikesReceived = JSON.parse(localStorage.getItem('sherupa_sponsor_likes_received')) || [];
 
 // ALT購入履歴
-// altPurchases: [{ id, amount, price, likes, timestamp }]
+// altPurchases: [{ id, sponsorId, amount, price, likes, timestamp }]
 let altPurchases = JSON.parse(localStorage.getItem('sherupa_alt_purchases')) || [];
 
 // スポンサースライド完了記録
-// sponsorSlideCompletions: [{ slideId, odId, childName, timestamp, reward }]
+// sponsorSlideCompletions: [{ slideId, childId, childName, timestamp, reward }]
 let sponsorSlideCompletions = JSON.parse(localStorage.getItem('sherupa_sponsor_slide_completions')) || [];
+
+// スポンサーミッション完了記録（子ども側）
+// sponsorMissionCompletions: [{ missionId, sponsorId, childId, childName, timestamp, reward, score }]
+let sponsorMissionCompletions = JSON.parse(localStorage.getItem('sherupa_sponsor_mission_completions')) || [];
 
 // 現在編集中のスポンサースライド
 let currentSponsorSlidePages = [];
 let currentSponsorSlideQuizzes = [];
+
+// 現在挑戦中のスポンサーミッション
+let currentSponsorMission = null;
+let currentSponsorMissionPage = 0;
+let currentSponsorMissionQuiz = { answers: [], currentQ: 0 };
 
 // ユーザーIDの生成・取得
 if (!userProfile.id) {
@@ -167,6 +183,9 @@ async function loadData() {
     APP.badges = badges.categories;
     APP.missions = missions;
     APP.loaded = true;
+
+    // スポンサー企業アカウントを初期化（各社3000ALT付与）
+    initializeSponsorAccounts();
 
     console.log('✅ データ読み込み完了');
     initApp();
@@ -477,19 +496,56 @@ function renderSponsorMissions() {
   const container = document.getElementById('sponsorMissionsGrid');
   if (!container || !APP.missions) return;
 
-  const missions = APP.missions.sponsorMissions.slice(0, 8);
-  container.innerHTML = missions.map((m, i) => `
-    <div class="mission-card" onclick="openSponsorMission(${i})">
-      <div class="mission-icon" style="background:linear-gradient(135deg,#f59e0b,#fbbf24);position:relative">
-        <div class="emoji">${m.emoji}</div>
-        <div style="position:absolute;top:2px;left:2px;font-size:10px">${m.categoryEmoji}</div>
+  // 全企業のミッションを収集
+  const allMissions = [];
+  if (APP.missions.sponsorAccounts) {
+    APP.missions.sponsorAccounts.forEach(account => {
+      if (account.missions) {
+        account.missions.forEach(mission => {
+          allMissions.push({
+            ...mission,
+            sponsorId: account.id,
+            sponsorName: account.name,
+            sponsorLogo: account.logo,
+            sponsorColor: account.color
+          });
+        });
+      }
+    });
+  }
+
+  // 従来のスポンサーミッションも追加（後方互換性）
+  if (APP.missions.sponsorMissions) {
+    APP.missions.sponsorMissions.forEach((m, i) => {
+      allMissions.push({
+        ...m,
+        legacyIndex: i,
+        sponsorName: m.sponsor,
+        sponsorLogo: '🏢',
+        sponsorColor: '#f59e0b'
+      });
+    });
+  }
+
+  // 最大12個表示
+  const displayMissions = allMissions.slice(0, 12);
+
+  container.innerHTML = displayMissions.map((m, i) => {
+    const isCompleted = sponsorMissionCompletions.some(c => c.missionId === m.id && c.childId === userProfile.id);
+    return `
+      <div class="mission-card ${isCompleted ? 'completed' : ''}" onclick="openSponsorMissionForChild('${m.id}', '${m.sponsorId || ''}')">
+        <div class="mission-icon" style="background:linear-gradient(135deg,${m.sponsorColor},${m.sponsorColor}99);position:relative">
+          <div class="emoji">${m.emoji}</div>
+          <div style="position:absolute;top:2px;left:2px;font-size:12px">${m.sponsorLogo}</div>
+          ${isCompleted ? '<div style="position:absolute;bottom:2px;right:2px;font-size:14px">✅</div>' : ''}
+        </div>
+        <div class="mission-body">
+          <div class="mission-name">${m.name}</div>
+          <div class="mission-reward" style="color:${m.sponsorColor}">+${m.reward} ALT</div>
+        </div>
       </div>
-      <div class="mission-body">
-        <div class="mission-name">${m.name}</div>
-        <div class="mission-reward" style="color:#f59e0b">+${m.reward}</div>
-      </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 
   // スポンサースライドを表示
   renderSponsorSlidesForChild();
@@ -1073,6 +1129,323 @@ function openSponsorMission(index) {
   if (!mission) return;
 
   toast(`🎗️ ${mission.name} - スポンサー: ${mission.sponsor}`);
+}
+
+// 子ども用：スポンサーミッションを開く
+function openSponsorMissionForChild(missionId, sponsorId) {
+  let mission = null;
+  let sponsor = null;
+
+  // 企業ミッションを検索
+  if (sponsorId && APP.missions?.sponsorAccounts) {
+    sponsor = APP.missions.sponsorAccounts.find(a => a.id === sponsorId);
+    if (sponsor) {
+      mission = sponsor.missions?.find(m => m.id === missionId);
+    }
+  }
+
+  // 従来のスポンサーミッションを検索
+  if (!mission && APP.missions?.sponsorMissions) {
+    mission = APP.missions.sponsorMissions.find(m => m.id === missionId);
+  }
+
+  if (!mission) {
+    toast('ミッションが見つかりません');
+    return;
+  }
+
+  // 完了チェック
+  const isCompleted = sponsorMissionCompletions.some(c => c.missionId === missionId && c.childId === userProfile.id);
+
+  // ミッション詳細モーダルを構築
+  const sponsorColor = sponsor?.color || '#f59e0b';
+  const sponsorName = sponsor?.name || mission.sponsor || 'スポンサー';
+  const sponsorLogo = sponsor?.logo || '🏢';
+
+  document.getElementById('sponsorMissionEmoji').textContent = mission.emoji;
+  document.getElementById('sponsorMissionTitle').textContent = mission.name;
+  document.getElementById('sponsorMissionHeader').style.background = `linear-gradient(135deg, ${sponsorColor}, ${sponsorColor}99)`;
+
+  let content = `
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="display:inline-flex;align-items:center;gap:8px;background:#f3f4f6;padding:8px 16px;border-radius:20px">
+        <span style="font-size:20px">${sponsorLogo}</span>
+        <span style="font-size:13px;font-weight:600">${sponsorName}</span>
+      </div>
+    </div>
+    <div style="font-size:14px;color:var(--rock);text-align:center;margin-bottom:16px">
+      ${mission.description || ''}
+    </div>
+    <div style="display:flex;justify-content:center;gap:16px;margin-bottom:20px">
+      <div style="text-align:center">
+        <div style="font-size:24px;font-weight:700;color:${sponsorColor}">${mission.reward}</div>
+        <div style="font-size:11px;color:var(--rock)">ALT報酬</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:24px;font-weight:700;color:${sponsorColor}">${mission.pages?.length || 0}</div>
+        <div style="font-size:11px;color:var(--rock)">ページ</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:24px;font-weight:700;color:${sponsorColor}">${mission.qa?.length || 0}</div>
+        <div style="font-size:11px;color:var(--rock)">クイズ</div>
+      </div>
+    </div>
+  `;
+
+  if (isCompleted) {
+    const completion = sponsorMissionCompletions.find(c => c.missionId === missionId && c.childId === userProfile.id);
+    content += `
+      <div style="background:#f0fdf4;border:2px solid #22c55e;padding:16px;border-radius:12px;text-align:center;margin-bottom:16px">
+        <div style="font-size:32px;margin-bottom:8px">🎉</div>
+        <div style="font-weight:700;color:#22c55e">クリア済み！</div>
+        <div style="font-size:12px;color:var(--rock);margin-top:4px">
+          スコア: ${completion?.score || '-'}% ・ +${completion?.reward || mission.reward} ALT獲得
+        </div>
+      </div>
+      <button class="btn btn-secondary" style="width:100%" onclick="closeModals()">閉じる</button>
+    `;
+  } else {
+    content += `
+      <button class="btn btn-primary" style="width:100%;background:${sponsorColor}" onclick="startSponsorMission('${missionId}', '${sponsorId}')">
+        🚀 ミッション開始！
+      </button>
+      <button class="btn btn-secondary" style="width:100%;margin-top:8px" onclick="closeModals()">あとで挑戦する</button>
+    `;
+  }
+
+  document.getElementById('sponsorMissionContent').innerHTML = content;
+  document.getElementById('sponsorMissionModal').classList.add('active');
+}
+
+// スポンサーミッションを開始
+function startSponsorMission(missionId, sponsorId) {
+  let mission = null;
+  let sponsor = null;
+
+  if (sponsorId && APP.missions?.sponsorAccounts) {
+    sponsor = APP.missions.sponsorAccounts.find(a => a.id === sponsorId);
+    if (sponsor) {
+      mission = sponsor.missions?.find(m => m.id === missionId);
+    }
+  }
+
+  if (!mission) {
+    toast('ミッションが見つかりません');
+    return;
+  }
+
+  // ミッション状態を初期化
+  currentSponsorMission = {
+    ...mission,
+    sponsorId: sponsorId,
+    sponsorName: sponsor?.name || 'スポンサー',
+    sponsorLogo: sponsor?.logo || '🏢',
+    sponsorColor: sponsor?.color || '#f59e0b'
+  };
+  currentSponsorMissionPage = 0;
+  currentSponsorMissionQuiz = { answers: [], currentQ: 0 };
+
+  // ページコンテンツを表示
+  showSponsorMissionPage();
+}
+
+// スポンサーミッションのページを表示
+function showSponsorMissionPage() {
+  if (!currentSponsorMission) return;
+
+  const pages = currentSponsorMission.pages || [];
+  const page = pages[currentSponsorMissionPage];
+
+  if (!page) {
+    // ページがない場合はクイズへ
+    if (currentSponsorMission.qa && currentSponsorMission.qa.length > 0) {
+      startSponsorMissionQuiz();
+    } else {
+      completeSponsorMission(100);
+    }
+    return;
+  }
+
+  const totalPages = pages.length;
+  const progress = ((currentSponsorMissionPage + 1) / totalPages) * 100;
+
+  const content = `
+    <div style="margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span style="font-size:16px">${currentSponsorMission.sponsorLogo}</span>
+        <span style="font-size:12px;color:var(--rock)">${currentSponsorMission.sponsorName}</span>
+        <span style="margin-left:auto;font-size:12px;color:var(--rock)">${currentSponsorMissionPage + 1} / ${totalPages}</span>
+      </div>
+      <div style="height:4px;background:#e5e7eb;border-radius:2px;overflow:hidden">
+        <div style="height:100%;width:${progress}%;background:${currentSponsorMission.sponsorColor};transition:width .3s"></div>
+      </div>
+    </div>
+    <div style="font-size:16px;font-weight:700;margin-bottom:12px">${page.title}</div>
+    <div style="font-size:14px;line-height:1.7;white-space:pre-wrap;color:#374151">${page.content}</div>
+    <div style="display:flex;gap:10px;margin-top:20px">
+      ${currentSponsorMissionPage > 0 ? `
+        <button class="btn btn-secondary" style="flex:1" onclick="prevSponsorMissionPage()">← 戻る</button>
+      ` : ''}
+      <button class="btn btn-primary" style="flex:1;background:${currentSponsorMission.sponsorColor}" onclick="nextSponsorMissionPage()">
+        ${currentSponsorMissionPage < totalPages - 1 ? '次へ →' : 'クイズへ 📝'}
+      </button>
+    </div>
+  `;
+
+  document.getElementById('sponsorMissionEmoji').textContent = currentSponsorMission.emoji;
+  document.getElementById('sponsorMissionTitle').textContent = currentSponsorMission.name;
+  document.getElementById('sponsorMissionHeader').style.background = `linear-gradient(135deg, ${currentSponsorMission.sponsorColor}, ${currentSponsorMission.sponsorColor}99)`;
+  document.getElementById('sponsorMissionContent').innerHTML = content;
+}
+
+function prevSponsorMissionPage() {
+  if (currentSponsorMissionPage > 0) {
+    currentSponsorMissionPage--;
+    showSponsorMissionPage();
+  }
+}
+
+function nextSponsorMissionPage() {
+  const pages = currentSponsorMission?.pages || [];
+  if (currentSponsorMissionPage < pages.length - 1) {
+    currentSponsorMissionPage++;
+    showSponsorMissionPage();
+  } else {
+    // クイズへ
+    if (currentSponsorMission.qa && currentSponsorMission.qa.length > 0) {
+      startSponsorMissionQuiz();
+    } else {
+      completeSponsorMission(100);
+    }
+  }
+}
+
+// スポンサーミッションのクイズを開始
+function startSponsorMissionQuiz() {
+  currentSponsorMissionQuiz = { answers: [], currentQ: 0 };
+  showSponsorMissionQuiz();
+}
+
+function showSponsorMissionQuiz() {
+  if (!currentSponsorMission) return;
+
+  const qa = currentSponsorMission.qa || [];
+  const q = qa[currentSponsorMissionQuiz.currentQ];
+
+  if (!q) {
+    finishSponsorMissionQuiz();
+    return;
+  }
+
+  const content = `
+    <div style="margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span style="font-size:11px;background:${currentSponsorMission.sponsorColor};color:#fff;padding:4px 10px;border-radius:12px">クイズ ${currentSponsorMissionQuiz.currentQ + 1}/${qa.length}</span>
+      </div>
+    </div>
+    <div style="font-size:15px;font-weight:700;margin-bottom:16px">${q.question}</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      ${q.options.map((opt, i) => `
+        <button class="quiz-option-btn" style="
+          padding:14px;background:#f9fafb;border:2px solid #e5e7eb;border-radius:10px;
+          font-size:14px;text-align:left;cursor:pointer;transition:all .2s
+        " onclick="answerSponsorMissionQuiz(${i})">${opt}</button>
+      `).join('')}
+    </div>
+  `;
+
+  document.getElementById('sponsorMissionContent').innerHTML = content;
+}
+
+function answerSponsorMissionQuiz(answerIndex) {
+  const qa = currentSponsorMission.qa || [];
+  const q = qa[currentSponsorMissionQuiz.currentQ];
+
+  const isCorrect = answerIndex === q.answer;
+  currentSponsorMissionQuiz.answers.push({ questionIndex: currentSponsorMissionQuiz.currentQ, answer: answerIndex, correct: isCorrect });
+
+  // フィードバック表示
+  const options = document.querySelectorAll('.quiz-option-btn');
+  options.forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === q.answer) {
+      btn.style.background = '#dcfce7';
+      btn.style.borderColor = '#22c55e';
+    } else if (i === answerIndex && !isCorrect) {
+      btn.style.background = '#fee2e2';
+      btn.style.borderColor = '#ef4444';
+    }
+  });
+
+  // 次の問題へ
+  setTimeout(() => {
+    currentSponsorMissionQuiz.currentQ++;
+    if (currentSponsorMissionQuiz.currentQ < qa.length) {
+      showSponsorMissionQuiz();
+    } else {
+      finishSponsorMissionQuiz();
+    }
+  }, 1000);
+}
+
+function finishSponsorMissionQuiz() {
+  const correctCount = currentSponsorMissionQuiz.answers.filter(a => a.correct).length;
+  const totalQuestions = currentSponsorMission.qa?.length || 1;
+  const score = Math.round((correctCount / totalQuestions) * 100);
+
+  completeSponsorMission(score);
+}
+
+// スポンサーミッション完了
+function completeSponsorMission(score) {
+  if (!currentSponsorMission) return;
+
+  const reward = currentSponsorMission.reward || 50;
+
+  // 完了記録を保存
+  sponsorMissionCompletions.push({
+    missionId: currentSponsorMission.id,
+    sponsorId: currentSponsorMission.sponsorId,
+    childId: userProfile.id,
+    childName: userProfile.name,
+    timestamp: new Date().toISOString(),
+    reward: reward,
+    score: score
+  });
+  localStorage.setItem('sherupa_sponsor_mission_completions', JSON.stringify(sponsorMissionCompletions));
+
+  // ALT付与
+  userProfile.alt += reward;
+  userProfile.weeklyAlt = (userProfile.weeklyAlt || 0) + reward;
+  localStorage.setItem('sherupa_profile', JSON.stringify(userProfile));
+
+  // 結果表示
+  const content = `
+    <div style="text-align:center">
+      <div style="font-size:64px;margin-bottom:16px">${score >= 80 ? '🎉' : score >= 60 ? '👍' : '📚'}</div>
+      <div style="font-size:20px;font-weight:700;margin-bottom:8px">ミッション完了！</div>
+      <div style="font-size:48px;font-weight:700;color:${currentSponsorMission.sponsorColor};margin-bottom:8px">+${reward} ALT</div>
+      <div style="font-size:14px;color:var(--rock);margin-bottom:20px">
+        スコア: ${score}%
+        ${currentSponsorMission.qa?.length ? ` (${currentSponsorMissionQuiz.answers.filter(a => a.correct).length}/${currentSponsorMission.qa.length}問正解)` : ''}
+      </div>
+      <div style="background:#f3f4f6;padding:12px;border-radius:10px;margin-bottom:16px">
+        <div style="font-size:12px;color:var(--rock)">提供</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px">
+          <span style="font-size:24px">${currentSponsorMission.sponsorLogo}</span>
+          <span style="font-weight:600">${currentSponsorMission.sponsorName}</span>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;background:${currentSponsorMission.sponsorColor}" onclick="closeModals(); renderHome();">閉じる</button>
+    </div>
+  `;
+
+  document.getElementById('sponsorMissionContent').innerHTML = content;
+
+  // 現在の情報をリセット
+  currentSponsorMission = null;
+  currentSponsorMissionPage = 0;
+  currentSponsorMissionQuiz = { answers: [], currentQ: 0 };
 }
 
 // ========================================
@@ -4922,15 +5295,300 @@ function formatTimeAgo(timestamp) {
 // スポンサーシステム
 // ========================================
 
+// スポンサー企業アカウントを初期化（missions.jsonから読み込み）
+function initializeSponsorAccounts() {
+  if (!APP.missions || !APP.missions.sponsorAccounts) return;
+
+  const existingAccounts = JSON.parse(localStorage.getItem('sherupa_sponsor_accounts')) || {};
+  let updated = false;
+
+  APP.missions.sponsorAccounts.forEach(account => {
+    if (!existingAccounts[account.id]) {
+      existingAccounts[account.id] = {
+        id: account.id,
+        name: account.name,
+        logo: account.logo,
+        category: account.category,
+        message: account.message,
+        color: account.color,
+        website: account.website,
+        altBalance: 3000,  // 初期ALT: 3000
+        sponsorLikes: 100, // 初期いいね: 100
+        totalAltDistributed: 0,
+        totalLikesGiven: 0,
+        totalChildrenSupported: 0,
+        createdAt: new Date().toISOString()
+      };
+      updated = true;
+    }
+  });
+
+  if (updated) {
+    localStorage.setItem('sherupa_sponsor_accounts', JSON.stringify(existingAccounts));
+  }
+
+  sponsorAccounts = existingAccounts;
+}
+
+// スポンサー選択モーダルを開く
+function openSponsorSelectModal() {
+  initializeSponsorAccounts();
+
+  const container = document.getElementById('sponsorAccountsList');
+  if (!APP.missions || !APP.missions.sponsorAccounts) {
+    container.innerHTML = '<div style="text-align:center;color:var(--rock)">スポンサー企業がありません</div>';
+    document.getElementById('sponsorSelectModal').classList.add('active');
+    return;
+  }
+
+  container.innerHTML = APP.missions.sponsorAccounts.map(account => {
+    const savedAccount = sponsorAccounts[account.id] || {};
+    const altBalance = savedAccount.altBalance || 3000;
+    const isSelected = currentSponsorId === account.id;
+
+    return `
+      <div class="sponsor-account-card" style="
+        display:flex;align-items:center;gap:12px;padding:14px;
+        background:${isSelected ? account.color + '15' : '#f9fafb'};
+        border:2px solid ${isSelected ? account.color : '#e5e7eb'};
+        border-radius:12px;cursor:pointer;transition:all .2s
+      " onclick="selectSponsorAccount('${account.id}')">
+        <div style="font-size:36px">${account.logo}</div>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:14px">${account.name}</div>
+          <div style="font-size:11px;color:var(--rock)">${account.category}</div>
+          <div style="font-size:12px;color:${account.color};margin-top:4px;font-weight:600">💰 ${altBalance.toLocaleString()} ALT</div>
+        </div>
+        ${isSelected ? '<div style="color:' + account.color + ';font-weight:700">✓</div>' : ''}
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('sponsorSelectModal').classList.add('active');
+}
+
+// スポンサーアカウントを選択
+function selectSponsorAccount(sponsorId) {
+  currentSponsorId = sponsorId;
+  localStorage.setItem('sherupa_current_sponsor_id', sponsorId);
+
+  // sponsorProfileを選択した企業で更新
+  const account = sponsorAccounts[sponsorId];
+  if (account) {
+    sponsorProfile = { ...account };
+    localStorage.setItem('sherupa_sponsor_profile', JSON.stringify(sponsorProfile));
+  }
+
+  closeModals();
+  renderSponsorDashboard();
+  toast(`${account.logo} ${account.name}にログインしました`);
+}
+
+// 現在のスポンサープロフィールを保存
+function saveSponsorProfile() {
+  if (currentSponsorId && sponsorAccounts[currentSponsorId]) {
+    sponsorAccounts[currentSponsorId] = { ...sponsorProfile };
+    localStorage.setItem('sherupa_sponsor_accounts', JSON.stringify(sponsorAccounts));
+  }
+  localStorage.setItem('sherupa_sponsor_profile', JSON.stringify(sponsorProfile));
+}
+
 // スポンサーダッシュボードのレンダリング
 function renderSponsorDashboard() {
+  // 企業アカウント初期化
+  initializeSponsorAccounts();
+
+  // 選択中の企業がない場合は選択モーダルを表示
+  if (!currentSponsorId || !sponsorAccounts[currentSponsorId]) {
+    openSponsorSelectModal();
+    return;
+  }
+
+  // 現在の企業情報でsponsorProfileを同期
+  sponsorProfile = { ...sponsorAccounts[currentSponsorId] };
+
+  // 企業バナーを表示
+  const banner = document.getElementById('sponsorCompanyBanner');
+  if (banner) {
+    banner.style.display = 'block';
+    document.getElementById('sponsorCompanyLogo').textContent = sponsorProfile.logo;
+    document.getElementById('sponsorCompanyName').textContent = sponsorProfile.name;
+    document.getElementById('sponsorCompanyCategory').textContent = sponsorProfile.category;
+  }
+
   // サマリー更新
   document.getElementById('sponsorAltBalance').textContent = sponsorProfile.altBalance.toLocaleString();
   document.getElementById('sponsorLikesBalance').textContent = sponsorProfile.sponsorLikes;
   document.getElementById('sponsorTotalDistributed').textContent = sponsorProfile.totalAltDistributed.toLocaleString();
   document.getElementById('sponsorTotalChildren').textContent = sponsorProfile.totalChildrenSupported + '人';
 
-  // スライド一覧を表示
+  // タブ内容を表示
+  renderSponsorMissionsList();
+  renderSponsorSlidesList();
+  renderSponsorChildrenList();
+  renderSponsorAnalytics();
+  renderSponsorHistoryList();
+}
+
+// スポンサーミッション一覧（企業のミッション）
+function renderSponsorMissionsList() {
+  const container = document.getElementById('sponsorMissionsList');
+  if (!container) return;
+
+  // 現在の企業のミッションを取得
+  const accountDef = APP.missions?.sponsorAccounts?.find(a => a.id === currentSponsorId);
+  const missions = accountDef?.missions || [];
+
+  if (missions.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:30px;color:var(--rock)">
+        <div style="font-size:48px;margin-bottom:12px">🎯</div>
+        <div style="font-size:14px;font-weight:700">ミッションがありません</div>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = missions.map(mission => {
+    const completions = sponsorMissionCompletions.filter(c => c.missionId === mission.id).length;
+    return `
+      <div class="sponsor-slide-card" style="cursor:pointer" onclick="openSponsorMissionDetail('${mission.id}')">
+        <div class="sponsor-slide-emoji">${mission.emoji}</div>
+        <div class="sponsor-slide-info">
+          <div class="sponsor-slide-title">${mission.name}</div>
+          <div class="sponsor-slide-meta">${mission.description || ''}</div>
+          <div style="display:flex;gap:8px;margin-top:4px">
+            <span style="font-size:11px;color:var(--sponsor)">💰 ${mission.reward} ALT</span>
+            <span style="font-size:11px;color:var(--rock)">👦 ${completions}人挑戦</span>
+          </div>
+        </div>
+        <div style="font-size:20px;color:var(--rock)">→</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ミッション詳細を表示（スポンサー用）
+function openSponsorMissionDetail(missionId) {
+  const accountDef = APP.missions?.sponsorAccounts?.find(a => a.id === currentSponsorId);
+  const mission = accountDef?.missions?.find(m => m.id === missionId);
+  if (!mission) return;
+
+  document.getElementById('sponsorMissionEmoji').textContent = mission.emoji;
+  document.getElementById('sponsorMissionTitle').textContent = mission.name;
+  document.getElementById('sponsorMissionHeader').style.background = `linear-gradient(135deg, ${sponsorProfile.color}, ${sponsorProfile.color}99)`;
+
+  // ミッション完了者一覧
+  const completions = sponsorMissionCompletions.filter(c => c.missionId === missionId);
+
+  let content = `
+    <div style="margin-bottom:16px">
+      <div style="font-size:13px;color:var(--rock);margin-bottom:8px">${mission.description}</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <span style="font-size:12px;background:#f3f4f6;padding:4px 8px;border-radius:6px">💰 報酬: ${mission.reward} ALT</span>
+        <span style="font-size:12px;background:#f3f4f6;padding:4px 8px;border-radius:6px">📄 ${mission.pages?.length || 0}ページ</span>
+        <span style="font-size:12px;background:#f3f4f6;padding:4px 8px;border-radius:6px">❓ ${mission.qa?.length || 0}問</span>
+      </div>
+    </div>
+    <div style="font-weight:700;font-size:14px;margin-bottom:12px">👦 挑戦した子どもたち (${completions.length}人)</div>
+  `;
+
+  if (completions.length === 0) {
+    content += `<div style="text-align:center;padding:20px;color:var(--rock);font-size:13px">まだ挑戦者がいません</div>`;
+  } else {
+    content += completions.map(c => {
+      const date = new Date(c.timestamp).toLocaleDateString('ja-JP');
+      return `
+        <div style="display:flex;align-items:center;gap:10px;padding:10px;background:#f9fafb;border-radius:8px;margin-bottom:8px">
+          <div style="width:36px;height:36px;background:${sponsorProfile.color};color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700">${c.childName?.charAt(0) || '?'}</div>
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:13px">${c.childName || '名無し'}</div>
+            <div style="font-size:11px;color:var(--rock)">${date} ・ スコア: ${c.score || '-'}%</div>
+          </div>
+          <div style="font-size:12px;color:${sponsorProfile.color};font-weight:600">+${c.reward} ALT</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  document.getElementById('sponsorMissionContent').innerHTML = content;
+  document.getElementById('sponsorMissionModal').classList.add('active');
+}
+
+// スポンサー分析（挑戦状況の可視化）
+function renderSponsorAnalytics() {
+  const container = document.getElementById('sponsorAnalyticsList');
+  if (!container) return;
+
+  const accountDef = APP.missions?.sponsorAccounts?.find(a => a.id === currentSponsorId);
+  const missions = accountDef?.missions || [];
+
+  if (missions.length === 0) {
+    container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--rock)">ミッションデータがありません</div>`;
+    return;
+  }
+
+  // 各ミッションの統計を計算
+  let totalCompletions = 0;
+  let totalRewardsDistributed = 0;
+
+  const missionStats = missions.map(mission => {
+    const completions = sponsorMissionCompletions.filter(c => c.missionId === mission.id);
+    const avgScore = completions.length > 0
+      ? Math.round(completions.reduce((sum, c) => sum + (c.score || 0), 0) / completions.length)
+      : 0;
+    const rewardsGiven = completions.reduce((sum, c) => sum + (c.reward || 0), 0);
+
+    totalCompletions += completions.length;
+    totalRewardsDistributed += rewardsGiven;
+
+    return { mission, completions: completions.length, avgScore, rewardsGiven };
+  });
+
+  // サマリー
+  let html = `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
+      <div style="background:#f0fdf4;padding:12px;border-radius:10px;text-align:center">
+        <div style="font-size:20px;font-weight:700;color:#22c55e">${totalCompletions}</div>
+        <div style="font-size:11px;color:var(--rock)">総挑戦回数</div>
+      </div>
+      <div style="background:#fef3c7;padding:12px;border-radius:10px;text-align:center">
+        <div style="font-size:20px;font-weight:700;color:#f59e0b">${totalRewardsDistributed}</div>
+        <div style="font-size:11px;color:var(--rock)">配布ALT</div>
+      </div>
+      <div style="background:#ede9fe;padding:12px;border-radius:10px;text-align:center">
+        <div style="font-size:20px;font-weight:700;color:#8b5cf6">${missions.length}</div>
+        <div style="font-size:11px;color:var(--rock)">ミッション数</div>
+      </div>
+    </div>
+    <div style="font-weight:700;font-size:13px;margin-bottom:10px">📊 ミッション別統計</div>
+  `;
+
+  // 各ミッションの詳細
+  missionStats.forEach(stat => {
+    const barWidth = totalCompletions > 0 ? (stat.completions / Math.max(...missionStats.map(s => s.completions))) * 100 : 0;
+    html += `
+      <div style="padding:12px;background:#f9fafb;border-radius:10px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span style="font-size:20px">${stat.mission.emoji}</span>
+          <span style="font-weight:600;font-size:13px;flex:1">${stat.mission.name}</span>
+          <span style="font-size:12px;color:var(--rock)">${stat.completions}人</span>
+        </div>
+        <div style="height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${barWidth}%;background:${sponsorProfile.color};border-radius:3px"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--rock)">
+          <span>平均スコア: ${stat.avgScore}%</span>
+          <span>配布: ${stat.rewardsGiven} ALT</span>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+// スライド一覧を表示
   renderSponsorSlidesList();
   renderSponsorChildrenList();
   renderSponsorHistoryList();
@@ -5030,16 +5688,18 @@ function renderSponsorChildrenList() {
 // スポンサー履歴表示
 function renderSponsorHistoryList() {
   const container = document.getElementById('sponsorHistoryList');
+  if (!container) return;
 
-  // 購入履歴といいね履歴を統合
+  // 購入履歴、いいね履歴、スライド完了、ミッション完了を統合
   const history = [
-    ...altPurchases.map(p => ({ ...p, type: 'purchase' })),
+    ...altPurchases.filter(p => !p.sponsorId || p.sponsorId === sponsorProfile.id).map(p => ({ ...p, type: 'purchase' })),
     ...sponsorLikesSent.filter(l => l.sponsorId === sponsorProfile.id).map(l => ({ ...l, type: 'like' })),
     ...sponsorSlideCompletions.filter(c => {
       const slide = sponsorSlides.find(s => s.id === c.slideId);
       return slide && slide.sponsorId === sponsorProfile.id;
-    }).map(c => ({ ...c, type: 'reward' }))
-  ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 20);
+    }).map(c => ({ ...c, type: 'reward' })),
+    ...sponsorMissionCompletions.filter(c => c.sponsorId === currentSponsorId).map(c => ({ ...c, type: 'mission' }))
+  ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 30);
 
   if (history.length === 0) {
     container.innerHTML = `
@@ -5074,6 +5734,19 @@ function renderSponsorHistoryList() {
             <div style="font-size:11px;color:var(--rock)">${item.childName}さんへ</div>
           </div>
           <div style="font-size:11px;color:var(--rock)">${date}</div>
+        </div>
+      `;
+    } else if (item.type === 'mission') {
+      return `
+        <div style="padding:10px;background:#ede9fe;border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between">
+          <div>
+            <div style="font-size:12px;font-weight:700">🎯 ミッション完了</div>
+            <div style="font-size:11px;color:var(--rock)">${item.childName}さん (スコア: ${item.score || '-'}%)</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:14px;font-weight:700;color:#8b5cf6">-${item.reward} ALT</div>
+            <div style="font-size:11px;color:var(--rock)">${date}</div>
+          </div>
         </div>
       `;
     } else {
