@@ -1,0 +1,44 @@
+{
+  "schools": [
+    {
+      "id": "school_001",
+      "name": "未来塾",
+      "emoji": "🌟",
+      "description": "子どもたちの可能性を広げる塾",
+      "color": "#10b981",
+      "region": "関東"
+    },
+    {
+      "id": "school_002",
+      "name": "さくら学習教室",
+      "emoji": "🌸",
+      "description": "楽しく学ぶ、しっかり身につく",
+      "color": "#ec4899",
+      "region": "近畿"
+    },
+    {
+      "id": "school_003",
+      "name": "プログラミング道場",
+      "emoji": "💻",
+      "description": "次世代のクリエイターを育成",
+      "color": "#3b82f6",
+      "region": "関東"
+    },
+    {
+      "id": "school_004",
+      "name": "探究ラボ",
+      "emoji": "🔬",
+      "description": "好奇心を科学する",
+      "color": "#8b5cf6",
+      "region": "中部"
+    },
+    {
+      "id": "school_005",
+      "name": "ひまわり教室",
+      "emoji": "🌻",
+      "description": "明るく楽しい学びの場",
+      "color": "#f59e0b",
+      "region": "九州・沖縄"
+    }
+  ]
+}
