@@ -3105,7 +3105,7 @@ function openModeModal() {
 function closeModals() {
   document.querySelectorAll('.modal-overlay').forEach(m => {
     m.classList.remove('active');
-    m.style.display = 'none';
+    m.style.display = '';
   });
 }
 
