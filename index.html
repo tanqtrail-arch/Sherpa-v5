@@ -716,14 +716,14 @@
       </div>
     </div>
 
-    <!-- 先生ダッシュボード画面 -->
+    <!-- スクールダッシュボード画面 -->
     <div id="screen-teacher" class="screen">
       <div class="teacher-header">
-        <div class="teacher-title">🏫 先生ダッシュボード</div>
-        <div class="teacher-subtitle" id="teacherClassName">クラス管理・学習進捗</div>
+        <div class="teacher-title">🏫 スクールダッシュボード</div>
+        <div class="teacher-subtitle" id="teacherClassName">生徒管理・学習進捗</div>
       </div>
 
-      <!-- クラス概要サマリー -->
+      <!-- スクール概要サマリー -->
       <div class="teacher-summary-grid" id="teacherSummaryGrid">
         <!-- JSで動的にレンダリング -->
       </div>
@@ -731,9 +731,9 @@
       <!-- タブナビゲーション -->
       <div class="teacher-tabs" id="teacherTabs">
         <div class="teacher-tab active" data-tab="overview" onclick="showTeacherTab('overview', this)">📊 概要</div>
+        <div class="teacher-tab" data-tab="approvals" onclick="showTeacherTab('approvals', this)">✅ 承認</div>
         <div class="teacher-tab" data-tab="students" onclick="showTeacherTab('students', this)">👥 生徒</div>
         <div class="teacher-tab" data-tab="progress" onclick="showTeacherTab('progress', this)">📚 進捗</div>
-        <div class="teacher-tab" data-tab="gallery" onclick="showTeacherTab('gallery', this)">🎨 作品</div>
         <div class="teacher-tab" data-tab="assignments" onclick="showTeacherTab('assignments', this)">📝 課題</div>
       </div>
 
@@ -750,6 +750,20 @@
         <div class="teacher-card">
           <div class="teacher-card-header">📊 カテゴリ別達成率</div>
           <div class="teacher-card-body" id="teacherCategoryProgress"></div>
+        </div>
+      </div>
+
+      <!-- 承認タブ -->
+      <div id="teacherTabApprovals" class="teacher-tab-content">
+        <div class="teacher-card">
+          <div class="teacher-card-header">⏳ 承認待ち申請
+            <span id="pendingApprovalCount" style="background:var(--sunset);color:#fff;font-size:10px;padding:2px 8px;border-radius:10px;margin-left:8px">0件</span>
+          </div>
+          <div class="teacher-card-body" id="pendingApprovalList"></div>
+        </div>
+        <div class="teacher-card">
+          <div class="teacher-card-header">✅ 承認済み履歴</div>
+          <div class="teacher-card-body" id="approvedHistoryList"></div>
         </div>
       </div>
 
@@ -774,14 +788,6 @@
         <div class="teacher-card">
           <div class="teacher-card-header">❓ 難しかったトピック</div>
           <div class="teacher-card-body" id="teacherDifficultTopics"></div>
-        </div>
-      </div>
-
-      <!-- 作品タブ -->
-      <div id="teacherTabGallery" class="teacher-tab-content">
-        <div class="teacher-card">
-          <div class="teacher-card-header">🎨 探究成果ギャラリー</div>
-          <div class="teacher-card-body" id="teacherGallery"></div>
         </div>
       </div>
 
@@ -880,6 +886,17 @@
         </div>
       </div>
 
+      <div class="card" style="margin-bottom:12px" id="schoolCard">
+        <div class="card-header">🏫 スクール <span id="schoolStatus" style="font-size:11px;color:var(--rock);font-weight:400">未登録</span></div>
+        <div class="card-body">
+          <div id="schoolInfo"></div>
+          <div id="noSchool" style="text-align:center;color:var(--rock);font-size:12px;padding:20px">
+            スクールに参加すると、先生に学習進捗を共有できます
+            <button class="btn" style="margin-top:12px;background:var(--teacher);color:#fff;width:100%" onclick="openSchoolSelectModal()">🏫 スクールを選ぶ</button>
+          </div>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-header">📝 プロフィール設定</div>
         <div class="card-body">
@@ -954,7 +971,7 @@
       <div style="display:flex;flex-direction:column;gap:8px">
         <button class="btn" style="background:var(--meadow);color:#fff" onclick="switchMode('child')">👦 子どもモード</button>
         <button class="btn" style="background:var(--parent);color:#fff" onclick="switchMode('parent')">👨‍👩‍👧 保護者モード</button>
-        <button class="btn" style="background:var(--teacher);color:#fff" onclick="switchMode('teacher')">🏫 先生モード</button>
+        <button class="btn" style="background:var(--teacher);color:#fff" onclick="switchMode('teacher')">🏫 スクールモード</button>
         <button class="btn" style="background:var(--sponsor);color:#fff" onclick="switchMode('sponsor')">🎗️ スポンサーモード</button>
         <button class="btn" style="background:var(--admin);color:#fff" onclick="switchMode('admin')">⚙️ 管理者モード</button>
       </div>
@@ -1618,6 +1635,93 @@
     </div>
     <div class="modal-body" id="adminSlideViewContent" style="padding:0;overflow-y:auto;max-height:calc(90vh - 200px)">
       <!-- Google Slides埋め込みまたはクイズ -->
+    </div>
+  </div>
+</div>
+
+<!-- スクール選択モーダル -->
+<div class="modal-overlay" id="schoolSelectModal" onclick="if(event.target===this)closeModals()">
+  <div class="modal-box" style="max-width:420px">
+    <div class="modal-header" style="background:linear-gradient(135deg,var(--teacher),#6ee7b7)">
+      <div style="font-size:32px">🏫</div>
+      <div style="font-weight:700;margin-top:4px">スクールを選ぶ</div>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:13px;color:var(--rock);text-align:center;margin-bottom:16px">
+        参加したいスクールを選んでください
+      </div>
+      <div id="schoolList" style="display:flex;flex-direction:column;gap:10px"></div>
+      <button class="btn btn-secondary" style="width:100%;margin-top:16px" onclick="closeModals()">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<!-- スクール申請モーダル -->
+<div class="modal-overlay" id="schoolApplyModal" onclick="if(event.target===this)closeModals()">
+  <div class="modal-box" style="max-width:380px">
+    <div class="modal-header" id="schoolApplyHeader" style="background:linear-gradient(135deg,var(--teacher),#6ee7b7)">
+      <div style="font-size:32px" id="schoolApplyEmoji">🏫</div>
+      <div style="font-weight:700;margin-top:4px" id="schoolApplyName">スクール名</div>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:13px;color:var(--rock);text-align:center;margin-bottom:16px">
+        参加申請には以下の情報が必要です
+      </div>
+      <form id="schoolApplyForm" onsubmit="event.preventDefault();submitSchoolApplication()">
+        <input type="hidden" id="applySchoolId">
+
+        <div class="form-group">
+          <label class="form-label">📛 お名前（フルネーム）</label>
+          <input type="text" class="form-input" id="applyFullName" placeholder="例: 山田 太郎" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">🎂 生年月日</label>
+          <div style="display:flex;gap:8px">
+            <select class="form-select" id="applyBirthYear" required style="flex:2">
+              <option value="">年</option>
+            </select>
+            <select class="form-select" id="applyBirthMonth" required style="flex:1">
+              <option value="">月</option>
+            </select>
+            <select class="form-select" id="applyBirthDay" required style="flex:1">
+              <option value="">日</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="background:rgba(16,185,129,.1);border-radius:8px;padding:12px;margin-bottom:12px">
+          <div style="font-size:11px;color:var(--teacher);font-weight:700">📋 申請について</div>
+          <div style="font-size:11px;color:var(--rock);margin-top:4px">
+            申請後、スクールの管理者が承認すると参加できます。<br>
+            名前と生年月日は生徒管理に登録されます。
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width:100%;background:var(--teacher)">📤 申請する</button>
+        <button type="button" class="btn btn-secondary" style="width:100%;margin-top:8px" onclick="closeModals()">キャンセル</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 申請状況モーダル -->
+<div class="modal-overlay" id="schoolStatusModal" onclick="if(event.target===this)closeModals()">
+  <div class="modal-box" style="max-width:360px">
+    <div class="modal-header" style="background:linear-gradient(135deg,#f59e0b,#fbbf24)">
+      <div style="font-size:32px">⏳</div>
+      <div style="font-weight:700;margin-top:4px">申請中</div>
+    </div>
+    <div class="modal-body" style="text-align:center">
+      <div style="font-size:14px;color:var(--summit);margin-bottom:12px" id="pendingSchoolName">
+        スクール名
+      </div>
+      <div style="font-size:12px;color:var(--rock);margin-bottom:16px">
+        承認をお待ちください。<br>
+        承認されると自動的に参加となります。
+      </div>
+      <button class="btn" style="width:100%;background:#ef4444;color:#fff" onclick="cancelSchoolApplication()">申請をキャンセル</button>
+      <button class="btn btn-secondary" style="width:100%;margin-top:8px" onclick="closeModals()">閉じる</button>
     </div>
   </div>
 </div>

@@ -156,6 +156,24 @@ let currentSponsorMission = null;
 let currentSponsorMissionPage = 0;
 let currentSponsorMissionQuiz = { answers: [], currentQ: 0 };
 
+// ========================================
+// スクールシステム
+// ========================================
+// スクールマスターデータ
+let schoolsData = [];
+
+// 参加申請リスト（全ユーザーの申請を管理）
+// schoolApplications: [{ id, schoolId, userId, userName, fullName, birthDate, grade, region, appliedAt, status: 'pending'|'approved'|'rejected' }]
+let schoolApplications = JSON.parse(localStorage.getItem('sherupa_school_applications')) || [];
+
+// ユーザーのスクール参加状況
+// userSchool: { schoolId, status: 'pending'|'approved', appliedAt, approvedAt, fullName, birthDate }
+let userSchool = JSON.parse(localStorage.getItem('sherupa_user_school')) || null;
+
+// 承認済み生徒リスト（スクール側で管理）
+// schoolStudents: { [schoolId]: [{ userId, userName, fullName, birthDate, grade, region, approvedAt, progress, alt, lastActive }] }
+let schoolStudents = JSON.parse(localStorage.getItem('sherupa_school_students')) || {};
+
 // ユーザーIDの生成・取得
 if (!userProfile.id) {
   userProfile.id = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
@@ -178,14 +196,15 @@ let currentQuiz = {
 // ========================================
 async function loadData() {
   try {
-    const [config, categories, bookshelf, slides, mountains, badges, missions] = await Promise.all([
+    const [config, categories, bookshelf, slides, mountains, badges, missions, schools] = await Promise.all([
       fetch('data/config.json').then(r => r.json()),
       fetch('data/categories.json').then(r => r.json()),
       fetch('data/bookshelf.json').then(r => r.json()),
       fetch('data/slides.json').then(r => r.json()),
       fetch('data/mountains.json').then(r => r.json()),
       fetch('data/badges.json').then(r => r.json()),
-      fetch('data/missions.json').then(r => r.json())
+      fetch('data/missions.json').then(r => r.json()),
+      fetch('data/schools.json').then(r => r.json())
     ]);
 
     APP.config = config;
@@ -197,6 +216,7 @@ async function loadData() {
     APP.badges = badges.categories;
     APP.missions = missions;
     APP.loaded = true;
+    schoolsData = schools.schools;
 
     // スポンサー企業アカウントを初期化（各社3000ALT付与）
     initializeSponsorAccounts();
@@ -2072,6 +2092,9 @@ function renderProfile() {
 
   // 管理者スライドの完了情報を表示
   renderAdminSlideCompletions();
+
+  // スクールセクションを表示
+  renderSchoolSection();
 }
 
 // 管理者スライドの完了情報を表示
@@ -5157,13 +5180,13 @@ async function loadTeacherData() {
   }
 }
 
-// 先生ダッシュボードをレンダリング
+// スクールダッシュボードをレンダリング
 async function renderTeacherDashboard() {
   if (!teacherData) {
     await loadTeacherData();
   }
   if (!teacherData) {
-    toast('❌ 先生データの読み込みに失敗しました');
+    toast('❌ スクールデータの読み込みに失敗しました');
     return;
   }
 
@@ -5180,21 +5203,30 @@ function renderTeacherSummary() {
   const container = document.getElementById('teacherSummaryGrid');
   if (!container) return;
 
+  // 承認待ち件数を計算
+  const pendingCount = schoolApplications.filter(a => a.status === 'pending').length;
+
+  // 承認済み生徒数を計算
+  let approvedCount = 0;
+  for (const schoolId in schoolStudents) {
+    approvedCount += schoolStudents[schoolId].length;
+  }
+
   container.innerHTML = `
     <div class="teacher-summary-card">
       <div class="teacher-summary-icon">👥</div>
-      <div class="teacher-summary-value">${data.totalStudents}</div>
+      <div class="teacher-summary-value">${approvedCount || data.totalStudents}</div>
       <div class="teacher-summary-label">登録生徒</div>
+    </div>
+    <div class="teacher-summary-card" style="${pendingCount > 0 ? 'background:linear-gradient(135deg,#fef3c7,#fde68a)' : ''}">
+      <div class="teacher-summary-icon">⏳</div>
+      <div class="teacher-summary-value">${pendingCount}</div>
+      <div class="teacher-summary-label">承認待ち</div>
     </div>
     <div class="teacher-summary-card">
       <div class="teacher-summary-icon">📗</div>
       <div class="teacher-summary-value">${data.activeToday}</div>
       <div class="teacher-summary-label">今日の学習</div>
-    </div>
-    <div class="teacher-summary-card">
-      <div class="teacher-summary-icon">⏰</div>
-      <div class="teacher-summary-value">${data.avgLearningTime}分</div>
-      <div class="teacher-summary-label">平均学習</div>
     </div>
     <div class="teacher-summary-card">
       <div class="teacher-summary-icon">📊</div>
@@ -5237,14 +5269,15 @@ function showTeacherTab(tabId, element) {
     case 'overview':
       renderTeacherOverviewTab();
       break;
+    case 'approvals':
+      renderApprovalsTab();
+      break;
     case 'students':
       renderTeacherStudentsTab();
+      renderSchoolStudentsTab();
       break;
     case 'progress':
       renderTeacherProgressTab();
-      break;
-    case 'gallery':
-      renderTeacherGalleryTab();
       break;
     case 'assignments':
       renderTeacherAssignmentsTab();
@@ -7098,6 +7131,429 @@ function escapeHtml(text) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+// ========================================
+// スクールシステム関数
+// ========================================
+
+// プロフィール画面のスクールセクションを更新
+function renderSchoolSection() {
+  const schoolInfo = document.getElementById('schoolInfo');
+  const noSchool = document.getElementById('noSchool');
+  const schoolStatus = document.getElementById('schoolStatus');
+
+  if (!schoolInfo || !noSchool || !schoolStatus) return;
+
+  if (userSchool) {
+    const school = schoolsData.find(s => s.id === userSchool.schoolId);
+    if (school) {
+      noSchool.style.display = 'none';
+
+      if (userSchool.status === 'pending') {
+        schoolStatus.textContent = '申請中';
+        schoolStatus.style.color = '#f59e0b';
+        schoolInfo.innerHTML = `
+          <div style="display:flex;align-items:center;gap:12px;padding:12px;background:linear-gradient(135deg,rgba(245,158,11,.1),rgba(251,191,36,.1));border-radius:10px;cursor:pointer" onclick="openSchoolStatusModal()">
+            <div style="font-size:32px">${school.emoji}</div>
+            <div style="flex:1">
+              <div style="font-weight:700;color:var(--summit)">${school.name}</div>
+              <div style="font-size:11px;color:#f59e0b;margin-top:2px">⏳ 承認待ち</div>
+            </div>
+            <div style="font-size:20px;color:var(--rock)">→</div>
+          </div>
+        `;
+      } else if (userSchool.status === 'approved') {
+        schoolStatus.textContent = '参加中';
+        schoolStatus.style.color = 'var(--teacher)';
+        schoolInfo.innerHTML = `
+          <div style="display:flex;align-items:center;gap:12px;padding:12px;background:linear-gradient(135deg,rgba(16,185,129,.1),rgba(110,231,183,.1));border-radius:10px">
+            <div style="font-size:32px">${school.emoji}</div>
+            <div style="flex:1">
+              <div style="font-weight:700;color:var(--summit)">${school.name}</div>
+              <div style="font-size:11px;color:var(--teacher);margin-top:2px">✅ 参加中</div>
+            </div>
+          </div>
+          <button class="btn btn-secondary" style="width:100%;margin-top:8px;font-size:11px" onclick="leaveSchool()">退会する</button>
+        `;
+      }
+    }
+  } else {
+    schoolStatus.textContent = '未登録';
+    schoolStatus.style.color = 'var(--rock)';
+    noSchool.style.display = 'block';
+    schoolInfo.innerHTML = '';
+  }
+}
+
+// スクール選択モーダルを開く
+function openSchoolSelectModal() {
+  const schoolList = document.getElementById('schoolList');
+  if (!schoolList) return;
+
+  schoolList.innerHTML = schoolsData.map(school => `
+    <div style="display:flex;align-items:center;gap:12px;padding:14px;background:linear-gradient(145deg,#fff,#f9fafb);border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);cursor:pointer;transition:transform .2s" onclick="selectSchool('${school.id}')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+      <div style="width:48px;height:48px;background:linear-gradient(135deg,${school.color},${school.color}aa);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px">${school.emoji}</div>
+      <div style="flex:1">
+        <div style="font-weight:700;color:var(--summit)">${school.name}</div>
+        <div style="font-size:11px;color:var(--rock);margin-top:2px">${school.description}</div>
+        <div style="font-size:10px;color:var(--rock);margin-top:4px">📍 ${school.region}</div>
+      </div>
+      <div style="font-size:20px;color:var(--rock)">→</div>
+    </div>
+  `).join('');
+
+  document.getElementById('schoolSelectModal').style.display = 'flex';
+}
+
+// スクールを選択して申請モーダルを開く
+function selectSchool(schoolId) {
+  const school = schoolsData.find(s => s.id === schoolId);
+  if (!school) return;
+
+  document.getElementById('schoolSelectModal').style.display = 'none';
+
+  // 申請モーダルの設定
+  document.getElementById('applySchoolId').value = schoolId;
+  document.getElementById('schoolApplyName').textContent = school.name;
+  document.getElementById('schoolApplyEmoji').textContent = school.emoji;
+  document.getElementById('schoolApplyHeader').style.background = `linear-gradient(135deg,${school.color},${school.color}aa)`;
+
+  // 生年月日の選択肢を生成
+  const yearSelect = document.getElementById('applyBirthYear');
+  const monthSelect = document.getElementById('applyBirthMonth');
+  const daySelect = document.getElementById('applyBirthDay');
+
+  // 年の選択肢（2005年〜2020年）
+  yearSelect.innerHTML = '<option value="">年</option>';
+  for (let y = 2020; y >= 2005; y--) {
+    yearSelect.innerHTML += `<option value="${y}">${y}年</option>`;
+  }
+
+  // 月の選択肢
+  monthSelect.innerHTML = '<option value="">月</option>';
+  for (let m = 1; m <= 12; m++) {
+    monthSelect.innerHTML += `<option value="${m}">${m}月</option>`;
+  }
+
+  // 日の選択肢
+  daySelect.innerHTML = '<option value="">日</option>';
+  for (let d = 1; d <= 31; d++) {
+    daySelect.innerHTML += `<option value="${d}">${d}日</option>`;
+  }
+
+  // フォームをリセット
+  document.getElementById('applyFullName').value = '';
+  yearSelect.value = '';
+  monthSelect.value = '';
+  daySelect.value = '';
+
+  document.getElementById('schoolApplyModal').style.display = 'flex';
+}
+
+// スクール申請を送信
+function submitSchoolApplication() {
+  const schoolId = document.getElementById('applySchoolId').value;
+  const fullName = document.getElementById('applyFullName').value.trim();
+  const birthYear = document.getElementById('applyBirthYear').value;
+  const birthMonth = document.getElementById('applyBirthMonth').value;
+  const birthDay = document.getElementById('applyBirthDay').value;
+
+  if (!fullName) {
+    toast('お名前を入力してください');
+    return;
+  }
+  if (!birthYear || !birthMonth || !birthDay) {
+    toast('生年月日を選択してください');
+    return;
+  }
+
+  const birthDate = `${birthYear}-${String(birthMonth).padStart(2, '0')}-${String(birthDay).padStart(2, '0')}`;
+
+  // 申請を保存
+  const application = {
+    id: 'app_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+    schoolId: schoolId,
+    userId: userProfile.id,
+    userName: userProfile.name,
+    fullName: fullName,
+    birthDate: birthDate,
+    grade: userProfile.grade,
+    region: userProfile.region,
+    appliedAt: new Date().toISOString(),
+    status: 'pending'
+  };
+
+  schoolApplications.push(application);
+  localStorage.setItem('sherupa_school_applications', JSON.stringify(schoolApplications));
+
+  // ユーザーのスクール参加状況を保存
+  userSchool = {
+    schoolId: schoolId,
+    status: 'pending',
+    appliedAt: application.appliedAt,
+    fullName: fullName,
+    birthDate: birthDate
+  };
+  localStorage.setItem('sherupa_user_school', JSON.stringify(userSchool));
+
+  closeModals();
+  renderSchoolSection();
+  toast('🏫 申請を送信しました！承認をお待ちください');
+}
+
+// 申請状況モーダルを開く
+function openSchoolStatusModal() {
+  if (!userSchool) return;
+
+  const school = schoolsData.find(s => s.id === userSchool.schoolId);
+  if (school) {
+    document.getElementById('pendingSchoolName').textContent = `${school.emoji} ${school.name}`;
+  }
+
+  document.getElementById('schoolStatusModal').style.display = 'flex';
+}
+
+// 申請をキャンセル
+function cancelSchoolApplication() {
+  if (!confirm('申請をキャンセルしますか？')) return;
+
+  // 申請リストから削除
+  schoolApplications = schoolApplications.filter(
+    a => !(a.userId === userProfile.id && a.schoolId === userSchool.schoolId && a.status === 'pending')
+  );
+  localStorage.setItem('sherupa_school_applications', JSON.stringify(schoolApplications));
+
+  // ユーザーのスクール参加状況をクリア
+  userSchool = null;
+  localStorage.removeItem('sherupa_user_school');
+
+  closeModals();
+  renderSchoolSection();
+  toast('申請をキャンセルしました');
+}
+
+// スクールを退会
+function leaveSchool() {
+  if (!confirm('スクールを退会しますか？学習データは保持されます。')) return;
+
+  // 生徒リストから削除
+  if (userSchool && schoolStudents[userSchool.schoolId]) {
+    schoolStudents[userSchool.schoolId] = schoolStudents[userSchool.schoolId].filter(
+      s => s.userId !== userProfile.id
+    );
+    localStorage.setItem('sherupa_school_students', JSON.stringify(schoolStudents));
+  }
+
+  // ユーザーのスクール参加状況をクリア
+  userSchool = null;
+  localStorage.removeItem('sherupa_user_school');
+
+  renderSchoolSection();
+  toast('スクールを退会しました');
+}
+
+// ========================================
+// スクールダッシュボード（スクールモード）関数
+// ========================================
+
+// 承認タブをレンダリング
+function renderApprovalsTab() {
+  // 承認待ちの申請を取得
+  const pendingApplications = schoolApplications.filter(a => a.status === 'pending');
+  const pendingCount = document.getElementById('pendingApprovalCount');
+  const pendingList = document.getElementById('pendingApprovalList');
+  const approvedList = document.getElementById('approvedHistoryList');
+
+  if (pendingCount) pendingCount.textContent = `${pendingApplications.length}件`;
+
+  // 承認待ちリスト
+  if (pendingList) {
+    if (pendingApplications.length === 0) {
+      pendingList.innerHTML = '<div style="text-align:center;color:var(--rock);padding:20px;font-size:12px">承認待ちの申請はありません</div>';
+    } else {
+      pendingList.innerHTML = pendingApplications.map(app => {
+        const school = schoolsData.find(s => s.id === app.schoolId);
+        const appliedDate = new Date(app.appliedAt).toLocaleDateString('ja-JP');
+        const birthDate = new Date(app.birthDate).toLocaleDateString('ja-JP');
+        const gradeInfo = APP.config.grades.find(g => g.id === app.grade);
+        const gradeLabel = gradeInfo ? `${gradeInfo.emoji} ${gradeInfo.name}` : app.grade;
+
+        return `
+          <div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.08)">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+              <div>
+                <div style="font-weight:700;color:var(--summit);font-size:14px">${app.fullName}</div>
+                <div style="font-size:11px;color:var(--rock);margin-top:2px">ニックネーム: ${app.userName}</div>
+              </div>
+              <div style="font-size:10px;color:var(--rock)">${appliedDate} 申請</div>
+            </div>
+            <div style="display:flex;gap:16px;font-size:11px;color:var(--rock);margin-bottom:12px">
+              <div>🎂 ${birthDate}</div>
+              <div>${gradeLabel}</div>
+              <div>📍 ${app.region}</div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn" style="flex:1;background:var(--teacher);color:#fff;font-size:12px;padding:10px" onclick="approveApplication('${app.id}')">✅ 承認</button>
+              <button class="btn" style="flex:1;background:#ef4444;color:#fff;font-size:12px;padding:10px" onclick="rejectApplication('${app.id}')">❌ 却下</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  // 承認済み履歴（最近の承認）
+  if (approvedList) {
+    // 全スクールの承認済み生徒を収集
+    let allApproved = [];
+    for (const schoolId in schoolStudents) {
+      const students = schoolStudents[schoolId];
+      const school = schoolsData.find(s => s.id === schoolId);
+      students.forEach(s => {
+        allApproved.push({ ...s, schoolName: school?.name || 'Unknown' });
+      });
+    }
+
+    // 承認日時で降順ソート
+    allApproved.sort((a, b) => new Date(b.approvedAt) - new Date(a.approvedAt));
+    const recentApproved = allApproved.slice(0, 10);
+
+    if (recentApproved.length === 0) {
+      approvedList.innerHTML = '<div style="text-align:center;color:var(--rock);padding:20px;font-size:12px">まだ承認済みの生徒はいません</div>';
+    } else {
+      approvedList.innerHTML = recentApproved.map(student => {
+        const approvedDate = new Date(student.approvedAt).toLocaleDateString('ja-JP');
+        return `
+          <div style="display:flex;align-items:center;gap:12px;padding:10px;background:#f9fafb;border-radius:8px;margin-bottom:6px">
+            <div style="width:36px;height:36px;background:var(--teacher);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700">${student.fullName.charAt(0)}</div>
+            <div style="flex:1">
+              <div style="font-weight:600;font-size:12px;color:var(--summit)">${student.fullName}</div>
+              <div style="font-size:10px;color:var(--rock)">${approvedDate} 承認</div>
+            </div>
+            <div style="font-size:10px;color:var(--teacher)">✅</div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+}
+
+// 申請を承認
+function approveApplication(applicationId) {
+  const app = schoolApplications.find(a => a.id === applicationId);
+  if (!app) return;
+
+  // 申請ステータスを更新
+  app.status = 'approved';
+  localStorage.setItem('sherupa_school_applications', JSON.stringify(schoolApplications));
+
+  // 生徒リストに追加
+  if (!schoolStudents[app.schoolId]) {
+    schoolStudents[app.schoolId] = [];
+  }
+
+  schoolStudents[app.schoolId].push({
+    id: 'student_' + Date.now(),
+    userId: app.userId,
+    userName: app.userName,
+    fullName: app.fullName,
+    birthDate: app.birthDate,
+    grade: app.grade,
+    region: app.region,
+    approvedAt: new Date().toISOString(),
+    progress: 0,
+    alt: 0,
+    slidesCompleted: 0,
+    quizAvgScore: 0,
+    streak: 0,
+    lastActive: new Date().toISOString(),
+    status: 'active'
+  });
+  localStorage.setItem('sherupa_school_students', JSON.stringify(schoolStudents));
+
+  // 申請者のuserSchoolを更新（同じブラウザの場合のみ有効）
+  if (userSchool && userSchool.schoolId === app.schoolId && userProfile.id === app.userId) {
+    userSchool.status = 'approved';
+    userSchool.approvedAt = new Date().toISOString();
+    localStorage.setItem('sherupa_user_school', JSON.stringify(userSchool));
+    renderSchoolSection();
+  }
+
+  toast(`✅ ${app.fullName} さんを承認しました`);
+  renderApprovalsTab();
+  renderTeacherDashboard();
+}
+
+// 申請を却下
+function rejectApplication(applicationId) {
+  if (!confirm('この申請を却下しますか？')) return;
+
+  const app = schoolApplications.find(a => a.id === applicationId);
+  if (!app) return;
+
+  // 申請ステータスを更新
+  app.status = 'rejected';
+  localStorage.setItem('sherupa_school_applications', JSON.stringify(schoolApplications));
+
+  // 申請者のuserSchoolをクリア（同じブラウザの場合のみ有効）
+  if (userSchool && userSchool.schoolId === app.schoolId && userProfile.id === app.userId) {
+    userSchool = null;
+    localStorage.removeItem('sherupa_user_school');
+    renderSchoolSection();
+  }
+
+  toast(`${app.fullName} さんの申請を却下しました`);
+  renderApprovalsTab();
+}
+
+// スクールダッシュボードの生徒タブを更新
+function renderSchoolStudentsTab() {
+  const studentList = document.getElementById('teacherStudentList');
+  if (!studentList) return;
+
+  // 全スクールの生徒を収集
+  let allStudents = [];
+  for (const schoolId in schoolStudents) {
+    const students = schoolStudents[schoolId];
+    const school = schoolsData.find(s => s.id === schoolId);
+    students.forEach(s => {
+      allStudents.push({ ...s, schoolId, schoolName: school?.name || 'Unknown' });
+    });
+  }
+
+  if (allStudents.length === 0) {
+    studentList.innerHTML = '<div style="text-align:center;color:var(--rock);padding:20px;font-size:12px">まだ生徒が登録されていません<br>承認タブで申請を確認してください</div>';
+    return;
+  }
+
+  studentList.innerHTML = allStudents.map(student => {
+    const birthDate = new Date(student.birthDate).toLocaleDateString('ja-JP');
+    const lastActive = student.lastActive ? new Date(student.lastActive).toLocaleDateString('ja-JP') : '-';
+    const gradeInfo = APP.config.grades.find(g => g.id === student.grade);
+    const gradeEmoji = gradeInfo ? gradeInfo.emoji : '';
+
+    return `
+      <div class="student-row" style="display:flex;align-items:center;gap:12px;padding:12px;background:#fff;border-radius:10px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+        <div style="width:40px;height:40px;background:linear-gradient(135deg,var(--teacher),#6ee7b7);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px">${student.fullName.charAt(0)}</div>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-weight:700;color:var(--summit);font-size:13px">${student.fullName}</span>
+            <span style="font-size:11px;color:var(--rock)">(${student.userName})</span>
+          </div>
+          <div style="display:flex;gap:12px;font-size:10px;color:var(--rock);margin-top:4px">
+            <span>${gradeEmoji} ${student.grade === 'lower' ? '低学年' : student.grade === 'middle' ? '中学年' : '高学年'}</span>
+            <span>🎂 ${birthDate}</span>
+            <span>📍 ${student.region}</span>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:12px;font-weight:700;color:var(--meadow)">⛰️ ${student.alt || 0}</div>
+          <div style="font-size:9px;color:var(--rock)">最終: ${lastActive}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
 // ========================================

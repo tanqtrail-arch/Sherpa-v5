@@ -68,7 +68,7 @@
   "roles": {
     "child": { "name": "子ども", "emoji": "👦", "color": "meadow" },
     "parent": { "name": "保護者", "emoji": "👨‍👩‍👧", "color": "parent" },
-    "teacher": { "name": "先生", "emoji": "🏫", "color": "teacher" },
+    "teacher": { "name": "スクール", "emoji": "🏫", "color": "teacher" },
     "sponsor": { "name": "スポンサー", "emoji": "🎗️", "color": "sunrise" },
     "admin": { "name": "管理者", "emoji": "⚙️", "color": "admin" }
   }
