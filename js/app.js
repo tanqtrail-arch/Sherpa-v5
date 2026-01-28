@@ -194,6 +194,14 @@ let currentQuiz = {
   answered: false
 };
 
+// 動画視聴状態
+let currentVideo = null;
+let videoWatchTimer = null;
+let videoWatchedSeconds = 0;
+let videoRequiredSeconds = 30; // 視聴完了に必要な最低秒数
+let videoReactions = JSON.parse(localStorage.getItem('sherupa_video_reactions')) || {};
+let completedVideos = JSON.parse(localStorage.getItem('sherupa_completed_videos')) || [];
+
 // ========================================
 // データ読み込み
 // ========================================
@@ -840,13 +848,337 @@ function closeBookshelfSmall() {
 }
 
 function openTheme(categoryId, subcategoryId, themeId) {
-  // テーマに関連するスライドを表示
+  // テーマに関連するスライドを動画一覧として表示
+  const shelf = APP.bookshelf.find(s => s.categoryId === categoryId);
+  const sub = shelf?.subcategories?.find(s => s.id === subcategoryId);
+  const theme = sub?.themes?.find(t => t.id === themeId);
+  const category = APP.categories.find(c => c.id === categoryId);
   const themeSlides = APP.slides.filter(s => s.themeId === themeId);
 
+  // ヘッダー設定
+  const header = document.getElementById('themeVideoHeader');
+  header.style.background = `linear-gradient(135deg, ${category?.colorGradient?.[0] || '#3b82f6'}, ${category?.colorGradient?.[1] || '#60a5fa'})`;
+  document.getElementById('themeVideoEmoji').textContent = theme?.emoji || '📚';
+  document.getElementById('themeVideoTitle').textContent = theme?.name || 'テーマ';
+  document.getElementById('themeVideoSub').textContent = `${themeSlides.length}件のコンテンツ`;
+
+  const listEl = document.getElementById('themeVideoList');
+  const emptyEl = document.getElementById('themeVideoEmpty');
+
   if (themeSlides.length > 0) {
-    openSlide(themeSlides[0].id);
+    listEl.style.display = '';
+    emptyEl.style.display = 'none';
+    listEl.innerHTML = themeSlides.map((slide, idx) => {
+      const isDone = completedSlides.includes(slide.id);
+      const hasVideo = slide.videoUrl;
+      const icon = hasVideo ? '🎬' : '📖';
+      const typeLabel = hasVideo ? '動画' : 'スライド';
+      return `
+        <div class="theme-video-item ${isDone ? 'done' : ''}" onclick="openSlideFromTheme('${slide.id}')">
+          <div class="theme-video-item-num">${idx + 1}</div>
+          <div class="theme-video-item-icon">${icon}</div>
+          <div class="theme-video-item-info">
+            <div class="theme-video-item-title">${slide.title}</div>
+            <div class="theme-video-item-meta">
+              <span class="theme-video-item-type">${typeLabel}</span>
+              <span>${slide.pages?.length || 0}ページ</span>
+              <span>+${slide.reward} ALT</span>
+            </div>
+          </div>
+          <div class="theme-video-item-status">
+            ${isDone ? '<span class="theme-video-done-badge">済</span>' : '<span class="theme-video-play-btn">▶</span>'}
+          </div>
+        </div>
+      `;
+    }).join('');
   } else {
-    toast('📚 このテーマのコンテンツは準備中です');
+    listEl.style.display = 'none';
+    emptyEl.style.display = '';
+  }
+
+  // NotebookLMリンクがあれば表示
+  if (sub?.notebookUrl) {
+    listEl.innerHTML += `
+      <div class="theme-video-item notebook-item" onclick="window.open('${sub.notebookUrl}', '_blank')">
+        <div class="theme-video-item-num">+</div>
+        <div class="theme-video-item-icon">🧠</div>
+        <div class="theme-video-item-info">
+          <div class="theme-video-item-title">NotebookLMで深掘り</div>
+          <div class="theme-video-item-meta">
+            <span class="theme-video-item-type">AI学習</span>
+            <span>外部リンク</span>
+          </div>
+        </div>
+        <div class="theme-video-item-status">
+          <span class="theme-video-play-btn">↗</span>
+        </div>
+      </div>
+    `;
+  }
+
+  document.getElementById('themeVideoModal').classList.add('active');
+}
+
+function openSlideFromTheme(slideId) {
+  const slide = APP.slides.find(s => s.id === slideId);
+  if (!slide) return;
+
+  // テーマ動画一覧モーダルを閉じる
+  document.getElementById('themeVideoModal').classList.remove('active');
+
+  // 動画URLがある場合は動画プレーヤーを開く
+  if (slide.videoUrl) {
+    openVideoPlayer(slideId);
+  } else {
+    openSlide(slideId);
+  }
+}
+
+function closeThemeVideoModal() {
+  document.getElementById('themeVideoModal').classList.remove('active');
+}
+
+// ========================================
+// 動画プレーヤー
+// ========================================
+function openVideoPlayer(slideId) {
+  const slide = APP.slides.find(s => s.id === slideId);
+  if (!slide) return;
+
+  currentVideo = slide;
+  videoWatchedSeconds = 0;
+
+  const category = APP.categories.find(c => c.id === slide.category);
+  const isCompleted = completedVideos.includes(slide.id);
+
+  // ヘッダー設定
+  const header = document.getElementById('videoPlayerHeader');
+  header.style.background = `linear-gradient(135deg, ${category?.colorGradient?.[0] || '#3b82f6'}, ${category?.colorGradient?.[1] || '#60a5fa'})`;
+  document.getElementById('videoPlayerEmoji').textContent = slide.emoji;
+  document.getElementById('videoPlayerTitle').textContent = slide.title;
+  document.getElementById('videoRewardAmount').textContent = slide.reward;
+  document.getElementById('videoRequiredTime').textContent = videoRequiredSeconds;
+
+  // 動画埋め込み (YouTube対応)
+  const placeholder = document.getElementById('videoPlayerPlaceholder');
+  const iframe = document.getElementById('videoPlayerIframe');
+
+  if (slide.videoUrl && slide.videoUrl.includes('youtube.com')) {
+    // YouTube動画
+    const videoId = extractYouTubeId(slide.videoUrl);
+    if (videoId) {
+      iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+      iframe.style.display = 'block';
+      placeholder.style.display = 'none';
+    }
+  } else if (slide.videoUrl) {
+    // その他の動画URL (デモ用プレースホルダー)
+    placeholder.innerHTML = `
+      <div style="font-size:64px">🎬</div>
+      <div style="margin-top:8px;font-size:14px;color:var(--summit)">${slide.title}</div>
+      <div style="margin-top:4px;font-size:11px;color:var(--rock)">動画を視聴中...</div>
+    `;
+    placeholder.style.display = 'flex';
+    iframe.style.display = 'none';
+  }
+
+  // リアクション表示
+  loadVideoReactions(slide.id);
+
+  // 視聴完了状態リセット
+  updateVideoProgress(0);
+
+  // 完了ボタン状態
+  const lockedEl = document.getElementById('videoCompleteLocked');
+  const completeBtn = document.getElementById('videoCompleteBtn');
+  const alreadyDone = document.getElementById('videoAlreadyDone');
+
+  if (isCompleted) {
+    lockedEl.style.display = 'none';
+    completeBtn.style.display = 'none';
+    alreadyDone.style.display = 'flex';
+  } else {
+    lockedEl.style.display = 'flex';
+    completeBtn.style.display = 'none';
+    alreadyDone.style.display = 'none';
+  }
+
+  // モーダル表示
+  document.getElementById('videoPlayerModal').classList.add('active');
+
+  // 視聴タイマー開始 (未完了の場合のみ)
+  if (!isCompleted) {
+    startVideoWatchTimer();
+  }
+}
+
+function extractYouTubeId(url) {
+  const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\?]+)/);
+  return match ? match[1] : null;
+}
+
+function startVideoWatchTimer() {
+  // 既存タイマーをクリア
+  if (videoWatchTimer) {
+    clearInterval(videoWatchTimer);
+  }
+
+  videoWatchedSeconds = 0;
+
+  videoWatchTimer = setInterval(() => {
+    videoWatchedSeconds++;
+    const progress = Math.min((videoWatchedSeconds / videoRequiredSeconds) * 100, 100);
+    updateVideoProgress(progress);
+
+    // 必要時間に達したら完了ボタン表示
+    if (videoWatchedSeconds >= videoRequiredSeconds) {
+      showVideoCompleteButton();
+      clearInterval(videoWatchTimer);
+      videoWatchTimer = null;
+    }
+  }, 1000);
+}
+
+function updateVideoProgress(progress) {
+  document.getElementById('videoProgressFill').style.width = `${progress}%`;
+
+  if (progress >= 100) {
+    document.getElementById('videoProgressText').textContent = '✅ 視聴完了条件クリア！';
+  } else {
+    const remaining = videoRequiredSeconds - videoWatchedSeconds;
+    document.getElementById('videoProgressText').textContent = `視聴中: ${Math.floor(progress)}% (あと${remaining}秒)`;
+  }
+}
+
+function showVideoCompleteButton() {
+  document.getElementById('videoCompleteLocked').style.display = 'none';
+  document.getElementById('videoCompleteBtn').style.display = 'flex';
+}
+
+function completeVideoWatching() {
+  if (!currentVideo) return;
+
+  const slide = currentVideo;
+
+  // 既に完了済みチェック
+  if (completedVideos.includes(slide.id)) {
+    toast('この動画は既に視聴完了しています');
+    return;
+  }
+
+  // 視聴時間チェック (不正防止)
+  if (videoWatchedSeconds < videoRequiredSeconds) {
+    toast('まだ視聴時間が足りません', 'error');
+    return;
+  }
+
+  // 完了登録
+  completedVideos.push(slide.id);
+  localStorage.setItem('sherupa_completed_videos', JSON.stringify(completedVideos));
+
+  // スライド完了にも追加 (重複チェック)
+  if (!completedSlides.includes(slide.id)) {
+    completedSlides.push(slide.id);
+    localStorage.setItem('sherupa_s', JSON.stringify(completedSlides));
+  }
+
+  // ALT報酬
+  userProfile.alt += slide.reward;
+  saveProfile();
+
+  // UI更新
+  document.getElementById('videoCompleteBtn').style.display = 'none';
+  document.getElementById('videoAlreadyDone').style.display = 'flex';
+
+  // エフェクト
+  toast(`🎉 +${slide.reward} ALT獲得！`, 'success');
+
+  // ホーム画面更新
+  updateUI();
+}
+
+function closeVideoPlayer() {
+  // タイマー停止
+  if (videoWatchTimer) {
+    clearInterval(videoWatchTimer);
+    videoWatchTimer = null;
+  }
+
+  // 動画停止 (iframe src クリア)
+  const iframe = document.getElementById('videoPlayerIframe');
+  iframe.src = '';
+
+  currentVideo = null;
+  document.getElementById('videoPlayerModal').classList.remove('active');
+}
+
+// ========================================
+// 動画リアクション (いいね)
+// ========================================
+function loadVideoReactions(videoId) {
+  const reactions = videoReactions[videoId] || { understand: 0, fun: 0, surprise: 0, more: 0 };
+  const userReaction = localStorage.getItem(`sherupa_vr_${videoId}`);
+
+  document.getElementById('reaction-understand').textContent = reactions.understand;
+  document.getElementById('reaction-fun').textContent = reactions.fun;
+  document.getElementById('reaction-surprise').textContent = reactions.surprise;
+  document.getElementById('reaction-more').textContent = reactions.more;
+
+  // ユーザーが既にリアクション済みかチェック
+  document.querySelectorAll('.video-reaction-btn').forEach(btn => {
+    btn.classList.remove('reacted');
+    if (userReaction && btn.dataset.reaction === userReaction) {
+      btn.classList.add('reacted');
+    }
+  });
+}
+
+function addVideoReaction(reactionType) {
+  if (!currentVideo) return;
+
+  const videoId = currentVideo.id;
+  const prevReaction = localStorage.getItem(`sherupa_vr_${videoId}`);
+
+  // 初期化
+  if (!videoReactions[videoId]) {
+    videoReactions[videoId] = { understand: 0, fun: 0, surprise: 0, more: 0 };
+  }
+
+  // 既に同じリアクションなら取り消し
+  if (prevReaction === reactionType) {
+    videoReactions[videoId][reactionType] = Math.max(0, videoReactions[videoId][reactionType] - 1);
+    localStorage.removeItem(`sherupa_vr_${videoId}`);
+    document.querySelector(`[data-reaction="${reactionType}"]`).classList.remove('reacted');
+  } else {
+    // 前のリアクションがあれば取り消し
+    if (prevReaction) {
+      videoReactions[videoId][prevReaction] = Math.max(0, videoReactions[videoId][prevReaction] - 1);
+      document.querySelector(`[data-reaction="${prevReaction}"]`).classList.remove('reacted');
+    }
+
+    // 新しいリアクション追加
+    videoReactions[videoId][reactionType]++;
+    localStorage.setItem(`sherupa_vr_${videoId}`, reactionType);
+    document.querySelector(`[data-reaction="${reactionType}"]`).classList.add('reacted');
+
+    // プチエフェクト
+    toast(getReactionMessage(reactionType));
+  }
+
+  // 保存
+  localStorage.setItem('sherupa_video_reactions', JSON.stringify(videoReactions));
+
+  // UI更新
+  loadVideoReactions(videoId);
+}
+
+function getReactionMessage(type) {
+  switch (type) {
+    case 'understand': return '💡 わかった！';
+    case 'fun': return '😊 たのしい！';
+    case 'surprise': return '😲 びっくり！';
+    case 'more': return '🔥 もっと知りたい！';
+    default: return '👍';
   }
 }
 
