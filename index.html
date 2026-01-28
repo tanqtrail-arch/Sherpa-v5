@@ -1062,6 +1062,77 @@
   </div>
 </div>
 
+<!-- 動画プレーヤーモーダル -->
+<div class="modal-overlay" id="videoPlayerModal" onclick="if(event.target===this)closeVideoPlayer()">
+  <div class="modal-box video-player-modal">
+    <div class="modal-header" id="videoPlayerHeader">
+      <div style="font-size:32px" id="videoPlayerEmoji">🎬</div>
+      <div style="font-weight:700;margin-top:4px;font-size:16px" id="videoPlayerTitle">動画タイトル</div>
+    </div>
+    <div class="modal-body" style="padding:0">
+      <!-- 動画エリア -->
+      <div id="videoPlayerContainer" class="video-player-container">
+        <div id="videoPlayerPlaceholder" class="video-placeholder">
+          <div style="font-size:64px">🎬</div>
+          <div style="margin-top:8px;font-size:14px">動画を読み込み中...</div>
+        </div>
+        <iframe id="videoPlayerIframe" class="video-iframe" style="display:none" allowfullscreen></iframe>
+      </div>
+
+      <!-- 視聴進捗バー -->
+      <div class="video-progress-container">
+        <div class="video-progress-bar">
+          <div class="video-progress-fill" id="videoProgressFill" style="width:0%"></div>
+        </div>
+        <div class="video-progress-text" id="videoProgressText">視聴中: 0%</div>
+      </div>
+
+      <!-- リアクション(いいね)エリア -->
+      <div class="video-reactions" id="videoReactions">
+        <div class="video-reaction-title">この動画どうだった？</div>
+        <div class="video-reaction-buttons">
+          <button class="video-reaction-btn" data-reaction="understand" onclick="addVideoReaction('understand')">
+            <span class="reaction-emoji">💡</span>
+            <span class="reaction-label">わかった！</span>
+            <span class="reaction-count" id="reaction-understand">0</span>
+          </button>
+          <button class="video-reaction-btn" data-reaction="fun" onclick="addVideoReaction('fun')">
+            <span class="reaction-emoji">😊</span>
+            <span class="reaction-label">たのしい！</span>
+            <span class="reaction-count" id="reaction-fun">0</span>
+          </button>
+          <button class="video-reaction-btn" data-reaction="surprise" onclick="addVideoReaction('surprise')">
+            <span class="reaction-emoji">😲</span>
+            <span class="reaction-label">びっくり！</span>
+            <span class="reaction-count" id="reaction-surprise">0</span>
+          </button>
+          <button class="video-reaction-btn" data-reaction="more" onclick="addVideoReaction('more')">
+            <span class="reaction-emoji">🔥</span>
+            <span class="reaction-label">もっと知りたい！</span>
+            <span class="reaction-count" id="reaction-more">0</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 視聴完了ボタンエリア -->
+      <div class="video-complete-area" id="videoCompleteArea">
+        <div class="video-complete-locked" id="videoCompleteLocked">
+          <div class="locked-icon">🔒</div>
+          <div class="locked-text">動画を<span id="videoRequiredTime">30</span>秒以上視聴すると完了できます</div>
+        </div>
+        <button class="btn video-complete-btn" id="videoCompleteBtn" style="display:none" onclick="completeVideoWatching()">
+          <span>🎉 視聴完了！ +<span id="videoRewardAmount">15</span> ALT</span>
+        </button>
+        <div class="video-already-done" id="videoAlreadyDone" style="display:none">
+          <span>✅ 視聴済み</span>
+        </div>
+      </div>
+
+      <button class="btn btn-secondary" style="margin:12px 16px 16px;width:calc(100% - 32px)" onclick="closeVideoPlayer()">← 戻る</button>
+    </div>
+  </div>
+</div>
+
 <!-- スライドモーダル -->
 <div class="modal-overlay" id="slideModal" onclick="if(event.target===this)closeModals()">
   <div class="modal-box slide-modal">

@@ -835,6 +835,185 @@ main {
 }
 
 /* ========================================
+   動画プレーヤーモーダル
+   ======================================== */
+.video-player-modal {
+  max-width: 460px;
+}
+
+.video-player-container {
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #000;
+  position: relative;
+}
+
+.video-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  color: #fff;
+}
+
+.video-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.video-progress-container {
+  padding: 12px 16px;
+  background: var(--cloud);
+}
+
+.video-progress-bar {
+  height: 8px;
+  background: #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.video-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--meadow), #34d399);
+  border-radius: 4px;
+  transition: width .3s ease;
+}
+
+.video-progress-text {
+  font-size: 11px;
+  color: var(--rock);
+  margin-top: 6px;
+  text-align: center;
+}
+
+/* リアクションエリア */
+.video-reactions {
+  padding: 12px 16px;
+  background: #fff;
+  border-top: 1px solid #eee;
+}
+
+.video-reaction-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--summit);
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.video-reaction-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.video-reaction-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px;
+  background: var(--cloud);
+  border: 2px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all .2s;
+}
+
+.video-reaction-btn:hover {
+  background: #dce6f0;
+  transform: translateY(-2px);
+}
+
+.video-reaction-btn.reacted {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border-color: #f59e0b;
+}
+
+.video-reaction-btn .reaction-emoji {
+  font-size: 20px;
+}
+
+.video-reaction-btn .reaction-label {
+  font-size: 9px;
+  color: var(--summit);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.video-reaction-btn .reaction-count {
+  font-size: 10px;
+  color: var(--rock);
+  font-weight: 700;
+}
+
+/* 視聴完了エリア */
+.video-complete-area {
+  padding: 16px;
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+  border-top: 1px solid #bbf7d0;
+}
+
+.video-complete-locked {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+  background: rgba(0,0,0,.05);
+  border-radius: 8px;
+}
+
+.video-complete-locked .locked-icon {
+  font-size: 18px;
+}
+
+.video-complete-locked .locked-text {
+  font-size: 11px;
+  color: var(--rock);
+}
+
+.video-complete-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #10b981, #34d399);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  padding: 14px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulse-glow 1.5s infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+  50% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+}
+
+.video-complete-btn:hover {
+  transform: scale(1.02);
+}
+
+.video-already-done {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  background: rgba(100, 116, 139, 0.1);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--rock);
+}
+
+/* ========================================
    スライドモーダル
    ======================================== */
 .slide-modal {
