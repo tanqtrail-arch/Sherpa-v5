@@ -840,14 +840,85 @@ function closeBookshelfSmall() {
 }
 
 function openTheme(categoryId, subcategoryId, themeId) {
-  // テーマに関連するスライドを表示
+  // テーマに関連するスライドを動画一覧として表示
+  const shelf = APP.bookshelf.find(s => s.categoryId === categoryId);
+  const sub = shelf?.subcategories?.find(s => s.id === subcategoryId);
+  const theme = sub?.themes?.find(t => t.id === themeId);
+  const category = APP.categories.find(c => c.id === categoryId);
   const themeSlides = APP.slides.filter(s => s.themeId === themeId);
 
+  // ヘッダー設定
+  const header = document.getElementById('themeVideoHeader');
+  header.style.background = `linear-gradient(135deg, ${category?.colorGradient?.[0] || '#3b82f6'}, ${category?.colorGradient?.[1] || '#60a5fa'})`;
+  document.getElementById('themeVideoEmoji').textContent = theme?.emoji || '📚';
+  document.getElementById('themeVideoTitle').textContent = theme?.name || 'テーマ';
+  document.getElementById('themeVideoSub').textContent = `${themeSlides.length}件のコンテンツ`;
+
+  const listEl = document.getElementById('themeVideoList');
+  const emptyEl = document.getElementById('themeVideoEmpty');
+
   if (themeSlides.length > 0) {
-    openSlide(themeSlides[0].id);
+    listEl.style.display = '';
+    emptyEl.style.display = 'none';
+    listEl.innerHTML = themeSlides.map((slide, idx) => {
+      const isDone = completedSlides.includes(slide.id);
+      const hasVideo = slide.videoUrl;
+      const icon = hasVideo ? '🎬' : '📖';
+      const typeLabel = hasVideo ? '動画' : 'スライド';
+      return `
+        <div class="theme-video-item ${isDone ? 'done' : ''}" onclick="openSlideFromTheme('${slide.id}')">
+          <div class="theme-video-item-num">${idx + 1}</div>
+          <div class="theme-video-item-icon">${icon}</div>
+          <div class="theme-video-item-info">
+            <div class="theme-video-item-title">${slide.title}</div>
+            <div class="theme-video-item-meta">
+              <span class="theme-video-item-type">${typeLabel}</span>
+              <span>${slide.pages?.length || 0}ページ</span>
+              <span>+${slide.reward} ALT</span>
+            </div>
+          </div>
+          <div class="theme-video-item-status">
+            ${isDone ? '<span class="theme-video-done-badge">済</span>' : '<span class="theme-video-play-btn">▶</span>'}
+          </div>
+        </div>
+      `;
+    }).join('');
   } else {
-    toast('📚 このテーマのコンテンツは準備中です');
+    listEl.style.display = 'none';
+    emptyEl.style.display = '';
   }
+
+  // NotebookLMリンクがあれば表示
+  if (sub?.notebookUrl) {
+    listEl.innerHTML += `
+      <div class="theme-video-item notebook-item" onclick="window.open('${sub.notebookUrl}', '_blank')">
+        <div class="theme-video-item-num">+</div>
+        <div class="theme-video-item-icon">🧠</div>
+        <div class="theme-video-item-info">
+          <div class="theme-video-item-title">NotebookLMで深掘り</div>
+          <div class="theme-video-item-meta">
+            <span class="theme-video-item-type">AI学習</span>
+            <span>外部リンク</span>
+          </div>
+        </div>
+        <div class="theme-video-item-status">
+          <span class="theme-video-play-btn">↗</span>
+        </div>
+      </div>
+    `;
+  }
+
+  document.getElementById('themeVideoModal').classList.add('active');
+}
+
+function openSlideFromTheme(slideId) {
+  // テーマ動画一覧モーダルを閉じてからスライドを開く
+  document.getElementById('themeVideoModal').classList.remove('active');
+  openSlide(slideId);
+}
+
+function closeThemeVideoModal() {
+  document.getElementById('themeVideoModal').classList.remove('active');
 }
 
 // ========================================
