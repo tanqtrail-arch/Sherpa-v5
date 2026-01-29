@@ -210,7 +210,42 @@
 
     <!-- 本棚画面 -->
     <div id="screen-bookshelf" class="screen">
-      <div class="section-title" style="color:#fff">📚 学びの本棚<span class="free-tag">タップして中を見よう</span></div>
+      <div class="section-title" style="color:#fff">📚 学びの本棚<span class="free-tag">ドリル＆テキスト</span></div>
+
+      <!-- 統計ヘッダー -->
+      <div class="mybooks-stats-header">
+        <div class="mybooks-stat-item">
+          <div class="mybooks-stat-value" id="mybooksTotalCount">0</div>
+          <div class="mybooks-stat-label">登録した本</div>
+        </div>
+        <div class="mybooks-stat-item">
+          <div class="mybooks-stat-value" id="mybooksCompletedCount">0</div>
+          <div class="mybooks-stat-label">完了した本</div>
+        </div>
+        <div class="mybooks-stat-item">
+          <div class="mybooks-stat-value" id="mybooksTotalPages">0</div>
+          <div class="mybooks-stat-label">学習ページ</div>
+        </div>
+      </div>
+
+      <!-- 本を追加ボタン -->
+      <button class="mybooks-add-btn" onclick="openAddBookModal()">
+        <span class="mybooks-add-icon">📕</span>
+        <span class="mybooks-add-text">新しい本を追加する</span>
+      </button>
+
+      <!-- 科目別本棚 -->
+      <div id="mybooksShelvesContainer"></div>
+
+      <!-- 本がない場合の表示 -->
+      <div id="mybooksEmptyState" class="mybooks-empty-state" style="display:none">
+        <div class="mybooks-empty-icon">📚</div>
+        <div class="mybooks-empty-title">まだ本がありません</div>
+        <div class="mybooks-empty-text">取り組んでいるドリルやテキストを<br>追加してみよう！</div>
+      </div>
+
+      <!-- テーマコンテンツタブ（既存機能） -->
+      <div class="section-title" style="color:#fff;margin-top:24px">🎬 テーマコンテンツ<span class="free-tag">動画＆スライド</span></div>
 
       <!-- 大カテゴリ本棚 -->
       <div id="bookshelfMain"></div>
@@ -622,6 +657,12 @@
         </div>
         <!-- 日記セクション -->
         <div id="parentDiarySection"></div>
+
+        <!-- 本棚セクション -->
+        <div class="parent-card">
+          <div class="parent-card-header">📚 学びの本棚</div>
+          <div class="parent-card-body" id="parentBooksSection"></div>
+        </div>
       </div>
 
       <!-- 学習進捗タブ -->
@@ -1038,6 +1079,137 @@
         <button class="btn" style="background:var(--admin);color:#fff" onclick="switchMode('admin')">⚙️ 管理者モード</button>
       </div>
       <button class="btn btn-secondary" style="margin-top:16px" onclick="closeModals()">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<!-- 本の追加モーダル -->
+<div class="modal-overlay" id="addBookModal" onclick="if(event.target===this)closeAddBookModal()">
+  <div class="modal-box mybook-add-modal">
+    <div class="modal-header" style="background:linear-gradient(135deg,#2d8659,#1e5142)">
+      <div style="font-size:48px">📕</div>
+      <div style="font-weight:700;margin-top:8px;font-size:18px">新しい本を追加</div>
+      <div style="font-size:12px;opacity:.8;margin-top:4px">ドリルやテキストを登録しよう</div>
+    </div>
+    <div class="modal-body">
+      <!-- 表紙写真 -->
+      <div class="mybook-form-section">
+        <label class="mybook-form-label">📷 表紙の写真</label>
+        <div class="mybook-cover-upload" id="mybookCoverUpload" onclick="triggerBookCoverInput()">
+          <div class="mybook-cover-preview" id="mybookCoverPreview" style="display:none">
+            <img id="mybookCoverImage" src="" alt="表紙">
+            <button class="mybook-cover-remove" onclick="event.stopPropagation();removeBookCover()">×</button>
+          </div>
+          <div class="mybook-cover-placeholder" id="mybookCoverPlaceholder">
+            <div style="font-size:36px">📷</div>
+            <div style="font-size:12px;margin-top:4px">タップして撮影・選択</div>
+          </div>
+        </div>
+        <input type="file" id="mybookCoverInput" accept="image/*" capture="environment" style="display:none" onchange="handleBookCoverSelect(event)">
+      </div>
+
+      <!-- タイトル -->
+      <div class="mybook-form-section">
+        <label class="mybook-form-label">📝 タイトル</label>
+        <input type="text" id="mybookTitle" class="mybook-form-input" placeholder="例: 計算ドリル3年生" maxlength="50">
+      </div>
+
+      <!-- 科目 -->
+      <div class="mybook-form-section">
+        <label class="mybook-form-label">📚 科目</label>
+        <div class="mybook-subject-picker" id="mybookSubjectPicker"></div>
+      </div>
+
+      <!-- 絵文字 -->
+      <div class="mybook-form-section">
+        <label class="mybook-form-label">🎨 アイコン</label>
+        <div class="mybook-emoji-picker" id="mybookEmojiPicker"></div>
+      </div>
+
+      <!-- ページ数 -->
+      <div class="mybook-form-section">
+        <label class="mybook-form-label">📄 全ページ数</label>
+        <input type="number" id="mybookTotalPages" class="mybook-form-input" placeholder="例: 100" min="1" max="1000">
+      </div>
+
+      <!-- ボタン -->
+      <div class="mybook-form-buttons">
+        <button class="btn btn-secondary" onclick="closeAddBookModal()">キャンセル</button>
+        <button class="btn btn-primary" onclick="saveNewBook()">📚 登録する</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 本の詳細モーダル -->
+<div class="modal-overlay" id="bookDetailModal" onclick="if(event.target===this)closeBookDetailModal()">
+  <div class="modal-box mybook-detail-modal">
+    <div class="modal-header" id="bookDetailHeader" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)">
+      <div class="mybook-detail-cover" id="bookDetailCover">
+        <img id="bookDetailCoverImage" src="" alt="表紙" style="display:none">
+        <div id="bookDetailCoverEmoji" style="font-size:64px">📕</div>
+      </div>
+      <div style="font-weight:700;margin-top:8px;font-size:18px" id="bookDetailTitle">本のタイトル</div>
+      <div style="font-size:12px;opacity:.8;margin-top:4px" id="bookDetailSubject">科目</div>
+    </div>
+    <div class="modal-body">
+      <!-- 進捗 -->
+      <div class="mybook-detail-progress-section">
+        <div class="mybook-detail-progress-label">
+          <span>📖 進捗</span>
+          <span id="bookDetailProgressText">0 / 100 ページ</span>
+        </div>
+        <div class="mybook-detail-progress-bar">
+          <div class="mybook-detail-progress-fill" id="bookDetailProgressFill" style="width:0%"></div>
+        </div>
+        <input type="range" id="bookDetailProgressSlider" class="mybook-progress-slider" min="0" max="100" value="0" oninput="updateBookProgress(this.value)">
+        <div class="mybook-progress-hint">スライダーを動かして今どこまでやったか記録しよう</div>
+      </div>
+
+      <!-- 気持ちスタンプ -->
+      <div class="mybook-detail-section">
+        <label class="mybook-form-label">😊 きもちスタンプ</label>
+        <div class="mybook-feeling-picker" id="bookDetailFeelingPicker"></div>
+      </div>
+
+      <!-- メモ -->
+      <div class="mybook-detail-section">
+        <label class="mybook-form-label">✏️ ひとことメモ</label>
+        <textarea id="bookDetailMemo" class="mybook-form-textarea" placeholder="がんばったこと、むずかしかったことなど..." maxlength="200"></textarea>
+      </div>
+
+      <!-- 保護者からの応援 -->
+      <div class="mybook-detail-section" id="bookDetailCheersSection" style="display:none">
+        <div class="mybook-cheers-card">
+          <div class="mybook-cheers-icon">💪</div>
+          <div class="mybook-cheers-text" id="bookDetailCheersText">保護者からの応援メッセージ</div>
+        </div>
+      </div>
+
+      <!-- ボタン -->
+      <div class="mybook-form-buttons">
+        <button class="btn btn-danger-outline" onclick="confirmDeleteBook()">🗑️ 削除</button>
+        <button class="btn btn-secondary" onclick="saveBookDetail()">💾 保存</button>
+        <button class="btn btn-primary" id="bookCompleteBtn" onclick="completeBook()">🎉 完了！</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 本の完了お祝いモーダル -->
+<div class="modal-overlay" id="bookCelebrationModal" onclick="if(event.target===this)closeBookCelebrationModal()">
+  <div class="modal-box mybook-celebration-modal">
+    <div class="mybook-celebration-content">
+      <div class="mybook-celebration-confetti" id="bookConfetti"></div>
+      <div class="mybook-celebration-icon">🎉</div>
+      <div class="mybook-celebration-title">やったね！</div>
+      <div class="mybook-celebration-book" id="celebrationBookTitle">本のタイトル</div>
+      <div class="mybook-celebration-message">1冊やりとげたよ！すごい！</div>
+      <div class="mybook-celebration-reward">
+        <span>⛰️</span>
+        <span>+50 ALT ゲット！</span>
+      </div>
+      <button class="btn btn-primary" style="margin-top:20px;width:100%" onclick="closeBookCelebrationModal()">🎊 やったー！</button>
     </div>
   </div>
 </div>

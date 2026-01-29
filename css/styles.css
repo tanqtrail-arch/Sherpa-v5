@@ -5939,3 +5939,774 @@ body.demo-mode #nav {
   font-size: 10px;
   color: #f59e0b;
 }
+
+/* ========================================
+   学びの本棚（ドリル・テキスト記録）
+   ======================================== */
+
+/* 統計ヘッダー */
+.mybooks-stats-header {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.mybooks-stat-item {
+  flex: 1;
+  text-align: center;
+}
+
+.mybooks-stat-value {
+  font-size: 28px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.mybooks-stat-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 4px;
+}
+
+/* 本を追加ボタン */
+.mybooks-add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, var(--meadow), #1e5142);
+  border: 2px dashed rgba(255, 255, 255, 0.4);
+  border-radius: 12px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 20px;
+}
+
+.mybooks-add-btn:hover {
+  background: linear-gradient(135deg, #3ca86e, var(--meadow));
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.mybooks-add-icon {
+  font-size: 24px;
+}
+
+/* 空の状態 */
+.mybooks-empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.mybooks-empty-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+}
+
+.mybooks-empty-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.mybooks-empty-text {
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* 科目別本棚 */
+.mybooks-shelf {
+  margin-bottom: 24px;
+}
+
+.mybooks-shelf-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.mybooks-shelf-emoji {
+  font-size: 20px;
+}
+
+.mybooks-shelf-count {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-left: auto;
+}
+
+.mybooks-shelf-row {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mybooks-shelf-board {
+  height: 12px;
+  background: linear-gradient(180deg, #8B4513, #654321);
+  border-radius: 0 0 6px 6px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* 本の背表紙 */
+.mybook-spine {
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  width: 70px;
+  height: 100px;
+  background: linear-gradient(180deg, var(--book-color-1), var(--book-color-2));
+  border-radius: 4px 8px 8px 4px;
+  padding: 8px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.mybook-spine:hover {
+  transform: translateY(-4px) rotate(-2deg);
+  box-shadow: 4px 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+.mybook-spine.completed {
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.5), 2px 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.mybook-spine-cover {
+  width: 100%;
+  height: 50px;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.mybook-spine-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mybook-spine-emoji {
+  font-size: 28px;
+}
+
+.mybook-spine-title {
+  font-size: 8px;
+  color: #fff;
+  text-align: center;
+  font-weight: 700;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.mybook-spine-progress {
+  position: absolute;
+  left: 2px;
+  top: 8px;
+  bottom: 8px;
+  width: 4px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.mybook-spine-progress-fill {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background: linear-gradient(0deg, #4ade80, #22c55e);
+  border-radius: 2px;
+}
+
+.mybook-spine-complete {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  font-size: 16px;
+  animation: sparkle 1.5s ease-in-out infinite;
+}
+
+@keyframes sparkle {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.8; }
+}
+
+/* 本の追加モーダル */
+.mybook-add-modal {
+  max-width: 440px;
+}
+
+.mybook-form-section {
+  margin-bottom: 20px;
+}
+
+.mybook-form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--summit);
+  margin-bottom: 8px;
+}
+
+.mybook-form-input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: var(--font);
+  transition: border-color 0.2s;
+}
+
+.mybook-form-input:focus {
+  outline: none;
+  border-color: var(--meadow);
+}
+
+/* 表紙アップロード */
+.mybook-cover-upload {
+  width: 120px;
+  height: 160px;
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.mybook-cover-upload:hover {
+  border-color: var(--meadow);
+}
+
+.mybook-cover-placeholder {
+  text-align: center;
+  color: var(--rock);
+}
+
+.mybook-cover-preview {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.mybook-cover-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mybook-cover-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* 科目ピッカー */
+.mybook-subject-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mybook-subject-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: #f1f5f9;
+  border: 2px solid transparent;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mybook-subject-option:hover {
+  background: #e2e8f0;
+}
+
+.mybook-subject-option.selected {
+  background: var(--subject-color);
+  color: #fff;
+  border-color: var(--subject-color);
+}
+
+.mybook-subject-emoji {
+  font-size: 16px;
+}
+
+.mybook-subject-name {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* 絵文字ピッカー */
+.mybook-emoji-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mybook-emoji-option {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  background: #f1f5f9;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mybook-emoji-option:hover {
+  background: #e2e8f0;
+  transform: scale(1.1);
+}
+
+.mybook-emoji-option.selected {
+  background: var(--meadow);
+  border-color: var(--meadow);
+}
+
+/* フォームボタン */
+.mybook-form-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.mybook-form-buttons .btn {
+  flex: 1;
+}
+
+/* 本の詳細モーダル */
+.mybook-detail-modal {
+  max-width: 440px;
+}
+
+.mybook-detail-cover {
+  width: 80px;
+  height: 100px;
+  margin: 0 auto;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.mybook-detail-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mybook-detail-progress-section {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.mybook-detail-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--summit);
+  margin-bottom: 8px;
+}
+
+.mybook-detail-progress-bar {
+  height: 10px;
+  background: #e2e8f0;
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.mybook-detail-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4ade80, #22c55e);
+  border-radius: 5px;
+  transition: width 0.3s;
+}
+
+.mybook-progress-slider {
+  width: 100%;
+  height: 8px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: #e2e8f0;
+  border-radius: 4px;
+  outline: none;
+}
+
+.mybook-progress-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 24px;
+  height: 24px;
+  background: var(--meadow);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.mybook-progress-hint {
+  font-size: 11px;
+  color: var(--rock);
+  text-align: center;
+  margin-top: 8px;
+}
+
+.mybook-detail-section {
+  margin-bottom: 20px;
+}
+
+/* 気持ちピッカー */
+.mybook-feeling-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mybook-feeling-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: #f1f5f9;
+  border: 2px solid transparent;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mybook-feeling-option:hover {
+  background: #e2e8f0;
+}
+
+.mybook-feeling-option.selected {
+  background: #fef3c7;
+  border-color: #f59e0b;
+}
+
+.mybook-feeling-emoji {
+  font-size: 20px;
+}
+
+.mybook-feeling-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--shadow);
+}
+
+/* メモ入力 */
+.mybook-form-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: var(--font);
+  resize: vertical;
+  min-height: 80px;
+  transition: border-color 0.2s;
+}
+
+.mybook-form-textarea:focus {
+  outline: none;
+  border-color: var(--meadow);
+}
+
+/* 応援カード */
+.mybook-cheers-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border-radius: 12px;
+}
+
+.mybook-cheers-icon {
+  font-size: 32px;
+}
+
+.mybook-cheers-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--shadow);
+  line-height: 1.5;
+}
+
+/* 完了お祝いモーダル */
+.mybook-celebration-modal {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  text-align: center;
+  max-width: 360px;
+}
+
+.mybook-celebration-content {
+  padding: 40px 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.mybook-celebration-confetti {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.confetti-piece {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  animation: confetti-fall 3s ease-out forwards;
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-100px) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(400px) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+.mybook-celebration-icon {
+  font-size: 80px;
+  animation: bounce 0.6s ease-in-out;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+.mybook-celebration-title {
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--summit);
+  margin-top: 16px;
+}
+
+.mybook-celebration-book {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--shadow);
+  margin-top: 8px;
+}
+
+.mybook-celebration-message {
+  font-size: 14px;
+  color: var(--rock);
+  margin-top: 8px;
+}
+
+.mybook-celebration-reward {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, var(--meadow), #1e5142);
+  color: #fff;
+  border-radius: 30px;
+  font-size: 18px;
+  font-weight: 700;
+  margin-top: 20px;
+}
+
+/* 保護者画面の本棚セクション */
+.parent-books-stats {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.parent-books-stat {
+  flex: 1;
+  text-align: center;
+  padding: 12px;
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+.parent-books-stat-value {
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--parent);
+}
+
+.parent-books-stat-label {
+  font-size: 10px;
+  color: var(--rock);
+  margin-top: 2px;
+}
+
+.parent-books-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.parent-books-subject-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--summit);
+  margin-bottom: 8px;
+}
+
+.parent-books-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.parent-book-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  background: #f8fafc;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+  position: relative;
+}
+
+.parent-book-item:hover {
+  background: #e2e8f0;
+}
+
+.parent-book-item.completed {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+}
+
+.parent-book-cover {
+  width: 40px;
+  height: 50px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.parent-book-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.parent-book-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.parent-book-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--summit);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.parent-book-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 10px;
+  color: var(--rock);
+}
+
+.parent-book-progress-bar {
+  flex: 1;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.parent-book-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4ade80, #22c55e);
+  border-radius: 3px;
+}
+
+.parent-book-complete {
+  font-size: 16px;
+}
+
+.parent-book-cheer-btn {
+  font-size: 20px;
+  opacity: 0.6;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.parent-book-item:hover .parent-book-cheer-btn {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* ボタンスタイル補足 */
+.btn-danger-outline {
+  background: transparent;
+  border: 2px solid #ef4444;
+  color: #ef4444;
+}
+
+.btn-danger-outline:hover {
+  background: #ef4444;
+  color: #fff;
+}
