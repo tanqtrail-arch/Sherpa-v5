@@ -188,14 +188,6 @@
       <div class="section-title">👨‍👩‍👧 ファミリーミッション<span style="background:linear-gradient(135deg,#ec4899,#f472b6);color:#fff;font-size:9px;padding:2px 8px;border-radius:10px;margin-left:6px">家族で挑戦</span></div>
       <div id="familyMissionsGrid" class="mission-grid"></div>
 
-      <!-- スポンサーミッション -->
-      <div class="section-title">🎗️ スポンサーミッション<span style="background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#fff;font-size:9px;padding:2px 8px;border-radius:10px;margin-left:6px">特別報酬</span>
-        <span style="margin-left:auto;font-size:11px;color:rgba(255,255,255,.8);cursor:pointer" onclick="openSponsorList()">スポンサー一覧 →</span>
-      </div>
-      <div id="sponsorMissionsGrid" class="mission-grid"></div>
-      <!-- スポンサースライド -->
-      <div id="sponsorSlidesSection" style="margin-top:12px"></div>
-
       <!-- 学習スライド（管理者登録） -->
       <div id="adminSlidesSection"></div>
 
@@ -448,134 +440,6 @@
           <span>📊</span><span>ダッシュボード</span>
         </div>
         <div class="admin-footer-item" onclick="openModeModal()">
-          <span>🔄</span><span>モード切替</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- スポンサーダッシュボード画面 -->
-    <div id="screen-sponsor" class="screen">
-      <div class="admin-header" style="background:linear-gradient(135deg,#f59e0b,#fbbf24)">
-        <div class="admin-title">🎗️ スポンサーダッシュボード</div>
-        <div class="admin-subtitle">こどもたちの学習を応援しよう</div>
-      </div>
-
-      <!-- スポンサー残高サマリー -->
-      <div class="sponsor-summary-grid" id="sponsorSummaryGrid">
-        <div class="sponsor-summary-card">
-          <div class="sponsor-summary-icon">💰</div>
-          <div class="sponsor-summary-info">
-            <div class="sponsor-summary-label">ALT残高</div>
-            <div class="sponsor-summary-value" id="sponsorAltBalance">0</div>
-          </div>
-        </div>
-        <div class="sponsor-summary-card">
-          <div class="sponsor-summary-icon">❤️</div>
-          <div class="sponsor-summary-info">
-            <div class="sponsor-summary-label">いいね残数</div>
-            <div class="sponsor-summary-value" id="sponsorLikesBalance">0</div>
-          </div>
-        </div>
-        <div class="sponsor-summary-card">
-          <div class="sponsor-summary-icon">📊</div>
-          <div class="sponsor-summary-info">
-            <div class="sponsor-summary-label">累計配布ALT</div>
-            <div class="sponsor-summary-value" id="sponsorTotalDistributed">0</div>
-          </div>
-        </div>
-        <div class="sponsor-summary-card">
-          <div class="sponsor-summary-icon">👦</div>
-          <div class="sponsor-summary-info">
-            <div class="sponsor-summary-label">応援した子ども</div>
-            <div class="sponsor-summary-value" id="sponsorTotalChildren">0人</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- アクションボタン -->
-      <div class="sponsor-actions">
-        <button class="sponsor-action-btn purchase" onclick="openAltPurchaseModal()">
-          <span class="sponsor-action-icon">💳</span>
-          <span class="sponsor-action-text">ALT購入</span>
-        </button>
-        <button class="sponsor-action-btn slides" onclick="openSponsorSlideManager()">
-          <span class="sponsor-action-icon">📝</span>
-          <span class="sponsor-action-text">スライド管理</span>
-        </button>
-        <button class="sponsor-action-btn likes" onclick="openSponsorLikePanel()">
-          <span class="sponsor-action-icon">❤️</span>
-          <span class="sponsor-action-text">いいね送信</span>
-        </button>
-        <button class="sponsor-action-btn stats" onclick="showSponsorStats()">
-          <span class="sponsor-action-icon">📈</span>
-          <span class="sponsor-action-text">統計</span>
-        </button>
-      </div>
-
-      <!-- 企業情報バナー -->
-      <div id="sponsorCompanyBanner" class="sponsor-company-banner" style="display:none;margin:12px 16px;padding:14px;background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08)">
-        <div style="display:flex;align-items:center;gap:12px">
-          <div id="sponsorCompanyLogo" style="font-size:32px">🏢</div>
-          <div style="flex:1">
-            <div id="sponsorCompanyName" style="font-weight:700;font-size:15px">企業名</div>
-            <div id="sponsorCompanyCategory" style="font-size:11px;color:var(--rock)">カテゴリ</div>
-          </div>
-          <button onclick="openSponsorSelectModal()" style="font-size:11px;padding:6px 12px;background:#f3f4f6;border:none;border-radius:8px;cursor:pointer">切替</button>
-        </div>
-      </div>
-
-      <!-- タブナビゲーション -->
-      <div class="admin-tabs" id="sponsorTabs">
-        <div class="admin-tab active" data-tab="missions" onclick="showSponsorTab('missions', this)">🎯 ミッション</div>
-        <div class="admin-tab" data-tab="myslides" onclick="showSponsorTab('myslides', this)">📚 スライド</div>
-        <div class="admin-tab" data-tab="children" onclick="showSponsorTab('children', this)">👦 学習者</div>
-        <div class="admin-tab" data-tab="analytics" onclick="showSponsorTab('analytics', this)">📊 分析</div>
-      </div>
-
-      <!-- ミッションタブ -->
-      <div id="sponsorTabMissions" class="admin-tab-content active">
-        <div class="admin-card">
-          <div class="admin-card-header">🎯 公開中のミッション</div>
-          <div class="admin-card-body" id="sponsorMissionsList"></div>
-        </div>
-      </div>
-
-      <!-- マイスライドタブ -->
-      <div id="sponsorTabMyslides" class="admin-tab-content">
-        <div class="admin-card">
-          <div class="admin-card-header">📚 作成したスポンサースライド
-            <button class="btn" style="margin-left:auto;background:var(--sponsor);color:#fff;font-size:11px;padding:6px 12px" onclick="openSponsorSlideEditor()">➕ 新規作成</button>
-          </div>
-          <div class="admin-card-body" id="sponsorSlidesList"></div>
-        </div>
-      </div>
-
-      <!-- 学習者タブ -->
-      <div id="sponsorTabChildren" class="admin-tab-content">
-        <div class="admin-card">
-          <div class="admin-card-header">👦 スライドを完了した子どもたち</div>
-          <div class="admin-card-body" id="sponsorChildrenList"></div>
-        </div>
-      </div>
-
-      <!-- 分析タブ -->
-      <div id="sponsorTabAnalytics" class="admin-tab-content">
-        <div class="admin-card">
-          <div class="admin-card-header">📊 ミッション挑戦状況</div>
-          <div class="admin-card-body" id="sponsorAnalyticsList"></div>
-        </div>
-        <div class="admin-card" style="margin-top:12px">
-          <div class="admin-card-header">📜 最近の活動履歴</div>
-          <div class="admin-card-body" id="sponsorHistoryList"></div>
-        </div>
-      </div>
-
-      <!-- スポンサー用フッターナビゲーション -->
-      <div class="sponsor-footer-nav">
-        <div class="sponsor-footer-item active" onclick="showScreen('sponsor'); renderSponsorDashboard()">
-          <span>🎗️</span><span>ダッシュボード</span>
-        </div>
-        <div class="sponsor-footer-item" onclick="openModeModal()">
           <span>🔄</span><span>モード切替</span>
         </div>
       </div>
@@ -882,14 +746,6 @@
         </div>
       </div>
 
-      <div class="card" style="margin-bottom:12px" id="sponsorLikesCard">
-        <div class="card-header">🎗️ 応援してくれたスポンサー <span id="sponsorLikesCount" style="font-size:11px;color:var(--rock);font-weight:400">0件</span></div>
-        <div class="card-body">
-          <div id="sponsorLikesList"></div>
-          <div id="noSponsorLikes" style="text-align:center;color:var(--rock);font-size:12px;padding:20px">まだ応援されていません<br>学習を続けてスポンサーからいいねをもらおう！</div>
-        </div>
-      </div>
-
       <div class="card" style="margin-bottom:12px" id="schoolCard">
         <div class="card-header">🏫 スクール <span id="schoolStatus" style="font-size:11px;color:var(--rock);font-weight:400">未登録</span></div>
         <div class="card-body">
@@ -1034,7 +890,6 @@
         <button class="btn" style="background:var(--meadow);color:#fff" onclick="switchMode('child')">👦 子どもモード</button>
         <button class="btn" style="background:var(--parent);color:#fff" onclick="switchMode('parent')">👨‍👩‍👧 保護者モード</button>
         <button class="btn" style="background:var(--teacher);color:#fff" onclick="switchMode('teacher')">🏫 スクールモード</button>
-        <button class="btn" style="background:var(--sponsor);color:#fff" onclick="switchMode('sponsor')">🎗️ スポンサーモード</button>
         <button class="btn" style="background:var(--admin);color:#fff" onclick="switchMode('admin')">⚙️ 管理者モード</button>
       </div>
       <button class="btn btn-secondary" style="margin-top:16px" onclick="closeModals()">閉じる</button>
@@ -1512,179 +1367,6 @@
   </div>
 </div>
 
-<!-- スポンサースライド作成モーダル -->
-<div class="modal-overlay" id="sponsorSlideEditorModal" onclick="if(event.target===this)closeModals()">
-  <div class="modal-box" style="max-width:500px">
-    <div class="modal-header" style="background:linear-gradient(135deg,#f59e0b,#fbbf24)">
-      <div style="font-size:32px">📝</div>
-      <div style="font-weight:700;margin-top:4px" id="sponsorSlideEditorTitle">新規スポンサースライド</div>
-    </div>
-    <div class="modal-body" style="max-height:70vh;overflow-y:auto">
-      <form id="sponsorSlideForm" onsubmit="event.preventDefault();saveSponsorSlide()">
-        <input type="hidden" id="editSponsorSlideId">
-
-        <div class="form-group">
-          <label class="form-label">📛 スライドタイトル</label>
-          <input type="text" class="form-input" id="sponsorSlideTitle" placeholder="例: 環境を守ろう" required>
-        </div>
-
-        <div style="display:flex;gap:8px">
-          <div class="form-group" style="flex:1">
-            <label class="form-label">😊 絵文字</label>
-            <input type="text" class="form-input" id="sponsorSlideEmoji" placeholder="🌍" maxlength="2" style="text-align:center;font-size:20px">
-          </div>
-          <div class="form-group" style="flex:1">
-            <label class="form-label">⛰️ 報酬ALT (10-100)</label>
-            <input type="number" class="form-input" id="sponsorSlideReward" placeholder="30" min="10" max="100" style="text-align:center" required>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">📝 スライド説明</label>
-          <textarea class="form-input" id="sponsorSlideDescription" rows="2" placeholder="このスライドについての簡単な説明" style="resize:none"></textarea>
-        </div>
-
-        <!-- ページ編集エリア -->
-        <div class="form-group">
-          <label class="form-label">📄 ページ内容
-            <button type="button" class="btn" style="margin-left:8px;font-size:10px;padding:4px 8px;background:var(--sponsor);color:#fff" onclick="addSponsorSlidePage()">➕ ページ追加</button>
-          </label>
-          <div id="sponsorSlidePages"></div>
-        </div>
-
-        <!-- クイズ編集エリア -->
-        <div class="form-group">
-          <label class="form-label">📝 クイズ（4問以上）
-            <button type="button" class="btn" style="margin-left:8px;font-size:10px;padding:4px 8px;background:var(--sponsor);color:#fff" onclick="addSponsorSlideQuiz()">➕ クイズ追加</button>
-          </label>
-          <div id="sponsorSlideQuizzes"></div>
-        </div>
-
-        <div style="background:rgba(245,158,11,.1);border-radius:8px;padding:12px;margin-bottom:12px">
-          <div style="font-size:11px;color:var(--sponsor);font-weight:700">💡 報酬について</div>
-          <div style="font-size:11px;color:var(--rock);margin-top:4px">
-            設定した報酬ALTは、こどもがスライドを完了するたびにあなたのALT残高から支払われます。
-          </div>
-        </div>
-
-        <button type="submit" class="btn btn-primary" style="width:100%">💾 保存して公開</button>
-        <button type="button" id="sponsorSlideDeleteBtn" class="btn" style="width:100%;margin-top:8px;background:#ef4444;color:#fff;display:none" onclick="deleteSponsorSlide()">🗑️ 削除</button>
-        <button type="button" class="btn btn-secondary" style="width:100%;margin-top:8px" onclick="closeModals()">キャンセル</button>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- スポンサーいいね送信モーダル -->
-<div class="modal-overlay" id="sponsorLikeModal" onclick="if(event.target===this)closeModals()">
-  <div class="modal-box">
-    <div class="modal-header" style="background:linear-gradient(135deg,#ec4899,#f472b6)">
-      <div style="font-size:32px">❤️</div>
-      <div style="font-weight:700;margin-top:4px">スポンサーいいね</div>
-      <div style="font-size:11px;opacity:.9;margin-top:4px">残り <span id="likesRemaining">0</span> いいね</div>
-    </div>
-    <div class="modal-body">
-      <div style="background:rgba(236,72,153,.1);border-radius:8px;padding:12px;margin-bottom:12px">
-        <div style="font-size:11px;color:var(--family);font-weight:700">❤️ スポンサーいいねとは？</div>
-        <div style="font-size:11px;color:var(--rock);margin-top:4px">
-          いいねを送ると、こどもは <strong>+100 ALT</strong> を獲得できます！<br>
-          がんばっているこどもを応援しましょう。
-        </div>
-      </div>
-
-      <!-- いいね対象選択 -->
-      <div class="form-group">
-        <label class="form-label">👦 いいねを送る対象</label>
-        <select class="form-select" id="likeTargetType" onchange="updateLikeTargets()">
-          <option value="slide_completers">スライド完了者</option>
-          <option value="ranking_top">ランキング上位者</option>
-          <option value="streak_achievers">連続学習達成者</option>
-        </select>
-      </div>
-
-      <div id="likeTargetsList" class="like-targets-list"></div>
-
-      <button class="btn btn-secondary" style="width:100%;margin-top:12px" onclick="closeModals()">閉じる</button>
-    </div>
-  </div>
-</div>
-
-<!-- スポンサーいいね受取演出モーダル（こども用） -->
-<div class="modal-overlay" id="sponsorLikeReceivedModal">
-  <div class="modal-box" style="text-align:center">
-    <div class="modal-header" style="background:linear-gradient(135deg,#ec4899,#f472b6)">
-      <div style="font-size:64px" id="likeReceivedEmoji">🎉</div>
-      <div style="font-weight:700;margin-top:8px;font-size:20px">おめでとう！</div>
-    </div>
-    <div class="modal-body">
-      <div style="font-size:14px;margin-bottom:8px" id="likeReceivedSponsor">
-        🏢 株式会社〇〇 から
-      </div>
-      <div style="font-size:24px;font-weight:900;color:var(--family);margin-bottom:16px">
-        ❤️ スポンサーいいね
-      </div>
-      <div style="font-size:32px;font-weight:900;color:var(--meadow);margin-bottom:8px">
-        +100 ALT ゲット！ ⛰️
-      </div>
-      <div style="font-size:12px;color:var(--rock);margin-bottom:16px" id="likeReceivedMessage">
-        「がんばって学習してるね！応援してるよ！」
-      </div>
-      <button class="btn btn-primary" style="width:100%" onclick="closeModals()">やったー！</button>
-    </div>
-  </div>
-</div>
-
-<!-- スポンサー一覧モーダル（こども用） -->
-<div class="modal-overlay" id="sponsorListModal" onclick="if(event.target===this)closeModals()">
-  <div class="modal-box">
-    <div class="modal-header" style="background:linear-gradient(135deg,#f59e0b,#fbbf24)">
-      <div style="font-size:32px">🎗️</div>
-      <div style="font-weight:700;margin-top:4px">応援してくれるスポンサー</div>
-    </div>
-    <div class="modal-body" style="max-height:60vh;overflow-y:auto">
-      <div id="sponsorListContent"></div>
-    </div>
-    <div style="padding:0 16px 16px">
-      <button class="btn btn-secondary" style="width:100%" onclick="closeModals()">閉じる</button>
-    </div>
-  </div>
-</div>
-
-<!-- スポンサー詳細モーダル（こども用） -->
-<div class="modal-overlay" id="sponsorDetailModal" onclick="if(event.target===this)closeModals()">
-  <div class="modal-box">
-    <div class="modal-header" id="sponsorDetailHeader" style="background:linear-gradient(135deg,#f59e0b,#fbbf24)">
-      <div style="font-size:48px" id="sponsorDetailLogo">🏢</div>
-      <div style="font-weight:700;margin-top:8px;font-size:18px" id="sponsorDetailName">スポンサー名</div>
-    </div>
-    <div class="modal-body">
-      <div style="font-size:13px;color:var(--rock);text-align:center;margin-bottom:16px" id="sponsorDetailMessage">
-        メッセージ
-      </div>
-
-      <div class="sponsor-detail-stats">
-        <div class="sponsor-stat-item">
-          <div class="sponsor-stat-value" id="sponsorDetailAlt">0</div>
-          <div class="sponsor-stat-label">配布ALT</div>
-        </div>
-        <div class="sponsor-stat-item">
-          <div class="sponsor-stat-value" id="sponsorDetailChildren">0</div>
-          <div class="sponsor-stat-label">応援した子ども</div>
-        </div>
-        <div class="sponsor-stat-item">
-          <div class="sponsor-stat-value" id="sponsorDetailLikes">0</div>
-          <div class="sponsor-stat-label">いいね</div>
-        </div>
-      </div>
-
-      <div style="font-size:12px;font-weight:700;margin:16px 0 8px">📚 提供スライド</div>
-      <div id="sponsorDetailSlides"></div>
-
-      <button class="btn btn-secondary" style="width:100%;margin-top:16px" onclick="closeModals()">閉じる</button>
-    </div>
-  </div>
-</div>
-
 <!-- パスワード入力モーダル -->
 <div class="modal-overlay" id="passwordModal">
   <div class="modal-box" style="max-width:340px">
@@ -1695,13 +1377,6 @@
     <div class="modal-body">
       <div style="font-size:13px;color:var(--rock);text-align:center;margin-bottom:16px" id="passwordModalDesc">
         このモードに切り替えるにはパスワードが必要です
-      </div>
-      <!-- スポンサー企業選択（スポンサーモード時のみ表示） -->
-      <div id="sponsorCompanySelect" style="display:none;margin-bottom:16px">
-        <label style="font-size:12px;font-weight:600;color:var(--rock);display:block;margin-bottom:6px">企業を選択</label>
-        <select id="sponsorCompanyDropdown" style="width:100%;padding:12px;border:2px solid #e5e7eb;border-radius:12px;font-size:14px;background:#fff;cursor:pointer" onchange="onSponsorCompanyChange()">
-          <option value="">-- 企業を選択してください --</option>
-        </select>
       </div>
       <!-- スクール選択（スクールモード時のみ表示） -->
       <div id="schoolSelectForLogin" style="display:none;margin-bottom:16px">
@@ -1719,44 +1394,6 @@
       <button class="btn btn-primary" style="width:100%;margin-top:16px" onclick="verifyPassword()">確認</button>
       <button class="btn btn-secondary" style="width:100%;margin-top:8px" onclick="cancelPassword()">キャンセル</button>
     </div>
-  </div>
-</div>
-
-<!-- スポンサー企業選択モーダル -->
-<div class="modal-overlay" id="sponsorSelectModal" onclick="if(event.target===this)closeModals()">
-  <div class="modal-box" style="max-width:420px">
-    <div class="modal-header" style="background:linear-gradient(135deg,#f59e0b,#fbbf24)">
-      <div style="font-size:32px">🏢</div>
-      <div style="font-weight:700;margin-top:4px">スポンサー企業を選択</div>
-    </div>
-    <div class="modal-body">
-      <div style="font-size:13px;color:var(--rock);text-align:center;margin-bottom:16px">
-        ログインする企業アカウントを選択してください
-      </div>
-      <div id="sponsorAccountsList" style="display:flex;flex-direction:column;gap:10px"></div>
-    </div>
-  </div>
-</div>
-
-<!-- スポンサーミッション詳細モーダル -->
-<div class="modal-overlay" id="sponsorMissionModal" onclick="if(event.target===this)closeModals()">
-  <div class="modal-box" style="max-width:500px;max-height:85vh;overflow-y:auto">
-    <div class="modal-header" id="sponsorMissionHeader" style="background:linear-gradient(135deg,#f59e0b,#fbbf24)">
-      <div style="font-size:32px" id="sponsorMissionEmoji">📚</div>
-      <div style="font-weight:700;margin-top:4px" id="sponsorMissionTitle">ミッション</div>
-    </div>
-    <div class="modal-body" id="sponsorMissionContent"></div>
-  </div>
-</div>
-
-<!-- スポンサー統計詳細モーダル -->
-<div class="modal-overlay" id="sponsorStatsModal" onclick="if(event.target===this)closeModals()">
-  <div class="modal-box" style="max-width:500px;max-height:85vh;overflow-y:auto">
-    <div class="modal-header" style="background:linear-gradient(135deg,#f59e0b,#fbbf24)">
-      <div style="font-size:32px">📊</div>
-      <div style="font-weight:700;margin-top:4px">ミッション挑戦状況</div>
-    </div>
-    <div class="modal-body" id="sponsorStatsContent"></div>
   </div>
 </div>
 

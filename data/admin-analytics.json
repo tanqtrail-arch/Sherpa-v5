@@ -350,14 +350,6 @@
         { "id": "book_exchange", "name": "本を紹介し合う", "completions": 176 }
       ]
     },
-    "sponsorMissionCompletion": {
-      "rate": 38.7,
-      "topSponsors": [
-        { "sponsor": "環境省", "completions": 312 },
-        { "sponsor": "JAXA", "completions": 287 },
-        { "sponsor": "テック企業", "completions": 245 }
-      ]
-    },
     "notebookLmUsage": {
       "clickRate": 23.4,
       "avgTimeSpent": 8.5,

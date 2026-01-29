@@ -196,7 +196,6 @@ const SherpaAuth = (function() {
     if (config.mode === 'demo') {
       const demoPasswords = {
         teacher: 'teacher',
-        sponsor: '9999',
         admin: 'admin'
       };
 

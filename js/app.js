@@ -82,56 +82,8 @@ let customFamilyMissions = JSON.parse(localStorage.getItem('sherupa_custom_famil
 let dailyFamilyMissionHistory = JSON.parse(localStorage.getItem('sherupa_daily_family_history')) || {};
 
 // パスワード保護が必要なモード（実際のパスワードはauth.jsで管理）
-const protectedModes = ['teacher', 'sponsor', 'admin'];
+const protectedModes = ['teacher', 'admin'];
 let pendingMode = null;
-
-// ========================================
-// スポンサーシステム
-// ========================================
-
-// 全スポンサー企業アカウント（複数企業対応）
-// sponsorAccounts: { [sponsorId]: { id, name, logo, category, message, color, altBalance, sponsorLikes, totalAltDistributed, totalLikesGiven, totalChildrenSupported, createdAt } }
-let sponsorAccounts = JSON.parse(localStorage.getItem('sherupa_sponsor_accounts')) || {};
-
-// 現在選択中のスポンサーID
-let currentSponsorId = localStorage.getItem('sherupa_current_sponsor_id') || null;
-
-// スポンサープロフィール（現在のアカウント - 後方互換性のため保持）
-let sponsorProfile = JSON.parse(localStorage.getItem('sherupa_sponsor_profile')) || {
-  id: 'sponsor_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-  name: 'スポンサー企業',
-  logo: '🏢',
-  message: 'こどもたちの学習を応援しています！',
-  altBalance: 0,
-  sponsorLikes: 0,
-  totalAltDistributed: 0,
-  totalLikesGiven: 0,
-  totalChildrenSupported: 0
-};
-
-// スポンサースライド
-// sponsorSlides: [{ id, sponsorId, sponsorName, title, emoji, reward, description, pages, qa, status, createdAt, completions }]
-let sponsorSlides = JSON.parse(localStorage.getItem('sherupa_sponsor_slides')) || [];
-
-// スポンサーいいね送信履歴
-// sponsorLikesSent: [{ id, sponsorId, childId, childName, slideId?, timestamp, message }]
-let sponsorLikesSent = JSON.parse(localStorage.getItem('sherupa_sponsor_likes_sent')) || [];
-
-// スポンサーいいね受取履歴（こども側）
-// sponsorLikesReceived: [{ id, sponsorId, sponsorName, sponsorLogo, timestamp, message }]
-let sponsorLikesReceived = JSON.parse(localStorage.getItem('sherupa_sponsor_likes_received')) || [];
-
-// ALT購入履歴
-// altPurchases: [{ id, sponsorId, amount, price, likes, timestamp }]
-let altPurchases = JSON.parse(localStorage.getItem('sherupa_alt_purchases')) || [];
-
-// スポンサースライド完了記録
-// sponsorSlideCompletions: [{ slideId, childId, childName, timestamp, reward }]
-let sponsorSlideCompletions = JSON.parse(localStorage.getItem('sherupa_sponsor_slide_completions')) || [];
-
-// スポンサーミッション完了記録（子ども側）
-// sponsorMissionCompletions: [{ missionId, sponsorId, childId, childName, timestamp, reward, score }]
-let sponsorMissionCompletions = JSON.parse(localStorage.getItem('sherupa_sponsor_mission_completions')) || [];
 
 // ========================================
 // 管理者スライドシステム
@@ -146,15 +98,6 @@ let adminSlideCompletions = JSON.parse(localStorage.getItem('sherupa_admin_slide
 let currentAdminSlide = null;
 let currentAdminSlideQuiz = { answers: [], currentQ: 0 };
 let adminSlideViewState = 'slide'; // 'slide' | 'quiz' | 'result'
-
-// 現在編集中のスポンサースライド
-let currentSponsorSlidePages = [];
-let currentSponsorSlideQuizzes = [];
-
-// 現在挑戦中のスポンサーミッション
-let currentSponsorMission = null;
-let currentSponsorMissionPage = 0;
-let currentSponsorMissionQuiz = { answers: [], currentQ: 0 };
 
 // ========================================
 // スクールシステム
@@ -228,9 +171,6 @@ async function loadData() {
     APP.missions = missions;
     APP.loaded = true;
     schoolsData = schools.schools;
-
-    // スポンサー企業アカウントを初期化（各社3000ALT付与）
-    initializeSponsorAccounts();
 
     console.log('✅ データ読み込み完了');
     initApp();
@@ -384,7 +324,6 @@ function resetAllData() {
   completedFamilyMissions = [];
   customFamilyMissions = [];
   dailyFamilyMissionHistory = {};
-  sponsorLikesReceived = [];
   diaryEntries = [];
 
   // LocalStorageをクリア
@@ -399,7 +338,6 @@ function resetAllData() {
   localStorage.removeItem('sherupa_family_missions');
   localStorage.removeItem('sherupa_custom_family_missions');
   localStorage.removeItem('sherupa_daily_family_history');
-  localStorage.removeItem('sherupa_sponsor_likes_received');
   localStorage.removeItem('sherupa_all_users');
   localStorage.removeItem('sherupa_diary');
 }
@@ -439,7 +377,6 @@ function goHome() {
 function renderHome() {
   renderDailyMission();
   renderFamilyMissions();
-  renderSponsorMissions();
   renderAdminSlidesSection();
   renderHomeBookshelf();
   renderNewSlides();
@@ -582,99 +519,6 @@ function renderDailyFamilyMission() {
         </div>
         ${isCompleted ? '<div class="dfm-check">✓</div>' : '<div class="dfm-arrow">→</div>'}
       </div>
-    </div>
-  `;
-}
-
-function renderSponsorMissions() {
-  const container = document.getElementById('sponsorMissionsGrid');
-  if (!container || !APP.missions) return;
-
-  // 全企業のミッションを収集
-  const allMissions = [];
-  if (APP.missions.sponsorAccounts) {
-    APP.missions.sponsorAccounts.forEach(account => {
-      if (account.missions) {
-        account.missions.forEach(mission => {
-          allMissions.push({
-            ...mission,
-            sponsorId: account.id,
-            sponsorName: account.name,
-            sponsorLogo: account.logo,
-            sponsorColor: account.color
-          });
-        });
-      }
-    });
-  }
-
-  // 従来のスポンサーミッションも追加（後方互換性）
-  if (APP.missions.sponsorMissions) {
-    APP.missions.sponsorMissions.forEach((m, i) => {
-      allMissions.push({
-        ...m,
-        legacyIndex: i,
-        sponsorName: m.sponsor,
-        sponsorLogo: '🏢',
-        sponsorColor: '#f59e0b'
-      });
-    });
-  }
-
-  // 最大12個表示
-  const displayMissions = allMissions.slice(0, 12);
-
-  container.innerHTML = displayMissions.map((m, i) => {
-    const isCompleted = sponsorMissionCompletions.some(c => c.missionId === m.id && c.childId === userProfile.id);
-    return `
-      <div class="mission-card ${isCompleted ? 'completed' : ''}" onclick="openSponsorMissionForChild('${m.id}', '${m.sponsorId || ''}')">
-        <div class="mission-icon" style="background:linear-gradient(135deg,${m.sponsorColor},${m.sponsorColor}99);position:relative">
-          <div class="emoji">${m.emoji}</div>
-          <div style="position:absolute;top:2px;left:2px;font-size:12px">${m.sponsorLogo}</div>
-          ${isCompleted ? '<div style="position:absolute;bottom:2px;right:2px;font-size:14px">✅</div>' : ''}
-        </div>
-        <div class="mission-body">
-          <div class="mission-name">${m.name}</div>
-          <div class="mission-reward" style="color:${m.sponsorColor}">+${m.reward} ALT</div>
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  // スポンサースライドを表示
-  renderSponsorSlidesForChild();
-}
-
-// こども向けスポンサースライド表示
-function renderSponsorSlidesForChild() {
-  const container = document.getElementById('sponsorSlidesSection');
-  if (!container) return;
-
-  const activeSlides = sponsorSlides.filter(s => s.status === 'active');
-
-  if (activeSlides.length === 0) {
-    container.innerHTML = '';
-    return;
-  }
-
-  container.innerHTML = `
-    <div class="section-title" style="color:#fff;font-size:13px;margin-bottom:8px">📚 スポンサースライド<span class="free-tag" style="background:var(--sponsor)">企業提供</span></div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px">
-      ${activeSlides.map(slide => {
-        const isCompleted = completedSlides.includes(slide.id);
-        return `
-          <div class="card" style="cursor:pointer;${isCompleted ? 'opacity:.6' : ''}" onclick="openSponsorSlideForChild('${slide.id}')">
-            <div style="display:flex;align-items:center;gap:10px;padding:12px">
-              <div style="font-size:28px;width:44px;height:44px;background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:10px;display:flex;align-items:center;justify-content:center">${slide.emoji}</div>
-              <div style="flex:1;min-width:0">
-                <div style="font-size:12px;font-weight:700;color:var(--summit);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${slide.title}</div>
-                <div style="font-size:10px;color:var(--rock)">${slide.sponsorName}</div>
-                <div style="font-size:11px;font-weight:700;color:var(--sponsor)">+${slide.reward} ALT${isCompleted ? ' ✓' : ''}</div>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('')}
     </div>
   `;
 }
@@ -1363,63 +1207,27 @@ function showQuizResult() {
   const total = currentQuiz.questions.length;
   const slide = currentQuiz.slide;
 
-  // スポンサースライドかどうかチェック
-  const isSponsorSlide = slide.isSponsorSlide || slide.sponsorId;
-
   // 報酬計算
   let reward = 0;
   let emoji = '😊';
   let title = 'がんばったね！';
   let headerColor = '#f59e0b';
 
-  if (isSponsorSlide) {
-    // スポンサースライドの場合：60%以上正解で報酬
-    const passThreshold = Math.ceil(total * 0.6);
-    if (correct >= passThreshold) {
-      reward = slide.reward || 30;
-      if (correct === total) {
-        emoji = '🎉';
-        title = 'パーフェクト！';
-        headerColor = '#10b981';
-      } else {
-        emoji = '👏';
-        title = '合格！';
-        headerColor = '#f59e0b';
-      }
-
-      // スポンサースライド完了記録
-      if (!completedSlides.includes(slide.id)) {
-        sponsorSlideCompletions.push({
-          slideId: slide.id,
-          childId: userProfile.id,
-          childName: userProfile.name,
-          timestamp: new Date().toISOString(),
-          reward: reward
-        });
-        localStorage.setItem('sherupa_sponsor_slide_completions', JSON.stringify(sponsorSlideCompletions));
-      }
-    } else {
-      emoji = '💪';
-      title = 'もう一度チャレンジ！';
-      headerColor = '#ef4444';
-    }
+  // 通常スライド：5問以上正解で20ALT、全問正解で50ALT
+  if (correct === total) {
+    reward = 50;
+    emoji = '🎉';
+    title = 'パーフェクト！';
+    headerColor = '#10b981';
+  } else if (correct >= 5) {
+    reward = 20;
+    emoji = '👏';
+    title = '合格！';
+    headerColor = '#3b82f6';
   } else {
-    // 通常スライド：5問以上正解で20ALT、全問正解で50ALT
-    if (correct === total) {
-      reward = 50;
-      emoji = '🎉';
-      title = 'パーフェクト！';
-      headerColor = '#10b981';
-    } else if (correct >= 5) {
-      reward = 20;
-      emoji = '👏';
-      title = '合格！';
-      headerColor = '#3b82f6';
-    } else {
-      emoji = '💪';
-      title = 'もう一度チャレンジ！';
-      headerColor = '#ef4444';
-    }
+    emoji = '💪';
+    title = 'もう一度チャレンジ！';
+    headerColor = '#ef4444';
   }
 
   // 結果表示
@@ -1440,9 +1248,7 @@ function showQuizResult() {
       completedSlides.push(slide.id);
       localStorage.setItem('sherupa_s', JSON.stringify(completedSlides));
       // 人気度を更新
-      if (!isSponsorSlide) {
-        updateSlidePopularity(slide.id);
-      }
+      updateSlidePopularity(slide.id);
     }
     userProfile.alt += reward;
     localStorage.setItem('sherupa_profile', JSON.stringify(userProfile));
@@ -1537,333 +1343,6 @@ function completeSlide(slideId) {
     renderHome();
     renderProfile();
   }
-}
-
-// ========================================
-// スポンサーミッション
-// ========================================
-function openSponsorMission(index) {
-  const mission = APP.missions.sponsorMissions[index];
-  if (!mission) return;
-
-  toast(`🎗️ ${mission.name} - スポンサー: ${mission.sponsor}`);
-}
-
-// 子ども用：スポンサーミッションを開く
-function openSponsorMissionForChild(missionId, sponsorId) {
-  let mission = null;
-  let sponsor = null;
-
-  // 企業ミッションを検索
-  if (sponsorId && APP.missions?.sponsorAccounts) {
-    sponsor = APP.missions.sponsorAccounts.find(a => a.id === sponsorId);
-    if (sponsor) {
-      mission = sponsor.missions?.find(m => m.id === missionId);
-    }
-  }
-
-  // 従来のスポンサーミッションを検索
-  if (!mission && APP.missions?.sponsorMissions) {
-    mission = APP.missions.sponsorMissions.find(m => m.id === missionId);
-  }
-
-  if (!mission) {
-    toast('ミッションが見つかりません');
-    return;
-  }
-
-  // 完了チェック
-  const isCompleted = sponsorMissionCompletions.some(c => c.missionId === missionId && c.childId === userProfile.id);
-
-  // ミッション詳細モーダルを構築
-  const sponsorColor = sponsor?.color || '#f59e0b';
-  const sponsorName = sponsor?.name || mission.sponsor || 'スポンサー';
-  const sponsorLogo = sponsor?.logo || '🏢';
-
-  document.getElementById('sponsorMissionEmoji').textContent = mission.emoji;
-  document.getElementById('sponsorMissionTitle').textContent = mission.name;
-  document.getElementById('sponsorMissionHeader').style.background = `linear-gradient(135deg, ${sponsorColor}, ${sponsorColor}99)`;
-
-  let content = `
-    <div style="text-align:center;margin-bottom:16px">
-      <div style="display:inline-flex;align-items:center;gap:8px;background:#f3f4f6;padding:8px 16px;border-radius:20px">
-        <span style="font-size:20px">${sponsorLogo}</span>
-        <span style="font-size:13px;font-weight:600">${sponsorName}</span>
-      </div>
-    </div>
-    <div style="font-size:14px;color:var(--rock);text-align:center;margin-bottom:16px">
-      ${mission.description || ''}
-    </div>
-    <div style="display:flex;justify-content:center;gap:16px;margin-bottom:20px">
-      <div style="text-align:center">
-        <div style="font-size:24px;font-weight:700;color:${sponsorColor}">${mission.reward}</div>
-        <div style="font-size:11px;color:var(--rock)">ALT報酬</div>
-      </div>
-      <div style="text-align:center">
-        <div style="font-size:24px;font-weight:700;color:${sponsorColor}">${mission.pages?.length || 0}</div>
-        <div style="font-size:11px;color:var(--rock)">ページ</div>
-      </div>
-      <div style="text-align:center">
-        <div style="font-size:24px;font-weight:700;color:${sponsorColor}">${mission.qa?.length || 0}</div>
-        <div style="font-size:11px;color:var(--rock)">クイズ</div>
-      </div>
-    </div>
-  `;
-
-  if (isCompleted) {
-    const completion = sponsorMissionCompletions.find(c => c.missionId === missionId && c.childId === userProfile.id);
-    content += `
-      <div style="background:#f0fdf4;border:2px solid #22c55e;padding:16px;border-radius:12px;text-align:center;margin-bottom:16px">
-        <div style="font-size:32px;margin-bottom:8px">🎉</div>
-        <div style="font-weight:700;color:#22c55e">クリア済み！</div>
-        <div style="font-size:12px;color:var(--rock);margin-top:4px">
-          スコア: ${completion?.score || '-'}% ・ +${completion?.reward || mission.reward} ALT獲得
-        </div>
-      </div>
-      <button class="btn btn-secondary" style="width:100%" onclick="closeModals()">閉じる</button>
-    `;
-  } else {
-    content += `
-      <button class="btn btn-primary" style="width:100%;background:${sponsorColor}" onclick="startSponsorMission('${missionId}', '${sponsorId}')">
-        🚀 ミッション開始！
-      </button>
-      <button class="btn btn-secondary" style="width:100%;margin-top:8px" onclick="closeModals()">あとで挑戦する</button>
-    `;
-  }
-
-  document.getElementById('sponsorMissionContent').innerHTML = content;
-  document.getElementById('sponsorMissionModal').classList.add('active');
-}
-
-// スポンサーミッションを開始
-function startSponsorMission(missionId, sponsorId) {
-  let mission = null;
-  let sponsor = null;
-
-  if (sponsorId && APP.missions?.sponsorAccounts) {
-    sponsor = APP.missions.sponsorAccounts.find(a => a.id === sponsorId);
-    if (sponsor) {
-      mission = sponsor.missions?.find(m => m.id === missionId);
-    }
-  }
-
-  if (!mission) {
-    toast('ミッションが見つかりません');
-    return;
-  }
-
-  // ミッション状態を初期化
-  currentSponsorMission = {
-    ...mission,
-    sponsorId: sponsorId,
-    sponsorName: sponsor?.name || 'スポンサー',
-    sponsorLogo: sponsor?.logo || '🏢',
-    sponsorColor: sponsor?.color || '#f59e0b'
-  };
-  currentSponsorMissionPage = 0;
-  currentSponsorMissionQuiz = { answers: [], currentQ: 0 };
-
-  // ページコンテンツを表示
-  showSponsorMissionPage();
-}
-
-// スポンサーミッションのページを表示
-function showSponsorMissionPage() {
-  if (!currentSponsorMission) return;
-
-  const pages = currentSponsorMission.pages || [];
-  const page = pages[currentSponsorMissionPage];
-
-  if (!page) {
-    // ページがない場合はクイズへ
-    if (currentSponsorMission.qa && currentSponsorMission.qa.length > 0) {
-      startSponsorMissionQuiz();
-    } else {
-      completeSponsorMission(100);
-    }
-    return;
-  }
-
-  const totalPages = pages.length;
-  const progress = ((currentSponsorMissionPage + 1) / totalPages) * 100;
-
-  const content = `
-    <div style="margin-bottom:16px">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <span style="font-size:16px">${currentSponsorMission.sponsorLogo}</span>
-        <span style="font-size:12px;color:var(--rock)">${currentSponsorMission.sponsorName}</span>
-        <span style="margin-left:auto;font-size:12px;color:var(--rock)">${currentSponsorMissionPage + 1} / ${totalPages}</span>
-      </div>
-      <div style="height:4px;background:#e5e7eb;border-radius:2px;overflow:hidden">
-        <div style="height:100%;width:${progress}%;background:${currentSponsorMission.sponsorColor};transition:width .3s"></div>
-      </div>
-    </div>
-    <div style="font-size:16px;font-weight:700;margin-bottom:12px">${page.title}</div>
-    <div style="font-size:14px;line-height:1.7;white-space:pre-wrap;color:#374151">${page.content}</div>
-    <div style="display:flex;gap:10px;margin-top:20px">
-      ${currentSponsorMissionPage > 0 ? `
-        <button class="btn btn-secondary" style="flex:1" onclick="prevSponsorMissionPage()">← 戻る</button>
-      ` : ''}
-      <button class="btn btn-primary" style="flex:1;background:${currentSponsorMission.sponsorColor}" onclick="nextSponsorMissionPage()">
-        ${currentSponsorMissionPage < totalPages - 1 ? '次へ →' : 'クイズへ 📝'}
-      </button>
-    </div>
-  `;
-
-  document.getElementById('sponsorMissionEmoji').textContent = currentSponsorMission.emoji;
-  document.getElementById('sponsorMissionTitle').textContent = currentSponsorMission.name;
-  document.getElementById('sponsorMissionHeader').style.background = `linear-gradient(135deg, ${currentSponsorMission.sponsorColor}, ${currentSponsorMission.sponsorColor}99)`;
-  document.getElementById('sponsorMissionContent').innerHTML = content;
-}
-
-function prevSponsorMissionPage() {
-  if (currentSponsorMissionPage > 0) {
-    currentSponsorMissionPage--;
-    showSponsorMissionPage();
-  }
-}
-
-function nextSponsorMissionPage() {
-  const pages = currentSponsorMission?.pages || [];
-  if (currentSponsorMissionPage < pages.length - 1) {
-    currentSponsorMissionPage++;
-    showSponsorMissionPage();
-  } else {
-    // クイズへ
-    if (currentSponsorMission.qa && currentSponsorMission.qa.length > 0) {
-      startSponsorMissionQuiz();
-    } else {
-      completeSponsorMission(100);
-    }
-  }
-}
-
-// スポンサーミッションのクイズを開始
-function startSponsorMissionQuiz() {
-  currentSponsorMissionQuiz = { answers: [], currentQ: 0 };
-  showSponsorMissionQuiz();
-}
-
-function showSponsorMissionQuiz() {
-  if (!currentSponsorMission) return;
-
-  const qa = currentSponsorMission.qa || [];
-  const q = qa[currentSponsorMissionQuiz.currentQ];
-
-  if (!q) {
-    finishSponsorMissionQuiz();
-    return;
-  }
-
-  const content = `
-    <div style="margin-bottom:16px">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <span style="font-size:11px;background:${currentSponsorMission.sponsorColor};color:#fff;padding:4px 10px;border-radius:12px">クイズ ${currentSponsorMissionQuiz.currentQ + 1}/${qa.length}</span>
-      </div>
-    </div>
-    <div style="font-size:15px;font-weight:700;margin-bottom:16px">${q.question}</div>
-    <div style="display:flex;flex-direction:column;gap:10px">
-      ${q.options.map((opt, i) => `
-        <button class="quiz-option-btn" style="
-          padding:14px;background:#f9fafb;border:2px solid #e5e7eb;border-radius:10px;
-          font-size:14px;text-align:left;cursor:pointer;transition:all .2s
-        " onclick="answerSponsorMissionQuiz(${i})">${opt}</button>
-      `).join('')}
-    </div>
-  `;
-
-  document.getElementById('sponsorMissionContent').innerHTML = content;
-}
-
-function answerSponsorMissionQuiz(answerIndex) {
-  const qa = currentSponsorMission.qa || [];
-  const q = qa[currentSponsorMissionQuiz.currentQ];
-
-  const isCorrect = answerIndex === q.answer;
-  currentSponsorMissionQuiz.answers.push({ questionIndex: currentSponsorMissionQuiz.currentQ, answer: answerIndex, correct: isCorrect });
-
-  // フィードバック表示
-  const options = document.querySelectorAll('.quiz-option-btn');
-  options.forEach((btn, i) => {
-    btn.disabled = true;
-    if (i === q.answer) {
-      btn.style.background = '#dcfce7';
-      btn.style.borderColor = '#22c55e';
-    } else if (i === answerIndex && !isCorrect) {
-      btn.style.background = '#fee2e2';
-      btn.style.borderColor = '#ef4444';
-    }
-  });
-
-  // 次の問題へ
-  setTimeout(() => {
-    currentSponsorMissionQuiz.currentQ++;
-    if (currentSponsorMissionQuiz.currentQ < qa.length) {
-      showSponsorMissionQuiz();
-    } else {
-      finishSponsorMissionQuiz();
-    }
-  }, 1000);
-}
-
-function finishSponsorMissionQuiz() {
-  const correctCount = currentSponsorMissionQuiz.answers.filter(a => a.correct).length;
-  const totalQuestions = currentSponsorMission.qa?.length || 1;
-  const score = Math.round((correctCount / totalQuestions) * 100);
-
-  completeSponsorMission(score);
-}
-
-// スポンサーミッション完了
-function completeSponsorMission(score) {
-  if (!currentSponsorMission) return;
-
-  const reward = currentSponsorMission.reward || 50;
-
-  // 完了記録を保存
-  sponsorMissionCompletions.push({
-    missionId: currentSponsorMission.id,
-    sponsorId: currentSponsorMission.sponsorId,
-    childId: userProfile.id,
-    childName: userProfile.name,
-    timestamp: new Date().toISOString(),
-    reward: reward,
-    score: score
-  });
-  localStorage.setItem('sherupa_sponsor_mission_completions', JSON.stringify(sponsorMissionCompletions));
-
-  // ALT付与
-  userProfile.alt += reward;
-  userProfile.weeklyAlt = (userProfile.weeklyAlt || 0) + reward;
-  localStorage.setItem('sherupa_profile', JSON.stringify(userProfile));
-
-  // 結果表示
-  const content = `
-    <div style="text-align:center">
-      <div style="font-size:64px;margin-bottom:16px">${score >= 80 ? '🎉' : score >= 60 ? '👍' : '📚'}</div>
-      <div style="font-size:20px;font-weight:700;margin-bottom:8px">ミッション完了！</div>
-      <div style="font-size:48px;font-weight:700;color:${currentSponsorMission.sponsorColor};margin-bottom:8px">+${reward} ALT</div>
-      <div style="font-size:14px;color:var(--rock);margin-bottom:20px">
-        スコア: ${score}%
-        ${currentSponsorMission.qa?.length ? ` (${currentSponsorMissionQuiz.answers.filter(a => a.correct).length}/${currentSponsorMission.qa.length}問正解)` : ''}
-      </div>
-      <div style="background:#f3f4f6;padding:12px;border-radius:10px;margin-bottom:16px">
-        <div style="font-size:12px;color:var(--rock)">提供</div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px">
-          <span style="font-size:24px">${currentSponsorMission.sponsorLogo}</span>
-          <span style="font-weight:600">${currentSponsorMission.sponsorName}</span>
-        </div>
-      </div>
-      <button class="btn btn-primary" style="width:100%;background:${currentSponsorMission.sponsorColor}" onclick="closeModals(); renderHome();">閉じる</button>
-    </div>
-  `;
-
-  document.getElementById('sponsorMissionContent').innerHTML = content;
-
-  // 現在の情報をリセット
-  currentSponsorMission = null;
-  currentSponsorMissionPage = 0;
-  currentSponsorMissionQuiz = { answers: [], currentQ: 0 };
 }
 
 // ========================================
@@ -2413,19 +1892,13 @@ function renderProfile() {
     noCompleted.style.display = 'none';
     completedList.innerHTML = completedSlides.map(id => {
       const slide = APP.slides.find(s => s.id === id);
-      // スポンサースライドも含める
-      const sponsorSlide = sponsorSlides.find(s => s.id === id);
-      if (!slide && !sponsorSlide) return '';
-      const displaySlide = slide || sponsorSlide;
-      return `<div style="background:var(--cloud);border-radius:8px;padding:8px;text-align:center"><div style="font-size:24px">${displaySlide.emoji}</div><div style="font-size:9px;color:var(--summit)">${displaySlide.title}</div></div>`;
+      if (!slide) return '';
+      return `<div style="background:var(--cloud);border-radius:8px;padding:8px;text-align:center"><div style="font-size:24px">${slide.emoji}</div><div style="font-size:9px;color:var(--summit)">${slide.title}</div></div>`;
     }).join('');
   } else {
     noCompleted.style.display = 'block';
     completedList.innerHTML = '';
   }
-
-  // スポンサーからの応援履歴を表示
-  renderSponsorLikesReceived();
 
   // 管理者スライドの完了情報を表示
   renderAdminSlideCompletions();
@@ -2483,50 +1956,6 @@ function renderAdminSlideCompletions() {
       </div>
     `;
   }).join('');
-}
-
-// スポンサーからの応援履歴を表示
-function renderSponsorLikesReceived() {
-  const container = document.getElementById('sponsorLikesList');
-  const noLikes = document.getElementById('noSponsorLikes');
-  const countEl = document.getElementById('sponsorLikesCount');
-  const card = document.getElementById('sponsorLikesCard');
-
-  if (!container || !card) return;
-
-  if (sponsorLikesReceived.length === 0) {
-    noLikes.style.display = 'block';
-    container.innerHTML = '';
-    countEl.textContent = '0件';
-    return;
-  }
-
-  noLikes.style.display = 'none';
-  countEl.textContent = `${sponsorLikesReceived.length}件`;
-
-  // スポンサーごとにグループ化
-  const sponsorMap = {};
-  sponsorLikesReceived.forEach(like => {
-    if (!sponsorMap[like.sponsorId]) {
-      sponsorMap[like.sponsorId] = {
-        name: like.sponsorName,
-        logo: like.sponsorLogo || '🏢',
-        count: 1
-      };
-    } else {
-      sponsorMap[like.sponsorId].count++;
-    }
-  });
-
-  container.innerHTML = Object.values(sponsorMap).map(sponsor => `
-    <div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--cloud);border-radius:8px;margin-bottom:8px">
-      <div style="font-size:24px;width:40px;height:40px;background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:8px;display:flex;align-items:center;justify-content:center">${sponsor.logo}</div>
-      <div style="flex:1">
-        <div style="font-size:12px;font-weight:700;color:var(--summit)">${sponsor.name}</div>
-        <div style="font-size:11px;color:var(--rock)">❤️ ${sponsor.count}回応援</div>
-      </div>
-    </div>
-  `).join('');
 }
 
 function renderProfileCertificates() {
@@ -3460,29 +2889,19 @@ function switchMode(newMode) {
     document.getElementById('passwordModalHeader').style.background =
       newMode === 'admin'
         ? 'linear-gradient(135deg,#6366f1,#8b5cf6)'
-        : newMode === 'sponsor'
-          ? 'linear-gradient(135deg,#f59e0b,#fbbf24)'
-          : 'linear-gradient(135deg,#10b981,#34d399)';
+        : 'linear-gradient(135deg,#10b981,#34d399)';
     document.getElementById('passwordInput').value = '';
     document.getElementById('passwordError').style.display = 'none';
     document.getElementById('passwordError').textContent = 'パスワードが違います';
 
-    // スポンサーモードの場合は企業選択を表示
-    const sponsorSelect = document.getElementById('sponsorCompanySelect');
+    // スクールモードの場合はスクール選択を表示
     const schoolSelect = document.getElementById('schoolSelectForLogin');
 
-    if (newMode === 'sponsor') {
-      sponsorSelect.style.display = 'block';
-      schoolSelect.style.display = 'none';
-      populateSponsorCompanyDropdown();
-      document.getElementById('passwordModalDesc').textContent = '企業を選択してパスワードを入力してください';
-    } else if (newMode === 'teacher') {
-      sponsorSelect.style.display = 'none';
+    if (newMode === 'teacher') {
       schoolSelect.style.display = 'block';
       populateSchoolDropdown();
       document.getElementById('passwordModalDesc').textContent = 'スクールを選択してパスワードを入力してください';
     } else {
-      sponsorSelect.style.display = 'none';
       schoolSelect.style.display = 'none';
       document.getElementById('passwordModalDesc').textContent = 'このモードに切り替えるにはパスワードが必要です';
     }
@@ -3494,39 +2913,6 @@ function switchMode(newMode) {
 
   // パスワード不要のモードはそのまま切り替え
   executeSwitchMode(newMode);
-}
-
-// スポンサー企業ドロップダウンを生成
-function populateSponsorCompanyDropdown() {
-  const dropdown = document.getElementById('sponsorCompanyDropdown');
-  if (!dropdown || !APP.missions?.sponsorAccounts) return;
-
-  dropdown.innerHTML = '<option value="">-- 企業を選択してください --</option>';
-  APP.missions.sponsorAccounts.forEach(account => {
-    const option = document.createElement('option');
-    option.value = account.id;
-    option.textContent = `${account.logo} ${account.name}`;
-    dropdown.appendChild(option);
-  });
-}
-
-// 企業選択時の処理
-function onSponsorCompanyChange() {
-  const dropdown = document.getElementById('sponsorCompanyDropdown');
-  const selectedId = dropdown.value;
-
-  if (selectedId && APP.missions?.sponsorAccounts) {
-    const account = APP.missions.sponsorAccounts.find(a => a.id === selectedId);
-    if (account) {
-      document.getElementById('passwordModalHeader').style.background = `linear-gradient(135deg, ${account.color}, ${account.color}99)`;
-      document.getElementById('passwordModalEmoji').textContent = account.logo;
-      document.getElementById('passwordModalTitle').textContent = account.name;
-    }
-  } else {
-    document.getElementById('passwordModalHeader').style.background = 'linear-gradient(135deg,#f59e0b,#fbbf24)';
-    document.getElementById('passwordModalEmoji').textContent = '🔒';
-    document.getElementById('passwordModalTitle').textContent = '🎗️ スポンサーモード';
-  }
 }
 
 // スクールドロップダウンを生成
@@ -3579,15 +2965,11 @@ function executeSwitchMode(newMode) {
   document.getElementById('modeBadge').innerHTML = `${modeConfig.emoji} ${modeConfig.name}`;
   document.getElementById('modeBadge').className = `badge ${newMode}`;
 
-  // 管理者・スポンサー・先生・保護者モードは下部ナビを非表示にし専用画面を表示
+  // 管理者・先生・保護者モードは下部ナビを非表示にし専用画面を表示
   if (newMode === 'admin') {
     nav.style.display = 'none';
     showScreen('admin');
     renderAdminDashboard();
-  } else if (newMode === 'sponsor') {
-    nav.style.display = 'none';
-    showScreen('sponsor');
-    renderSponsorDashboard();
   } else if (newMode === 'teacher') {
     nav.style.display = 'none';
     showScreen('teacher');
@@ -3604,14 +2986,6 @@ function executeSwitchMode(newMode) {
 
   toast(`${modeConfig.emoji} ${modeConfig.name}モードに切り替えました`);
 }
-
-// スポンサー企業別パスワード
-const sponsorCompanyPasswords = {
-  'sponsor_mirai_tech': 'mirai2026',
-  'sponsor_green_earth': 'green2026',
-  'sponsor_health_lab': 'health2026',
-  'sponsor_star_nav': 'star2026'
-};
 
 async function verifyPassword() {
   const input = document.getElementById('passwordInput').value;
@@ -3652,61 +3026,7 @@ async function verifyPassword() {
     return;
   }
 
-  // スポンサーモードの場合は企業別認証
-  if (pendingMode === 'sponsor') {
-    const dropdown = document.getElementById('sponsorCompanyDropdown');
-    const selectedCompanyId = dropdown?.value;
-
-    if (!selectedCompanyId) {
-      errorElement.textContent = '企業を選択してください';
-      errorElement.style.display = 'block';
-      return;
-    }
-
-    const correctPassword = sponsorCompanyPasswords[selectedCompanyId];
-    if (input === correctPassword) {
-      errorElement.style.display = 'none';
-      // 選択した企業でログイン
-      currentSponsorId = selectedCompanyId;
-      localStorage.setItem('sherupa_current_sponsor_id', selectedCompanyId);
-      initializeSponsorAccounts();
-      if (sponsorAccounts[selectedCompanyId]) {
-        sponsorProfile = { ...sponsorAccounts[selectedCompanyId] };
-        localStorage.setItem('sherupa_sponsor_profile', JSON.stringify(sponsorProfile));
-      }
-      executeSwitchMode(pendingMode);
-      pendingMode = null;
-      const account = APP.missions?.sponsorAccounts?.find(a => a.id === selectedCompanyId);
-      if (account) {
-        toast(`${account.logo} ${account.name}にログインしました`);
-      }
-    } else {
-      errorElement.textContent = 'パスワードが違います';
-      errorElement.style.display = 'block';
-      document.getElementById('passwordInput').value = '';
-      document.getElementById('passwordInput').focus();
-    }
-    return;
-  }
-
-  // スポンサー企業切り替えの場合
-  if (pendingMode === 'sponsor_switch' && pendingSponsorSwitch) {
-    const correctPassword = sponsorCompanyPasswords[pendingSponsorSwitch];
-    if (input === correctPassword) {
-      errorElement.style.display = 'none';
-      switchToSponsorAccount(pendingSponsorSwitch);
-      pendingMode = null;
-      pendingSponsorSwitch = null;
-    } else {
-      errorElement.textContent = 'パスワードが違います';
-      errorElement.style.display = 'block';
-      document.getElementById('passwordInput').value = '';
-      document.getElementById('passwordInput').focus();
-    }
-    return;
-  }
-
-  // その他のモード（teacher, admin）はSherpaAuthを使用
+  // 管理者モードはSherpaAuthを使用
   if (window.SherpaAuth) {
     const result = await SherpaAuth.verifyPassword(pendingMode, input);
 
@@ -3731,7 +3051,7 @@ async function verifyPassword() {
   } else {
     // フォールバック（auth.jsが読み込まれていない場合）
     console.warn('SherpaAuth not loaded, using fallback');
-    const fallbackPasswords = { teacher: 'teacher', sponsor: '9999', admin: 'admin' };
+    const fallbackPasswords = { teacher: 'teacher', admin: 'admin' };
     if (input === fallbackPasswords[pendingMode]) {
       errorElement.style.display = 'none';
       executeSwitchMode(pendingMode);
@@ -3747,7 +3067,6 @@ async function verifyPassword() {
 
 function cancelPassword() {
   pendingMode = null;
-  pendingSponsorSwitch = null;
   document.getElementById('passwordModal').classList.remove('active');
 }
 
@@ -5415,7 +4734,7 @@ function renderParentQuizStats() {
         <div style="font-size:10px;color:var(--rock)">平均点</div>
       </div>
       <div style="text-align:center;background:rgba(245,158,11,0.1);padding:12px;border-radius:10px">
-        <div style="font-size:20px;font-weight:900;color:var(--sponsor)">${perfectCount}</div>
+        <div style="font-size:20px;font-weight:900;color:var(--sunrise)">${perfectCount}</div>
         <div style="font-size:10px;color:var(--rock)">満点回数</div>
       </div>
     </div>
@@ -5425,7 +4744,7 @@ function renderParentQuizStats() {
       return `
         <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.05)">
           <div style="font-size:11px;color:var(--rock);flex:1">${r.slideTitle || 'クイズ'}</div>
-          <div style="font-size:12px;font-weight:700;color:${pct >= 80 ? 'var(--meadow)' : pct >= 60 ? 'var(--sponsor)' : 'var(--sunset)'}">${r.score}/${r.total} (${pct}%)</div>
+          <div style="font-size:12px;font-weight:700;color:${pct >= 80 ? 'var(--meadow)' : pct >= 60 ? 'var(--sunrise)' : 'var(--sunset)'}">${r.score}/${r.total} (${pct}%)</div>
         </div>
       `;
     }).join('')}
@@ -5972,1087 +5291,6 @@ function formatTimeAgo(timestamp) {
   if (diffDays === 1) return '昨日';
   if (diffDays < 7) return `${diffDays}日前`;
   return date.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
-}
-
-// ========================================
-// スポンサーシステム
-// ========================================
-
-// スポンサー企業アカウントを初期化（missions.jsonから読み込み）
-function initializeSponsorAccounts() {
-  if (!APP.missions || !APP.missions.sponsorAccounts) return;
-
-  const existingAccounts = JSON.parse(localStorage.getItem('sherupa_sponsor_accounts')) || {};
-  let updated = false;
-
-  APP.missions.sponsorAccounts.forEach(account => {
-    if (!existingAccounts[account.id]) {
-      existingAccounts[account.id] = {
-        id: account.id,
-        name: account.name,
-        logo: account.logo,
-        category: account.category,
-        message: account.message,
-        color: account.color,
-        website: account.website,
-        altBalance: 3000,  // 初期ALT: 3000
-        sponsorLikes: 100, // 初期いいね: 100
-        totalAltDistributed: 0,
-        totalLikesGiven: 0,
-        totalChildrenSupported: 0,
-        createdAt: new Date().toISOString()
-      };
-      updated = true;
-    }
-  });
-
-  if (updated) {
-    localStorage.setItem('sherupa_sponsor_accounts', JSON.stringify(existingAccounts));
-  }
-
-  sponsorAccounts = existingAccounts;
-}
-
-// スポンサー選択モーダルを開く
-function openSponsorSelectModal() {
-  initializeSponsorAccounts();
-
-  const container = document.getElementById('sponsorAccountsList');
-  if (!APP.missions || !APP.missions.sponsorAccounts) {
-    container.innerHTML = '<div style="text-align:center;color:var(--rock)">スポンサー企業がありません</div>';
-    document.getElementById('sponsorSelectModal').classList.add('active');
-    return;
-  }
-
-  container.innerHTML = APP.missions.sponsorAccounts.map(account => {
-    const savedAccount = sponsorAccounts[account.id] || {};
-    const altBalance = savedAccount.altBalance || 3000;
-    const isSelected = currentSponsorId === account.id;
-
-    return `
-      <div class="sponsor-account-card" style="
-        display:flex;align-items:center;gap:12px;padding:14px;
-        background:${isSelected ? account.color + '15' : '#f9fafb'};
-        border:2px solid ${isSelected ? account.color : '#e5e7eb'};
-        border-radius:12px;cursor:pointer;transition:all .2s
-      " onclick="selectSponsorAccount('${account.id}')">
-        <div style="font-size:36px">${account.logo}</div>
-        <div style="flex:1">
-          <div style="font-weight:700;font-size:14px">${account.name}</div>
-          <div style="font-size:11px;color:var(--rock)">${account.category}</div>
-          <div style="font-size:12px;color:${account.color};margin-top:4px;font-weight:600">💰 ${altBalance.toLocaleString()} ALT</div>
-        </div>
-        ${isSelected ? '<div style="color:' + account.color + ';font-weight:700">✓</div>' : ''}
-      </div>
-    `;
-  }).join('');
-
-  document.getElementById('sponsorSelectModal').classList.add('active');
-}
-
-// スポンサーアカウントを選択（パスワード認証が必要）
-function selectSponsorAccount(sponsorId) {
-  // 同じ企業なら何もしない
-  if (sponsorId === currentSponsorId) {
-    closeModals();
-    return;
-  }
-
-  // パスワード入力モーダルを表示
-  closeModals();
-  const account = APP.missions?.sponsorAccounts?.find(a => a.id === sponsorId);
-  if (!account) return;
-
-  pendingSponsorSwitch = sponsorId;
-  document.getElementById('passwordModalHeader').style.background = `linear-gradient(135deg, ${account.color}, ${account.color}99)`;
-  document.getElementById('passwordModalEmoji').textContent = account.logo;
-  document.getElementById('passwordModalTitle').textContent = account.name;
-  document.getElementById('passwordModalDesc').textContent = 'パスワードを入力してください';
-  document.getElementById('sponsorCompanySelect').style.display = 'none';
-  document.getElementById('passwordInput').value = '';
-  document.getElementById('passwordError').style.display = 'none';
-  document.getElementById('passwordModal').classList.add('active');
-  document.getElementById('passwordInput').focus();
-
-  // 一時的にpendingModeを設定してスポンサー切り替え用のフラグとする
-  pendingMode = 'sponsor_switch';
-}
-
-// 企業切り替え用の変数
-let pendingSponsorSwitch = null;
-
-// 直接企業を切り替え（パスワード認証後に呼び出される内部関数）
-function switchToSponsorAccount(sponsorId) {
-  currentSponsorId = sponsorId;
-  localStorage.setItem('sherupa_current_sponsor_id', sponsorId);
-
-  // sponsorProfileを選択した企業で更新
-  const account = sponsorAccounts[sponsorId];
-  if (account) {
-    sponsorProfile = { ...account };
-    localStorage.setItem('sherupa_sponsor_profile', JSON.stringify(sponsorProfile));
-  }
-
-  closeModals();
-  renderSponsorDashboard();
-  const accountDef = APP.missions?.sponsorAccounts?.find(a => a.id === sponsorId);
-  if (accountDef) {
-    toast(`${accountDef.logo} ${accountDef.name}に切り替えました`);
-  }
-}
-
-// 現在のスポンサープロフィールを保存
-function saveSponsorProfile() {
-  if (currentSponsorId && sponsorAccounts[currentSponsorId]) {
-    sponsorAccounts[currentSponsorId] = { ...sponsorProfile };
-    localStorage.setItem('sherupa_sponsor_accounts', JSON.stringify(sponsorAccounts));
-  }
-  localStorage.setItem('sherupa_sponsor_profile', JSON.stringify(sponsorProfile));
-}
-
-// スポンサーダッシュボードのレンダリング
-function renderSponsorDashboard() {
-  // 企業アカウント初期化
-  initializeSponsorAccounts();
-
-  // 選択中の企業がない場合は選択モーダルを表示
-  if (!currentSponsorId || !sponsorAccounts[currentSponsorId]) {
-    openSponsorSelectModal();
-    return;
-  }
-
-  // 現在の企業情報でsponsorProfileを同期
-  sponsorProfile = { ...sponsorAccounts[currentSponsorId] };
-
-  // 企業バナーを表示
-  const banner = document.getElementById('sponsorCompanyBanner');
-  if (banner) {
-    banner.style.display = 'block';
-    document.getElementById('sponsorCompanyLogo').textContent = sponsorProfile.logo;
-    document.getElementById('sponsorCompanyName').textContent = sponsorProfile.name;
-    document.getElementById('sponsorCompanyCategory').textContent = sponsorProfile.category;
-  }
-
-  // サマリー更新
-  document.getElementById('sponsorAltBalance').textContent = sponsorProfile.altBalance.toLocaleString();
-  document.getElementById('sponsorLikesBalance').textContent = sponsorProfile.sponsorLikes;
-  document.getElementById('sponsorTotalDistributed').textContent = sponsorProfile.totalAltDistributed.toLocaleString();
-  document.getElementById('sponsorTotalChildren').textContent = sponsorProfile.totalChildrenSupported + '人';
-
-  // タブ内容を表示
-  renderSponsorMissionsList();
-  renderSponsorSlidesList();
-  renderSponsorChildrenList();
-  renderSponsorAnalytics();
-  renderSponsorHistoryList();
-}
-
-// スポンサーミッション一覧（企業のミッション）
-function renderSponsorMissionsList() {
-  const container = document.getElementById('sponsorMissionsList');
-  if (!container) return;
-
-  // 現在の企業のミッションを取得
-  const accountDef = APP.missions?.sponsorAccounts?.find(a => a.id === currentSponsorId);
-  const missions = accountDef?.missions || [];
-
-  if (missions.length === 0) {
-    container.innerHTML = `
-      <div style="text-align:center;padding:30px;color:var(--rock)">
-        <div style="font-size:48px;margin-bottom:12px">🎯</div>
-        <div style="font-size:14px;font-weight:700">ミッションがありません</div>
-      </div>
-    `;
-    return;
-  }
-
-  container.innerHTML = missions.map(mission => {
-    const completions = sponsorMissionCompletions.filter(c => c.missionId === mission.id).length;
-    return `
-      <div class="sponsor-slide-card" style="cursor:pointer" onclick="openSponsorMissionDetail('${mission.id}')">
-        <div class="sponsor-slide-emoji">${mission.emoji}</div>
-        <div class="sponsor-slide-info">
-          <div class="sponsor-slide-title">${mission.name}</div>
-          <div class="sponsor-slide-meta">${mission.description || ''}</div>
-          <div style="display:flex;gap:8px;margin-top:4px">
-            <span style="font-size:11px;color:var(--sponsor)">💰 ${mission.reward} ALT</span>
-            <span style="font-size:11px;color:var(--rock)">👦 ${completions}人挑戦</span>
-          </div>
-        </div>
-        <div style="font-size:20px;color:var(--rock)">→</div>
-      </div>
-    `;
-  }).join('');
-}
-
-// ミッション詳細を表示（スポンサー用）
-function openSponsorMissionDetail(missionId) {
-  const accountDef = APP.missions?.sponsorAccounts?.find(a => a.id === currentSponsorId);
-  const mission = accountDef?.missions?.find(m => m.id === missionId);
-  if (!mission) return;
-
-  document.getElementById('sponsorMissionEmoji').textContent = mission.emoji;
-  document.getElementById('sponsorMissionTitle').textContent = mission.name;
-  document.getElementById('sponsorMissionHeader').style.background = `linear-gradient(135deg, ${sponsorProfile.color}, ${sponsorProfile.color}99)`;
-
-  // ミッション完了者一覧
-  const completions = sponsorMissionCompletions.filter(c => c.missionId === missionId);
-
-  let content = `
-    <div style="margin-bottom:16px">
-      <div style="font-size:13px;color:var(--rock);margin-bottom:8px">${mission.description}</div>
-      <div style="display:flex;gap:12px;flex-wrap:wrap">
-        <span style="font-size:12px;background:#f3f4f6;padding:4px 8px;border-radius:6px">💰 報酬: ${mission.reward} ALT</span>
-        <span style="font-size:12px;background:#f3f4f6;padding:4px 8px;border-radius:6px">📄 ${mission.pages?.length || 0}ページ</span>
-        <span style="font-size:12px;background:#f3f4f6;padding:4px 8px;border-radius:6px">❓ ${mission.qa?.length || 0}問</span>
-      </div>
-    </div>
-    <div style="font-weight:700;font-size:14px;margin-bottom:12px">👦 挑戦した子どもたち (${completions.length}人)</div>
-  `;
-
-  if (completions.length === 0) {
-    content += `<div style="text-align:center;padding:20px;color:var(--rock);font-size:13px">まだ挑戦者がいません</div>`;
-  } else {
-    content += completions.map(c => {
-      const date = new Date(c.timestamp).toLocaleDateString('ja-JP');
-      return `
-        <div style="display:flex;align-items:center;gap:10px;padding:10px;background:#f9fafb;border-radius:8px;margin-bottom:8px">
-          <div style="width:36px;height:36px;background:${sponsorProfile.color};color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700">${c.childName?.charAt(0) || '?'}</div>
-          <div style="flex:1">
-            <div style="font-weight:600;font-size:13px">${c.childName || '名無し'}</div>
-            <div style="font-size:11px;color:var(--rock)">${date} ・ スコア: ${c.score || '-'}%</div>
-          </div>
-          <div style="font-size:12px;color:${sponsorProfile.color};font-weight:600">+${c.reward} ALT</div>
-        </div>
-      `;
-    }).join('');
-  }
-
-  document.getElementById('sponsorMissionContent').innerHTML = content;
-  document.getElementById('sponsorMissionModal').classList.add('active');
-}
-
-// スポンサー分析（挑戦状況の可視化）
-function renderSponsorAnalytics() {
-  const container = document.getElementById('sponsorAnalyticsList');
-  if (!container) return;
-
-  const accountDef = APP.missions?.sponsorAccounts?.find(a => a.id === currentSponsorId);
-  const missions = accountDef?.missions || [];
-
-  if (missions.length === 0) {
-    container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--rock)">ミッションデータがありません</div>`;
-    return;
-  }
-
-  // 各ミッションの統計を計算
-  let totalCompletions = 0;
-  let totalRewardsDistributed = 0;
-
-  const missionStats = missions.map(mission => {
-    const completions = sponsorMissionCompletions.filter(c => c.missionId === mission.id);
-    const avgScore = completions.length > 0
-      ? Math.round(completions.reduce((sum, c) => sum + (c.score || 0), 0) / completions.length)
-      : 0;
-    const rewardsGiven = completions.reduce((sum, c) => sum + (c.reward || 0), 0);
-
-    totalCompletions += completions.length;
-    totalRewardsDistributed += rewardsGiven;
-
-    return { mission, completions: completions.length, avgScore, rewardsGiven };
-  });
-
-  // サマリー
-  let html = `
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
-      <div style="background:#f0fdf4;padding:12px;border-radius:10px;text-align:center">
-        <div style="font-size:20px;font-weight:700;color:#22c55e">${totalCompletions}</div>
-        <div style="font-size:11px;color:var(--rock)">総挑戦回数</div>
-      </div>
-      <div style="background:#fef3c7;padding:12px;border-radius:10px;text-align:center">
-        <div style="font-size:20px;font-weight:700;color:#f59e0b">${totalRewardsDistributed}</div>
-        <div style="font-size:11px;color:var(--rock)">配布ALT</div>
-      </div>
-      <div style="background:#ede9fe;padding:12px;border-radius:10px;text-align:center">
-        <div style="font-size:20px;font-weight:700;color:#8b5cf6">${missions.length}</div>
-        <div style="font-size:11px;color:var(--rock)">ミッション数</div>
-      </div>
-    </div>
-    <div style="font-weight:700;font-size:13px;margin-bottom:10px">📊 ミッション別統計</div>
-  `;
-
-  // 各ミッションの詳細
-  missionStats.forEach(stat => {
-    const barWidth = totalCompletions > 0 ? (stat.completions / Math.max(...missionStats.map(s => s.completions))) * 100 : 0;
-    html += `
-      <div style="padding:12px;background:#f9fafb;border-radius:10px;margin-bottom:8px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-          <span style="font-size:20px">${stat.mission.emoji}</span>
-          <span style="font-weight:600;font-size:13px;flex:1">${stat.mission.name}</span>
-          <span style="font-size:12px;color:var(--rock)">${stat.completions}人</span>
-        </div>
-        <div style="height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden">
-          <div style="height:100%;width:${barWidth}%;background:${sponsorProfile.color};border-radius:3px"></div>
-        </div>
-        <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--rock)">
-          <span>平均スコア: ${stat.avgScore}%</span>
-          <span>配布: ${stat.rewardsGiven} ALT</span>
-        </div>
-      </div>
-    `;
-  });
-
-  container.innerHTML = html;
-}
-
-// スポンサータブ切り替え
-function showSponsorTab(tabName, element) {
-  document.querySelectorAll('#sponsorTabs .admin-tab').forEach(t => {
-    t.classList.remove('active');
-    t.style.color = 'rgba(255,255,255,.6)';
-  });
-  element.classList.add('active');
-  element.style.color = '#fff';
-
-  document.querySelectorAll('#screen-sponsor .admin-tab-content').forEach(c => c.classList.remove('active'));
-  const tabContent = document.getElementById('sponsorTab' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
-  if (tabContent) tabContent.classList.add('active');
-}
-
-// スポンサースライド一覧表示
-function renderSponsorSlidesList() {
-  const container = document.getElementById('sponsorSlidesList');
-  const mySlides = sponsorSlides.filter(s => s.sponsorId === sponsorProfile.id);
-
-  if (mySlides.length === 0) {
-    container.innerHTML = `
-      <div style="text-align:center;padding:30px;color:var(--rock)">
-        <div style="font-size:48px;margin-bottom:12px">📝</div>
-        <div style="font-size:14px;font-weight:700">まだスライドがありません</div>
-        <div style="font-size:12px;margin-top:4px">「新規作成」からスライドを作成しましょう</div>
-      </div>
-    `;
-    return;
-  }
-
-  container.innerHTML = mySlides.map(slide => {
-    const completions = sponsorSlideCompletions.filter(c => c.slideId === slide.id).length;
-    return `
-      <div class="sponsor-slide-card">
-        <div class="sponsor-slide-emoji">${slide.emoji}</div>
-        <div class="sponsor-slide-info">
-          <div class="sponsor-slide-title">${slide.title}</div>
-          <div class="sponsor-slide-meta">完了: ${completions}人 ・ ページ: ${slide.pages?.length || 0}</div>
-          <div class="sponsor-slide-reward">報酬: ${slide.reward} ALT</div>
-        </div>
-        <div class="sponsor-slide-actions">
-          <button class="sponsor-slide-action-btn edit" onclick="editSponsorSlide('${slide.id}')">✏️</button>
-          <button class="sponsor-slide-action-btn delete" onclick="confirmDeleteSponsorSlide('${slide.id}')">🗑️</button>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-// スポンサースライドを完了したこども一覧
-function renderSponsorChildrenList() {
-  const container = document.getElementById('sponsorChildrenList');
-  const myCompletions = sponsorSlideCompletions.filter(c => {
-    const slide = sponsorSlides.find(s => s.id === c.slideId);
-    return slide && slide.sponsorId === sponsorProfile.id;
-  });
-
-  if (myCompletions.length === 0) {
-    container.innerHTML = `
-      <div style="text-align:center;padding:30px;color:var(--rock)">
-        <div style="font-size:48px;margin-bottom:12px">👦</div>
-        <div style="font-size:12px">まだ学習者がいません</div>
-      </div>
-    `;
-    return;
-  }
-
-  // 重複を除いてこども一覧を作成
-  const childrenMap = {};
-  myCompletions.forEach(c => {
-    if (!childrenMap[c.childId]) {
-      childrenMap[c.childId] = { ...c, count: 1 };
-    } else {
-      childrenMap[c.childId].count++;
-    }
-  });
-
-  container.innerHTML = Object.values(childrenMap).map(child => `
-    <div class="like-target-item">
-      <div class="like-target-avatar">${child.childName?.charAt(0) || '?'}</div>
-      <div class="like-target-info">
-        <div class="like-target-name">${child.childName || '名無し'}</div>
-        <div class="like-target-detail">完了スライド: ${child.count}個</div>
-      </div>
-      <button class="like-target-btn" onclick="sendSponsorLike('${child.childId}', '${child.childName}')" ${sponsorProfile.sponsorLikes <= 0 ? 'disabled' : ''}>
-        ❤️ いいね
-      </button>
-    </div>
-  `).join('');
-}
-
-// スポンサー履歴表示
-function renderSponsorHistoryList() {
-  const container = document.getElementById('sponsorHistoryList');
-  if (!container) return;
-
-  // 購入履歴、いいね履歴、スライド完了、ミッション完了を統合
-  const history = [
-    ...altPurchases.filter(p => !p.sponsorId || p.sponsorId === sponsorProfile.id).map(p => ({ ...p, type: 'purchase' })),
-    ...sponsorLikesSent.filter(l => l.sponsorId === sponsorProfile.id).map(l => ({ ...l, type: 'like' })),
-    ...sponsorSlideCompletions.filter(c => {
-      const slide = sponsorSlides.find(s => s.id === c.slideId);
-      return slide && slide.sponsorId === sponsorProfile.id;
-    }).map(c => ({ ...c, type: 'reward' })),
-    ...sponsorMissionCompletions.filter(c => c.sponsorId === currentSponsorId).map(c => ({ ...c, type: 'mission' }))
-  ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 30);
-
-  if (history.length === 0) {
-    container.innerHTML = `
-      <div style="text-align:center;padding:30px;color:var(--rock)">
-        <div style="font-size:48px;margin-bottom:12px">📜</div>
-        <div style="font-size:12px">まだ履歴がありません</div>
-      </div>
-    `;
-    return;
-  }
-
-  container.innerHTML = history.map(item => {
-    const date = new Date(item.timestamp).toLocaleDateString('ja-JP');
-    if (item.type === 'purchase') {
-      return `
-        <div style="padding:10px;background:var(--cloud);border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between">
-          <div>
-            <div style="font-size:12px;font-weight:700">💳 ALT購入</div>
-            <div style="font-size:11px;color:var(--rock)">${date}</div>
-          </div>
-          <div style="text-align:right">
-            <div style="font-size:14px;font-weight:700;color:var(--sponsor)">+${item.amount} ALT</div>
-            <div style="font-size:11px;color:var(--rock)">¥${item.price.toLocaleString()}</div>
-          </div>
-        </div>
-      `;
-    } else if (item.type === 'like') {
-      return `
-        <div style="padding:10px;background:#fce7f3;border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between">
-          <div>
-            <div style="font-size:12px;font-weight:700">❤️ いいね送信</div>
-            <div style="font-size:11px;color:var(--rock)">${item.childName}さんへ</div>
-          </div>
-          <div style="font-size:11px;color:var(--rock)">${date}</div>
-        </div>
-      `;
-    } else if (item.type === 'mission') {
-      return `
-        <div style="padding:10px;background:#ede9fe;border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between">
-          <div>
-            <div style="font-size:12px;font-weight:700">🎯 ミッション完了</div>
-            <div style="font-size:11px;color:var(--rock)">${item.childName}さん (スコア: ${item.score || '-'}%)</div>
-          </div>
-          <div style="text-align:right">
-            <div style="font-size:14px;font-weight:700;color:#8b5cf6">-${item.reward} ALT</div>
-            <div style="font-size:11px;color:var(--rock)">${date}</div>
-          </div>
-        </div>
-      `;
-    } else {
-      return `
-        <div style="padding:10px;background:#dcfce7;border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between">
-          <div>
-            <div style="font-size:12px;font-weight:700">⛰️ 報酬配布</div>
-            <div style="font-size:11px;color:var(--rock)">${item.childName}さんへ</div>
-          </div>
-          <div style="text-align:right">
-            <div style="font-size:14px;font-weight:700;color:var(--meadow)">-${item.reward} ALT</div>
-            <div style="font-size:11px;color:var(--rock)">${date}</div>
-          </div>
-        </div>
-      `;
-    }
-  }).join('');
-}
-
-// ========================================
-// ALT購入機能
-// ========================================
-
-function openAltPurchaseModal() {
-  document.getElementById('altPurchaseModal').style.display = 'flex';
-  document.getElementById('customAltAmount').value = '';
-  updateCustomAltCalculation();
-}
-
-// カスタムALT計算
-function updateCustomAltCalculation() {
-  const amount = parseInt(document.getElementById('customAltAmount').value) || 0;
-  const price = Math.ceil(amount / 30) * 1500;
-  const likes = Math.floor(amount / 30);
-
-  document.getElementById('customAltPrice').textContent = '¥' + price.toLocaleString();
-  document.getElementById('customAltLikes').textContent = likes;
-}
-
-// カスタムALT入力時のイベント
-document.addEventListener('DOMContentLoaded', () => {
-  const customInput = document.getElementById('customAltAmount');
-  if (customInput) {
-    customInput.addEventListener('input', updateCustomAltCalculation);
-  }
-});
-
-// プラン選択
-function selectAltPlan(amount, price, likes) {
-  if (confirm(`${amount} ALT（+ ${likes} いいね）を¥${price.toLocaleString()}で購入しますか？`)) {
-    purchaseAlt(amount, price, likes);
-  }
-}
-
-// カスタム購入
-function purchaseCustomAlt() {
-  const amount = parseInt(document.getElementById('customAltAmount').value) || 0;
-  if (amount < 30) {
-    toast('最低30ALTから購入できます');
-    return;
-  }
-
-  const price = Math.ceil(amount / 30) * 1500;
-  const likes = Math.floor(amount / 30);
-
-  if (confirm(`${amount} ALT（+ ${likes} いいね）を¥${price.toLocaleString()}で購入しますか？`)) {
-    purchaseAlt(amount, price, likes);
-  }
-}
-
-// ALT購入処理
-function purchaseAlt(amount, price, likes) {
-  // 残高に追加
-  sponsorProfile.altBalance += amount;
-  sponsorProfile.sponsorLikes += likes;
-
-  // 購入履歴に追加
-  altPurchases.push({
-    id: 'purchase_' + Date.now(),
-    amount: amount,
-    price: price,
-    likes: likes,
-    timestamp: new Date().toISOString()
-  });
-
-  // 保存
-  localStorage.setItem('sherupa_sponsor_profile', JSON.stringify(sponsorProfile));
-  localStorage.setItem('sherupa_alt_purchases', JSON.stringify(altPurchases));
-
-  // 画面更新
-  renderSponsorDashboard();
-  closeModals();
-
-  toast(`💳 ${amount} ALTを購入しました！（+ ${likes} いいね）`);
-}
-
-// ========================================
-// スポンサースライド管理
-// ========================================
-
-function openSponsorSlideManager() {
-  showSponsorTab('myslides', document.querySelector('[data-tab="myslides"]'));
-}
-
-function openSponsorSlideEditor(slideId = null) {
-  document.getElementById('sponsorSlideEditorModal').style.display = 'flex';
-  document.getElementById('editSponsorSlideId').value = slideId || '';
-
-  // 初期化
-  currentSponsorSlidePages = [];
-  currentSponsorSlideQuizzes = [];
-
-  if (slideId) {
-    // 編集モード
-    const slide = sponsorSlides.find(s => s.id === slideId);
-    if (slide) {
-      document.getElementById('sponsorSlideEditorTitle').textContent = 'スライド編集';
-      document.getElementById('sponsorSlideTitle').value = slide.title;
-      document.getElementById('sponsorSlideEmoji').value = slide.emoji;
-      document.getElementById('sponsorSlideReward').value = slide.reward;
-      document.getElementById('sponsorSlideDescription').value = slide.description || '';
-      currentSponsorSlidePages = [...(slide.pages || [])];
-      currentSponsorSlideQuizzes = [...(slide.qa || [])];
-      document.getElementById('sponsorSlideDeleteBtn').style.display = 'block';
-    }
-  } else {
-    // 新規作成モード
-    document.getElementById('sponsorSlideEditorTitle').textContent = '新規スポンサースライド';
-    document.getElementById('sponsorSlideTitle').value = '';
-    document.getElementById('sponsorSlideEmoji').value = '🌟';
-    document.getElementById('sponsorSlideReward').value = '30';
-    document.getElementById('sponsorSlideDescription').value = '';
-    document.getElementById('sponsorSlideDeleteBtn').style.display = 'none';
-
-    // デフォルトで1ページと1クイズを追加
-    currentSponsorSlidePages = [{ title: '', content: '', emoji: '📖' }];
-    currentSponsorSlideQuizzes = [{ q: '', choices: ['', '', '', ''], answer: 0 }];
-  }
-
-  renderSponsorSlidePages();
-  renderSponsorSlideQuizzes();
-}
-
-function editSponsorSlide(slideId) {
-  openSponsorSlideEditor(slideId);
-}
-
-// ページエディタのレンダリング
-function renderSponsorSlidePages() {
-  const container = document.getElementById('sponsorSlidePages');
-  container.innerHTML = currentSponsorSlidePages.map((page, idx) => `
-    <div class="sponsor-page-editor">
-      <div class="sponsor-page-editor-header">
-        <span class="sponsor-page-number">ページ ${idx + 1}</span>
-        <button type="button" class="sponsor-page-delete" onclick="removeSponsorSlidePage(${idx})">削除</button>
-      </div>
-      <div class="form-group" style="margin-bottom:8px">
-        <input type="text" class="form-input" placeholder="ページタイトル" value="${page.title || ''}" onchange="updateSponsorPage(${idx}, 'title', this.value)">
-      </div>
-      <div class="form-group">
-        <textarea class="form-input" rows="3" placeholder="ページ内容" style="resize:none" onchange="updateSponsorPage(${idx}, 'content', this.value)">${page.content || ''}</textarea>
-      </div>
-    </div>
-  `).join('');
-}
-
-function addSponsorSlidePage() {
-  currentSponsorSlidePages.push({ title: '', content: '', emoji: '📖' });
-  renderSponsorSlidePages();
-}
-
-function removeSponsorSlidePage(idx) {
-  if (currentSponsorSlidePages.length <= 1) {
-    toast('最低1ページは必要です');
-    return;
-  }
-  currentSponsorSlidePages.splice(idx, 1);
-  renderSponsorSlidePages();
-}
-
-function updateSponsorPage(idx, field, value) {
-  currentSponsorSlidePages[idx][field] = value;
-}
-
-// クイズエディタのレンダリング
-function renderSponsorSlideQuizzes() {
-  const container = document.getElementById('sponsorSlideQuizzes');
-  container.innerHTML = currentSponsorSlideQuizzes.map((quiz, idx) => `
-    <div class="sponsor-quiz-editor">
-      <div class="sponsor-quiz-header">
-        <span class="sponsor-quiz-number">問題 ${idx + 1}</span>
-        <button type="button" class="sponsor-quiz-delete" onclick="removeSponsorSlideQuiz(${idx})">削除</button>
-      </div>
-      <div class="form-group" style="margin-bottom:8px">
-        <input type="text" class="form-input" placeholder="問題文" value="${quiz.q || ''}" onchange="updateSponsorQuiz(${idx}, 'q', this.value)">
-      </div>
-      <div class="sponsor-quiz-choices">
-        ${quiz.choices.map((choice, cIdx) => `
-          <div class="sponsor-quiz-choice">
-            <input type="radio" name="quiz_${idx}_answer" ${quiz.answer === cIdx ? 'checked' : ''} onchange="updateSponsorQuizAnswer(${idx}, ${cIdx})">
-            <input type="text" class="form-input" placeholder="選択肢 ${cIdx + 1}" value="${choice || ''}" onchange="updateSponsorQuizChoice(${idx}, ${cIdx}, this.value)">
-          </div>
-        `).join('')}
-      </div>
-      <div style="font-size:10px;color:var(--rock);margin-top:4px">※ラジオボタンで正解を選択</div>
-    </div>
-  `).join('');
-}
-
-function addSponsorSlideQuiz() {
-  currentSponsorSlideQuizzes.push({ q: '', choices: ['', '', '', ''], answer: 0 });
-  renderSponsorSlideQuizzes();
-}
-
-function removeSponsorSlideQuiz(idx) {
-  if (currentSponsorSlideQuizzes.length <= 1) {
-    toast('最低1問は必要です');
-    return;
-  }
-  currentSponsorSlideQuizzes.splice(idx, 1);
-  renderSponsorSlideQuizzes();
-}
-
-function updateSponsorQuiz(idx, field, value) {
-  currentSponsorSlideQuizzes[idx][field] = value;
-}
-
-function updateSponsorQuizChoice(idx, choiceIdx, value) {
-  currentSponsorSlideQuizzes[idx].choices[choiceIdx] = value;
-}
-
-function updateSponsorQuizAnswer(idx, answerIdx) {
-  currentSponsorSlideQuizzes[idx].answer = answerIdx;
-}
-
-// スポンサースライド保存
-function saveSponsorSlide() {
-  const title = document.getElementById('sponsorSlideTitle').value.trim();
-  const emoji = document.getElementById('sponsorSlideEmoji').value || '🌟';
-  const reward = parseInt(document.getElementById('sponsorSlideReward').value) || 30;
-  const description = document.getElementById('sponsorSlideDescription').value.trim();
-  const slideId = document.getElementById('editSponsorSlideId').value;
-
-  // バリデーション
-  if (!title) {
-    toast('タイトルを入力してください');
-    return;
-  }
-
-  if (reward < 10 || reward > 100) {
-    toast('報酬ALTは10〜100の範囲で設定してください');
-    return;
-  }
-
-  if (currentSponsorSlidePages.length < 1 || !currentSponsorSlidePages[0].title) {
-    toast('最低1ページのコンテンツが必要です');
-    return;
-  }
-
-  if (currentSponsorSlideQuizzes.length < 1 || !currentSponsorSlideQuizzes[0].q) {
-    toast('最低1問のクイズが必要です');
-    return;
-  }
-
-  const slideData = {
-    id: slideId || 'sponsor_slide_' + Date.now(),
-    sponsorId: sponsorProfile.id,
-    sponsorName: sponsorProfile.name,
-    sponsorLogo: sponsorProfile.logo,
-    title: title,
-    emoji: emoji,
-    reward: reward,
-    description: description,
-    pages: currentSponsorSlidePages,
-    qa: currentSponsorSlideQuizzes.map(q => ({
-      q: q.q,
-      choices: q.choices,
-      a: q.choices[q.answer]
-    })),
-    status: 'active',
-    createdAt: new Date().toISOString(),
-    completions: 0
-  };
-
-  if (slideId) {
-    // 更新
-    const idx = sponsorSlides.findIndex(s => s.id === slideId);
-    if (idx !== -1) {
-      slideData.completions = sponsorSlides[idx].completions || 0;
-      sponsorSlides[idx] = slideData;
-    }
-    toast('スライドを更新しました');
-  } else {
-    // 新規追加
-    sponsorSlides.push(slideData);
-    toast('スライドを作成しました');
-  }
-
-  localStorage.setItem('sherupa_sponsor_slides', JSON.stringify(sponsorSlides));
-  renderSponsorDashboard();
-  closeModals();
-}
-
-function confirmDeleteSponsorSlide(slideId) {
-  if (confirm('このスライドを削除しますか？')) {
-    deleteSponsorSlideById(slideId);
-  }
-}
-
-function deleteSponsorSlide() {
-  const slideId = document.getElementById('editSponsorSlideId').value;
-  if (slideId && confirm('このスライドを削除しますか？')) {
-    deleteSponsorSlideById(slideId);
-    closeModals();
-  }
-}
-
-function deleteSponsorSlideById(slideId) {
-  sponsorSlides = sponsorSlides.filter(s => s.id !== slideId);
-  localStorage.setItem('sherupa_sponsor_slides', JSON.stringify(sponsorSlides));
-  renderSponsorDashboard();
-  toast('スライドを削除しました');
-}
-
-// ========================================
-// スポンサーいいね機能
-// ========================================
-
-function openSponsorLikePanel() {
-  document.getElementById('sponsorLikeModal').style.display = 'flex';
-  document.getElementById('likesRemaining').textContent = sponsorProfile.sponsorLikes;
-  updateLikeTargets();
-}
-
-function updateLikeTargets() {
-  const container = document.getElementById('likeTargetsList');
-  const targetType = document.getElementById('likeTargetType').value;
-
-  let targets = [];
-
-  if (targetType === 'slide_completers') {
-    // スライド完了者
-    const myCompletions = sponsorSlideCompletions.filter(c => {
-      const slide = sponsorSlides.find(s => s.id === c.slideId);
-      return slide && slide.sponsorId === sponsorProfile.id;
-    });
-
-    const childrenMap = {};
-    myCompletions.forEach(c => {
-      if (!childrenMap[c.childId]) {
-        childrenMap[c.childId] = { id: c.childId, name: c.childName, detail: '完了スライド: 1個' };
-      }
-    });
-    targets = Object.values(childrenMap);
-  } else if (targetType === 'ranking_top') {
-    // ランキング上位者
-    targets = allUsers.slice(0, 10).map(u => ({
-      id: u.id,
-      name: u.name,
-      detail: `${u.alt.toLocaleString()} ALT`
-    }));
-  } else if (targetType === 'streak_achievers') {
-    // 連続学習達成者
-    targets = allUsers.filter(u => u.streak >= 7).map(u => ({
-      id: u.id,
-      name: u.name,
-      detail: `${u.streak}日連続`
-    }));
-  }
-
-  if (targets.length === 0) {
-    container.innerHTML = `
-      <div style="text-align:center;padding:20px;color:var(--rock)">
-        <div style="font-size:12px">対象者がいません</div>
-      </div>
-    `;
-    return;
-  }
-
-  // 既にいいねを送った人を除外
-  const sentIds = sponsorLikesSent.filter(l => l.sponsorId === sponsorProfile.id).map(l => l.childId);
-
-  container.innerHTML = targets.map(t => {
-    const alreadySent = sentIds.includes(t.id);
-    return `
-      <div class="like-target-item">
-        <div class="like-target-avatar">${t.name?.charAt(0) || '?'}</div>
-        <div class="like-target-info">
-          <div class="like-target-name">${t.name || '名無し'}</div>
-          <div class="like-target-detail">${t.detail}</div>
-        </div>
-        <button class="like-target-btn" onclick="sendSponsorLike('${t.id}', '${t.name}')" ${sponsorProfile.sponsorLikes <= 0 || alreadySent ? 'disabled' : ''}>
-          ${alreadySent ? '送信済' : '❤️ いいね'}
-        </button>
-      </div>
-    `;
-  }).join('');
-}
-
-function sendSponsorLike(childId, childName) {
-  if (sponsorProfile.sponsorLikes <= 0) {
-    toast('いいねがありません。ALTを購入してください');
-    return;
-  }
-
-  // いいね送信処理
-  sponsorProfile.sponsorLikes--;
-  sponsorProfile.totalLikesGiven++;
-
-  const likeRecord = {
-    id: 'like_' + Date.now(),
-    sponsorId: sponsorProfile.id,
-    sponsorName: sponsorProfile.name,
-    sponsorLogo: sponsorProfile.logo,
-    childId: childId,
-    childName: childName,
-    timestamp: new Date().toISOString(),
-    message: 'がんばって学習してるね！応援してるよ！'
-  };
-
-  sponsorLikesSent.push(likeRecord);
-
-  // こども側にいいねを追加（デモ用：現在のユーザーがいいねを受け取る場合）
-  if (childId === userProfile.id) {
-    sponsorLikesReceived.push({
-      id: likeRecord.id,
-      sponsorId: sponsorProfile.id,
-      sponsorName: sponsorProfile.name,
-      sponsorLogo: sponsorProfile.logo,
-      timestamp: likeRecord.timestamp,
-      message: likeRecord.message
-    });
-
-    // こどもに100ALT付与
-    userProfile.alt += 100;
-    localStorage.setItem('sherupa_profile', JSON.stringify(userProfile));
-    localStorage.setItem('sherupa_sponsor_likes_received', JSON.stringify(sponsorLikesReceived));
-
-    // 演出表示
-    showSponsorLikeReceivedModal(sponsorProfile.name, sponsorProfile.logo);
-  }
-
-  localStorage.setItem('sherupa_sponsor_profile', JSON.stringify(sponsorProfile));
-  localStorage.setItem('sherupa_sponsor_likes_sent', JSON.stringify(sponsorLikesSent));
-
-  document.getElementById('likesRemaining').textContent = sponsorProfile.sponsorLikes;
-  updateLikeTargets();
-  renderSponsorDashboard();
-
-  toast(`❤️ ${childName}さんにいいねを送りました！`);
-}
-
-function showSponsorLikeReceivedModal(sponsorName, sponsorLogo) {
-  document.getElementById('likeReceivedSponsor').textContent = `${sponsorLogo} ${sponsorName} から`;
-  document.getElementById('sponsorLikeReceivedModal').style.display = 'flex';
-  updateHeader();
-}
-
-// スポンサー統計表示
-function showSponsorStats() {
-  toast('📊 統計機能は準備中です');
-}
-
-// ========================================
-// こども向けスポンサー機能
-// ========================================
-
-// スポンサー一覧を開く
-function openSponsorList() {
-  const container = document.getElementById('sponsorListContent');
-
-  // ユニークなスポンサーを取得
-  const sponsorMap = {};
-  sponsorSlides.filter(s => s.status === 'active').forEach(s => {
-    if (!sponsorMap[s.sponsorId]) {
-      sponsorMap[s.sponsorId] = {
-        id: s.sponsorId,
-        name: s.sponsorName,
-        logo: s.sponsorLogo || '🏢',
-        slideCount: 1
-      };
-    } else {
-      sponsorMap[s.sponsorId].slideCount++;
-    }
-  });
-
-  const sponsors = Object.values(sponsorMap);
-
-  if (sponsors.length === 0) {
-    container.innerHTML = `
-      <div style="text-align:center;padding:30px;color:var(--rock)">
-        <div style="font-size:48px;margin-bottom:12px">🎗️</div>
-        <div style="font-size:12px">まだスポンサーがいません</div>
-      </div>
-    `;
-  } else {
-    container.innerHTML = sponsors.map(s => `
-      <div class="sponsor-list-item" onclick="openSponsorDetail('${s.id}')">
-        <div class="sponsor-list-header">
-          <div class="sponsor-list-logo">${s.logo}</div>
-          <div>
-            <div class="sponsor-list-name">${s.name}</div>
-            <div class="sponsor-list-message">📚 スライド: ${s.slideCount}本</div>
-          </div>
-        </div>
-      </div>
-    `).join('');
-  }
-
-  document.getElementById('sponsorListModal').style.display = 'flex';
-}
-
-// スポンサー詳細を開く
-function openSponsorDetail(sponsorId) {
-  const slides = sponsorSlides.filter(s => s.sponsorId === sponsorId && s.status === 'active');
-  if (slides.length === 0) return;
-
-  const sponsor = slides[0];
-
-  // 統計計算
-  const completions = sponsorSlideCompletions.filter(c => {
-    const slide = sponsorSlides.find(s => s.id === c.slideId);
-    return slide && slide.sponsorId === sponsorId;
-  });
-
-  const totalAlt = completions.reduce((sum, c) => sum + (c.reward || 0), 0);
-  const uniqueChildren = new Set(completions.map(c => c.childId)).size;
-  const likesGiven = sponsorLikesSent.filter(l => l.sponsorId === sponsorId).length;
-
-  document.getElementById('sponsorDetailLogo').textContent = sponsor.sponsorLogo || '🏢';
-  document.getElementById('sponsorDetailName').textContent = sponsor.sponsorName;
-  document.getElementById('sponsorDetailMessage').textContent = '「こどもたちの学習を応援しています！」';
-  document.getElementById('sponsorDetailAlt').textContent = totalAlt.toLocaleString();
-  document.getElementById('sponsorDetailChildren').textContent = uniqueChildren;
-  document.getElementById('sponsorDetailLikes').textContent = likesGiven;
-
-  document.getElementById('sponsorDetailSlides').innerHTML = slides.map(s => `
-    <div class="sponsor-slide-card" style="cursor:pointer" onclick="openSponsorSlideForChild('${s.id}')">
-      <div class="sponsor-slide-emoji">${s.emoji}</div>
-      <div class="sponsor-slide-info">
-        <div class="sponsor-slide-title">${s.title}</div>
-        <div class="sponsor-slide-reward">報酬: ${s.reward} ALT</div>
-      </div>
-    </div>
-  `).join('');
-
-  closeModals();
-  document.getElementById('sponsorDetailModal').style.display = 'flex';
-}
-
-// こどもがスポンサースライドを開く
-function openSponsorSlideForChild(slideId) {
-  const slide = sponsorSlides.find(s => s.id === slideId);
-  if (!slide) return;
-
-  // 通常のスライドとして開く（報酬付き）
-  currentSlide = {
-    ...slide,
-    isSponsorSlide: true,
-    category: 'sponsor'
-  };
-  currentSlideIndex = 0;
-
-  closeModals();
-  renderSlideModal();
-  document.getElementById('slideModal').style.display = 'flex';
-}
-
-// スポンサースライド完了処理（既存のスライド完了処理を拡張）
-function completeSponsorSlide(slide, correctCount) {
-  const sponsor = sponsorSlides.find(s => s.id === slide.id);
-  if (!sponsor) return 0;
-
-  // 5問以上正解で報酬を付与
-  if (correctCount >= Math.min(5, sponsor.qa.length * 0.6)) {
-    const reward = sponsor.reward;
-
-    // スポンサーのALT残高から差し引く（実際の実装では）
-    // ここではデモのため、こどもに直接ALTを付与
-
-    // 完了記録を追加
-    sponsorSlideCompletions.push({
-      slideId: slide.id,
-      childId: userProfile.id,
-      childName: userProfile.name,
-      timestamp: new Date().toISOString(),
-      reward: reward
-    });
-
-    localStorage.setItem('sherupa_sponsor_slide_completions', JSON.stringify(sponsorSlideCompletions));
-
-    return reward;
-  }
-
-  return 0;
 }
 
 // ========================================
