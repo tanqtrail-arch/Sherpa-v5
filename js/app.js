@@ -203,6 +203,38 @@ let videoReactions = JSON.parse(localStorage.getItem('sherupa_video_reactions'))
 let completedVideos = JSON.parse(localStorage.getItem('sherupa_completed_videos')) || [];
 
 // ========================================
+// 学びの本棚（ドリル・テキスト記録）
+// ========================================
+// myBooks: [{ id, title, subject, emoji, totalPages, currentPage, coverImage, feeling, memo, completed, completedAt, createdAt, fiscalYear, parentCheers }]
+let myBooks = JSON.parse(localStorage.getItem('sherupa_my_books')) || [];
+
+// 本棚の科目定義
+const BOOK_SUBJECTS = [
+  { id: 'math', name: '算数', emoji: '📐', color: '#3b82f6', gradient: ['#3b82f6', '#1d4ed8'] },
+  { id: 'japanese', name: '国語', emoji: '📖', color: '#ec4899', gradient: ['#ec4899', '#db2777'] },
+  { id: 'science', name: '理科', emoji: '🔬', color: '#10b981', gradient: ['#10b981', '#059669'] },
+  { id: 'social', name: '社会', emoji: '🌍', color: '#f59e0b', gradient: ['#f59e0b', '#d97706'] },
+  { id: 'english', name: '英語', emoji: '🔤', color: '#8b5cf6', gradient: ['#8b5cf6', '#7c3aed'] },
+  { id: 'other', name: 'その他', emoji: '📚', color: '#64748b', gradient: ['#64748b', '#475569'] }
+];
+
+// 気持ちスタンプ定義
+const BOOK_FEELINGS = [
+  { id: 'fun', emoji: '😄', label: 'たのしかった' },
+  { id: 'hard', emoji: '😤', label: 'がんばった' },
+  { id: 'difficult', emoji: '😅', label: 'むずかしかった' },
+  { id: 'easy', emoji: '😊', label: 'かんたんだった' }
+];
+
+// 現在の年度を取得（4月始まり）
+function getCurrentFiscalYear() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  return month >= 4 ? year : year - 1;
+}
+
+// ========================================
 // データ読み込み
 // ========================================
 async function loadData() {
@@ -748,6 +780,10 @@ function renderSlideCard(slide) {
 // 本棚画面
 // ========================================
 function renderBookshelf() {
+  // 新しい学びの本棚（ドリル・テキスト記録）をレンダリング
+  renderMyBooksShelf();
+
+  // 既存のテーマコンテンツ本棚をレンダリング
   const container = document.getElementById('bookshelfMain');
   if (!container) return;
 
@@ -936,6 +972,475 @@ function openSlideFromTheme(slideId) {
 
 function closeThemeVideoModal() {
   document.getElementById('themeVideoModal').classList.remove('active');
+}
+
+// ========================================
+// 学びの本棚（ドリル・テキスト記録）
+// ========================================
+let currentEditingBook = null;
+let addBookFormState = {
+  coverImage: null,
+  subject: 'math',
+  emoji: '📕'
+};
+
+// 本の絵文字候補
+const BOOK_EMOJIS = ['📕', '📗', '📘', '📙', '📓', '📔', '📒', '📚', '✏️', '📝', '🎯', '💪'];
+
+// 本棚をレンダリング
+function renderMyBooksShelf() {
+  renderMyBooksStats();
+  renderMyBooksShelves();
+}
+
+// 統計をレンダリング
+function renderMyBooksStats() {
+  const totalCount = myBooks.length;
+  const completedCount = myBooks.filter(b => b.completed).length;
+  const totalPages = myBooks.reduce((sum, b) => sum + (b.currentPage || 0), 0);
+
+  const totalEl = document.getElementById('mybooksTotalCount');
+  const completedEl = document.getElementById('mybooksCompletedCount');
+  const pagesEl = document.getElementById('mybooksTotalPages');
+
+  if (totalEl) totalEl.textContent = totalCount;
+  if (completedEl) completedEl.textContent = completedCount;
+  if (pagesEl) pagesEl.textContent = totalPages;
+}
+
+// 科目別本棚をレンダリング
+function renderMyBooksShelves() {
+  const container = document.getElementById('mybooksShelvesContainer');
+  const emptyState = document.getElementById('mybooksEmptyState');
+
+  if (!container) return;
+
+  if (myBooks.length === 0) {
+    container.innerHTML = '';
+    if (emptyState) emptyState.style.display = '';
+    return;
+  }
+
+  if (emptyState) emptyState.style.display = 'none';
+
+  // 科目ごとにグループ化
+  const booksBySubject = {};
+  BOOK_SUBJECTS.forEach(sub => {
+    booksBySubject[sub.id] = myBooks.filter(b => b.subject === sub.id);
+  });
+
+  let html = '';
+
+  BOOK_SUBJECTS.forEach(subject => {
+    const books = booksBySubject[subject.id];
+    if (books.length === 0) return;
+
+    html += `
+      <div class="mybooks-shelf">
+        <div class="mybooks-shelf-header">
+          <span class="mybooks-shelf-emoji">${subject.emoji}</span>
+          <span class="mybooks-shelf-name">${subject.name}</span>
+          <span class="mybooks-shelf-count">${books.length}冊</span>
+        </div>
+        <div class="mybooks-shelf-row">
+          ${books.map(book => renderBookSpine(book, subject)).join('')}
+        </div>
+        <div class="mybooks-shelf-board"></div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+// 本の背表紙をレンダリング
+function renderBookSpine(book, subject) {
+  const progress = book.totalPages > 0 ? Math.round((book.currentPage / book.totalPages) * 100) : 0;
+  const isCompleted = book.completed;
+
+  return `
+    <div class="mybook-spine ${isCompleted ? 'completed' : ''}" onclick="openBookDetail('${book.id}')" style="--book-color-1:${subject.gradient[0]};--book-color-2:${subject.gradient[1]}">
+      ${book.coverImage ? `
+        <div class="mybook-spine-cover">
+          <img src="${book.coverImage}" alt="${book.title}">
+        </div>
+      ` : `
+        <div class="mybook-spine-emoji">${book.emoji}</div>
+      `}
+      <div class="mybook-spine-title">${book.title}</div>
+      <div class="mybook-spine-progress">
+        <div class="mybook-spine-progress-fill" style="height:${progress}%"></div>
+      </div>
+      ${isCompleted ? '<div class="mybook-spine-complete">✨</div>' : ''}
+    </div>
+  `;
+}
+
+// 本の追加モーダルを開く
+function openAddBookModal() {
+  addBookFormState = {
+    coverImage: null,
+    subject: 'math',
+    emoji: '📕'
+  };
+
+  // フォームをリセット
+  document.getElementById('mybookTitle').value = '';
+  document.getElementById('mybookTotalPages').value = '';
+  document.getElementById('mybookCoverPreview').style.display = 'none';
+  document.getElementById('mybookCoverPlaceholder').style.display = '';
+
+  // 科目ピッカーをレンダリング
+  renderSubjectPicker();
+  // 絵文字ピッカーをレンダリング
+  renderEmojiPicker();
+
+  document.getElementById('addBookModal').classList.add('active');
+}
+
+// 科目ピッカーをレンダリング
+function renderSubjectPicker() {
+  const container = document.getElementById('mybookSubjectPicker');
+  if (!container) return;
+
+  container.innerHTML = BOOK_SUBJECTS.map(sub => `
+    <div class="mybook-subject-option ${addBookFormState.subject === sub.id ? 'selected' : ''}"
+         onclick="selectBookSubject('${sub.id}')"
+         style="--subject-color:${sub.color}">
+      <span class="mybook-subject-emoji">${sub.emoji}</span>
+      <span class="mybook-subject-name">${sub.name}</span>
+    </div>
+  `).join('');
+}
+
+// 絵文字ピッカーをレンダリング
+function renderEmojiPicker() {
+  const container = document.getElementById('mybookEmojiPicker');
+  if (!container) return;
+
+  container.innerHTML = BOOK_EMOJIS.map(emoji => `
+    <div class="mybook-emoji-option ${addBookFormState.emoji === emoji ? 'selected' : ''}"
+         onclick="selectBookEmoji('${emoji}')">
+      ${emoji}
+    </div>
+  `).join('');
+}
+
+// 科目を選択
+function selectBookSubject(subjectId) {
+  addBookFormState.subject = subjectId;
+  renderSubjectPicker();
+}
+
+// 絵文字を選択
+function selectBookEmoji(emoji) {
+  addBookFormState.emoji = emoji;
+  renderEmojiPicker();
+}
+
+// 表紙撮影/選択をトリガー
+function triggerBookCoverInput() {
+  document.getElementById('mybookCoverInput').click();
+}
+
+// 表紙写真を処理
+function handleBookCoverSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // ファイルサイズチェック（5MB以下）
+  if (file.size > 5 * 1024 * 1024) {
+    showToast('写真は5MB以下にしてください', 'error');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    // 画像をリサイズして保存（容量節約）
+    resizeImage(e.target.result, 400, 600, (resizedImage) => {
+      addBookFormState.coverImage = resizedImage;
+      document.getElementById('mybookCoverImage').src = resizedImage;
+      document.getElementById('mybookCoverPreview').style.display = '';
+      document.getElementById('mybookCoverPlaceholder').style.display = 'none';
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+// 画像をリサイズ
+function resizeImage(dataUrl, maxWidth, maxHeight, callback) {
+  const img = new Image();
+  img.onload = function() {
+    let width = img.width;
+    let height = img.height;
+
+    if (width > maxWidth) {
+      height = Math.round((height * maxWidth) / width);
+      width = maxWidth;
+    }
+    if (height > maxHeight) {
+      width = Math.round((width * maxHeight) / height);
+      height = maxHeight;
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, width, height);
+
+    callback(canvas.toDataURL('image/jpeg', 0.8));
+  };
+  img.src = dataUrl;
+}
+
+// 表紙写真を削除
+function removeBookCover() {
+  addBookFormState.coverImage = null;
+  document.getElementById('mybookCoverPreview').style.display = 'none';
+  document.getElementById('mybookCoverPlaceholder').style.display = '';
+  document.getElementById('mybookCoverInput').value = '';
+}
+
+// 本の追加モーダルを閉じる
+function closeAddBookModal() {
+  document.getElementById('addBookModal').classList.remove('active');
+}
+
+// 新しい本を保存
+function saveNewBook() {
+  const title = document.getElementById('mybookTitle').value.trim();
+  const totalPages = parseInt(document.getElementById('mybookTotalPages').value) || 0;
+
+  if (!title) {
+    showToast('タイトルを入力してください', 'error');
+    return;
+  }
+
+  if (totalPages < 1) {
+    showToast('ページ数を入力してください', 'error');
+    return;
+  }
+
+  const newBook = {
+    id: 'book_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+    title: title,
+    subject: addBookFormState.subject,
+    emoji: addBookFormState.emoji,
+    totalPages: totalPages,
+    currentPage: 0,
+    coverImage: addBookFormState.coverImage,
+    feeling: null,
+    memo: '',
+    completed: false,
+    completedAt: null,
+    createdAt: Date.now(),
+    fiscalYear: getCurrentFiscalYear(),
+    parentCheers: null
+  };
+
+  myBooks.push(newBook);
+  localStorage.setItem('sherupa_my_books', JSON.stringify(myBooks));
+
+  closeAddBookModal();
+  renderMyBooksShelf();
+  showToast(`📚 「${title}」を追加しました！`, 'success');
+}
+
+// 本の詳細モーダルを開く
+function openBookDetail(bookId) {
+  const book = myBooks.find(b => b.id === bookId);
+  if (!book) return;
+
+  currentEditingBook = book;
+  const subject = BOOK_SUBJECTS.find(s => s.id === book.subject);
+
+  // ヘッダー設定
+  const header = document.getElementById('bookDetailHeader');
+  header.style.background = `linear-gradient(135deg, ${subject.gradient[0]}, ${subject.gradient[1]})`;
+
+  // 表紙
+  const coverImage = document.getElementById('bookDetailCoverImage');
+  const coverEmoji = document.getElementById('bookDetailCoverEmoji');
+  if (book.coverImage) {
+    coverImage.src = book.coverImage;
+    coverImage.style.display = '';
+    coverEmoji.style.display = 'none';
+  } else {
+    coverImage.style.display = 'none';
+    coverEmoji.style.display = '';
+    coverEmoji.textContent = book.emoji;
+  }
+
+  // タイトル・科目
+  document.getElementById('bookDetailTitle').textContent = book.title;
+  document.getElementById('bookDetailSubject').textContent = `${subject.emoji} ${subject.name}`;
+
+  // 進捗
+  const progress = book.totalPages > 0 ? Math.round((book.currentPage / book.totalPages) * 100) : 0;
+  document.getElementById('bookDetailProgressText').textContent = `${book.currentPage} / ${book.totalPages} ページ`;
+  document.getElementById('bookDetailProgressFill').style.width = `${progress}%`;
+  document.getElementById('bookDetailProgressSlider').max = book.totalPages;
+  document.getElementById('bookDetailProgressSlider').value = book.currentPage;
+
+  // 気持ちスタンプ
+  renderFeelingPicker(book.feeling);
+
+  // メモ
+  document.getElementById('bookDetailMemo').value = book.memo || '';
+
+  // 完了ボタン
+  const completeBtn = document.getElementById('bookCompleteBtn');
+  if (book.completed) {
+    completeBtn.textContent = '✅ 完了済み';
+    completeBtn.disabled = true;
+    completeBtn.style.opacity = '0.6';
+  } else {
+    completeBtn.textContent = '🎉 完了！';
+    completeBtn.disabled = false;
+    completeBtn.style.opacity = '1';
+  }
+
+  // 保護者からの応援
+  const cheersSection = document.getElementById('bookDetailCheersSection');
+  if (book.parentCheers) {
+    cheersSection.style.display = '';
+    document.getElementById('bookDetailCheersText').textContent = book.parentCheers;
+  } else {
+    cheersSection.style.display = 'none';
+  }
+
+  document.getElementById('bookDetailModal').classList.add('active');
+}
+
+// 気持ちピッカーをレンダリング
+function renderFeelingPicker(selectedFeeling) {
+  const container = document.getElementById('bookDetailFeelingPicker');
+  if (!container) return;
+
+  container.innerHTML = BOOK_FEELINGS.map(feeling => `
+    <div class="mybook-feeling-option ${selectedFeeling === feeling.id ? 'selected' : ''}"
+         onclick="selectBookFeeling('${feeling.id}')">
+      <span class="mybook-feeling-emoji">${feeling.emoji}</span>
+      <span class="mybook-feeling-label">${feeling.label}</span>
+    </div>
+  `).join('');
+}
+
+// 気持ちを選択
+function selectBookFeeling(feelingId) {
+  if (!currentEditingBook) return;
+  currentEditingBook.feeling = currentEditingBook.feeling === feelingId ? null : feelingId;
+  renderFeelingPicker(currentEditingBook.feeling);
+}
+
+// 進捗を更新
+function updateBookProgress(value) {
+  if (!currentEditingBook) return;
+
+  const page = parseInt(value);
+  currentEditingBook.currentPage = page;
+
+  const progress = currentEditingBook.totalPages > 0
+    ? Math.round((page / currentEditingBook.totalPages) * 100)
+    : 0;
+
+  document.getElementById('bookDetailProgressText').textContent =
+    `${page} / ${currentEditingBook.totalPages} ページ`;
+  document.getElementById('bookDetailProgressFill').style.width = `${progress}%`;
+}
+
+// 本の詳細を保存
+function saveBookDetail() {
+  if (!currentEditingBook) return;
+
+  currentEditingBook.memo = document.getElementById('bookDetailMemo').value.trim();
+
+  // myBooksを更新
+  const idx = myBooks.findIndex(b => b.id === currentEditingBook.id);
+  if (idx >= 0) {
+    myBooks[idx] = currentEditingBook;
+    localStorage.setItem('sherupa_my_books', JSON.stringify(myBooks));
+  }
+
+  closeBookDetailModal();
+  renderMyBooksShelf();
+  showToast('💾 保存しました！', 'success');
+}
+
+// 本を完了
+function completeBook() {
+  if (!currentEditingBook || currentEditingBook.completed) return;
+
+  // 最後のページまで進捗を進める
+  currentEditingBook.currentPage = currentEditingBook.totalPages;
+  currentEditingBook.completed = true;
+  currentEditingBook.completedAt = Date.now();
+  currentEditingBook.memo = document.getElementById('bookDetailMemo').value.trim();
+
+  // myBooksを更新
+  const idx = myBooks.findIndex(b => b.id === currentEditingBook.id);
+  if (idx >= 0) {
+    myBooks[idx] = currentEditingBook;
+    localStorage.setItem('sherupa_my_books', JSON.stringify(myBooks));
+  }
+
+  // ALT報酬
+  userProfile.alt += 50;
+  localStorage.setItem('sherupa_profile', JSON.stringify(userProfile));
+  updateHeader();
+
+  closeBookDetailModal();
+  renderMyBooksShelf();
+
+  // お祝いモーダル
+  showBookCelebration(currentEditingBook.title);
+}
+
+// 本を削除
+function confirmDeleteBook() {
+  if (!currentEditingBook) return;
+
+  if (confirm(`「${currentEditingBook.title}」を削除しますか？`)) {
+    myBooks = myBooks.filter(b => b.id !== currentEditingBook.id);
+    localStorage.setItem('sherupa_my_books', JSON.stringify(myBooks));
+
+    closeBookDetailModal();
+    renderMyBooksShelf();
+    showToast('🗑️ 削除しました', 'info');
+  }
+}
+
+// 本の詳細モーダルを閉じる
+function closeBookDetailModal() {
+  document.getElementById('bookDetailModal').classList.remove('active');
+  currentEditingBook = null;
+}
+
+// 完了お祝いを表示
+function showBookCelebration(bookTitle) {
+  document.getElementById('celebrationBookTitle').textContent = `「${bookTitle}」`;
+
+  // 紙吹雪エフェクト
+  const confettiContainer = document.getElementById('bookConfetti');
+  confettiContainer.innerHTML = '';
+  const colors = ['#ff6b6b', '#ffd93d', '#6bcb77', '#4d96ff', '#ff6bcb'];
+  for (let i = 0; i < 50; i++) {
+    const confetti = document.createElement('div');
+    confetti.className = 'confetti-piece';
+    confetti.style.left = Math.random() * 100 + '%';
+    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+    confetti.style.animationDelay = Math.random() * 2 + 's';
+    confettiContainer.appendChild(confetti);
+  }
+
+  document.getElementById('bookCelebrationModal').classList.add('active');
+}
+
+// 完了お祝いモーダルを閉じる
+function closeBookCelebrationModal() {
+  document.getElementById('bookCelebrationModal').classList.remove('active');
 }
 
 // ========================================
@@ -5136,6 +5641,7 @@ function renderParentOverviewTab() {
   renderParentWeeklyStats();
   renderParentRecentAchievements();
   renderParentRecommendations();
+  renderParentBooksSection();
 }
 
 // 週間統計
@@ -8426,6 +8932,112 @@ function renderParentDiarySection() {
       </div>
     </div>
   `;
+}
+
+// 保護者ダッシュボード用の本棚セクションをレンダリング
+function renderParentBooksSection() {
+  const container = document.getElementById('parentBooksSection');
+  if (!container) return;
+
+  if (myBooks.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center;color:var(--rock);padding:20px;font-size:12px">
+        まだ登録された本はありません
+      </div>
+    `;
+    return;
+  }
+
+  const completedCount = myBooks.filter(b => b.completed).length;
+  const totalPages = myBooks.reduce((sum, b) => sum + (b.currentPage || 0), 0);
+
+  // 科目ごとにグループ化
+  const booksBySubject = {};
+  BOOK_SUBJECTS.forEach(sub => {
+    const subBooks = myBooks.filter(b => b.subject === sub.id);
+    if (subBooks.length > 0) {
+      booksBySubject[sub.id] = subBooks;
+    }
+  });
+
+  container.innerHTML = `
+    <div class="parent-books-stats">
+      <div class="parent-books-stat">
+        <div class="parent-books-stat-value">${myBooks.length}</div>
+        <div class="parent-books-stat-label">登録</div>
+      </div>
+      <div class="parent-books-stat">
+        <div class="parent-books-stat-value">${completedCount}</div>
+        <div class="parent-books-stat-label">完了</div>
+      </div>
+      <div class="parent-books-stat">
+        <div class="parent-books-stat-value">${totalPages}</div>
+        <div class="parent-books-stat-label">ページ</div>
+      </div>
+    </div>
+
+    <div class="parent-books-list">
+      ${Object.entries(booksBySubject).map(([subjectId, books]) => {
+        const subject = BOOK_SUBJECTS.find(s => s.id === subjectId);
+        return `
+          <div class="parent-books-subject">
+            <div class="parent-books-subject-header">
+              <span>${subject.emoji} ${subject.name}</span>
+              <span style="color:var(--rock);font-size:11px">${books.length}冊</span>
+            </div>
+            <div class="parent-books-items">
+              ${books.map(book => {
+                const progress = book.totalPages > 0 ? Math.round((book.currentPage / book.totalPages) * 100) : 0;
+                return `
+                  <div class="parent-book-item ${book.completed ? 'completed' : ''}" onclick="openParentBookCheer('${book.id}')">
+                    <div class="parent-book-cover">
+                      ${book.coverImage
+                        ? `<img src="${book.coverImage}" alt="${book.title}">`
+                        : `<span>${book.emoji}</span>`
+                      }
+                    </div>
+                    <div class="parent-book-info">
+                      <div class="parent-book-title">${book.title}</div>
+                      <div class="parent-book-progress">
+                        <div class="parent-book-progress-bar">
+                          <div class="parent-book-progress-fill" style="width:${progress}%"></div>
+                        </div>
+                        <span>${progress}%</span>
+                      </div>
+                    </div>
+                    ${book.completed ? '<div class="parent-book-complete">✨</div>' : ''}
+                    <div class="parent-book-cheer-btn">💪</div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+// 保護者から本への応援モーダルを開く
+function openParentBookCheer(bookId) {
+  const book = myBooks.find(b => b.id === bookId);
+  if (!book) return;
+
+  const subject = BOOK_SUBJECTS.find(s => s.id === book.subject);
+  const progress = book.totalPages > 0 ? Math.round((book.currentPage / book.totalPages) * 100) : 0;
+  const feeling = BOOK_FEELINGS.find(f => f.id === book.feeling);
+
+  const cheerMessage = prompt(`「${book.title}」への応援メッセージを送りましょう！\n\n進捗: ${progress}%\n気持ち: ${feeling ? feeling.emoji + ' ' + feeling.label : 'まだなし'}\nメモ: ${book.memo || 'なし'}`, book.parentCheers || 'がんばってるね！');
+
+  if (cheerMessage !== null) {
+    const idx = myBooks.findIndex(b => b.id === bookId);
+    if (idx >= 0) {
+      myBooks[idx].parentCheers = cheerMessage;
+      localStorage.setItem('sherupa_my_books', JSON.stringify(myBooks));
+      renderParentBooksSection();
+      showToast('💪 応援メッセージを送りました！', 'success');
+    }
+  }
 }
 
 // 教師ダッシュボード用の日記セクションをレンダリング
