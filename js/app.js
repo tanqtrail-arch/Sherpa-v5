@@ -424,7 +424,6 @@ function renderHome() {
   renderFamilyMissions();
   renderAdminSlidesSection();
   renderSchoolMissionsForStudent();
-  renderHomeBookshelf();
   renderNewSlides();
 }
 
@@ -567,45 +566,6 @@ function renderDailyFamilyMission() {
       </div>
     </div>
   `;
-}
-
-function renderHomeBookshelf() {
-  const container = document.getElementById('homeBookshelf');
-  if (!container) return;
-
-  // 最初の7カテゴリ + 「もっと見る」
-  const displayCategories = APP.categories.slice(0, 7);
-
-  const rows = [displayCategories.slice(0, 4), displayCategories.slice(4, 7)];
-  if (rows[1].length < 4) {
-    rows[1].push({ id: 'more', name: 'もっと見る', emoji: '📚', color: '#6b7280', colorGradient: ['#6b7280', '#4b5563'] });
-  }
-
-  container.innerHTML = rows.map(row => `
-    <div class="bookshelf-row">
-      ${row.map(cat => {
-        const progress = getCategoryProgress(cat.id);
-        const isMore = cat.id === 'more';
-        return `
-          <div class="book-item" onclick="${isMore ? "showScreen('bookshelf')" : `goToBookshelfMid('${cat.id}')`}">
-            <div class="book-cover" style="background:linear-gradient(180deg,${cat.colorGradient[0]},${cat.colorGradient[1]})">
-              <div class="emoji">${cat.emoji}</div>
-              <div class="name">${cat.name}</div>
-            </div>
-            <div class="book-base">
-              <div class="progress">${isMore ? '→' : progress}</div>
-            </div>
-          </div>
-        `;
-      }).join('')}
-    </div>
-  `).join('');
-}
-
-function getCategoryProgress(categoryId) {
-  const categorySlides = APP.slides.filter(s => s.category === categoryId);
-  const completed = categorySlides.filter(s => completedSlides.includes(s.id)).length;
-  return `${completed}/${categorySlides.length}`;
 }
 
 function renderNewSlides() {
