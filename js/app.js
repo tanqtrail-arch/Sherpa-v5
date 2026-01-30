@@ -3334,7 +3334,6 @@ function parentLoginDemo() {
   // デモモードフラグを設定
   localStorage.setItem('sherupa_parent_demo', 'true');
   executeSwitchMode('parent');
-  toast('🎮 デモモードで体験中！サンプルデータを表示しています', 'info');
 }
 
 // 新規登録モーダルを表示
