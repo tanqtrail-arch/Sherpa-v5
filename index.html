@@ -459,16 +459,24 @@
     <!-- 保護者ダッシュボード画面 -->
     <div id="screen-parent" class="screen">
       <!-- 保護者デモバナー -->
-      <div id="parent-demo-banner" class="demo-banner" style="display:none;background:linear-gradient(135deg,#3b82f6,#60a5fa)">
-        <div class="demo-banner-content">
-          <span class="demo-banner-text">🎮 保護者デモモードで体験中</span>
-          <button class="demo-banner-btn" onclick="openLinkChildModal()" style="background:#fff;color:#3b82f6">子どもと連携</button>
+      <div id="parent-demo-banner" class="demo-banner" style="display:none;background:linear-gradient(135deg,#f59e0b,#fbbf24)">
+        <div class="demo-banner-content" style="flex-direction:column;gap:8px;padding:12px 16px">
+          <div style="display:flex;align-items:center;gap:8px;width:100%;justify-content:center">
+            <span style="font-size:20px">🎮</span>
+            <span class="demo-banner-text" style="font-weight:700;font-size:15px;color:#78350f">デモモード体験中</span>
+            <span style="background:#fff;color:#d97706;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700">DEMO</span>
+          </div>
+          <div style="font-size:11px;color:#92400e;text-align:center">サンプルデータを表示しています。本登録するとお子さまのデータを確認できます。</div>
+          <div style="display:flex;gap:8px;margin-top:4px">
+            <button class="demo-banner-btn" onclick="parentLoginRegister()" style="background:#fff;color:#d97706;font-size:12px;padding:8px 16px;flex:1">✨ 本登録する</button>
+            <button class="demo-banner-btn" onclick="parentLoginWithPassword()" style="background:rgba(255,255,255,0.3);color:#78350f;font-size:12px;padding:8px 16px;flex:1">🔐 ログイン</button>
+          </div>
         </div>
       </div>
 
       <div class="parent-header">
-        <div class="parent-title">👨‍👩‍👧 保護者ダッシュボード</div>
-        <div class="parent-subtitle">お子さまの学習状況を確認</div>
+        <div class="parent-title" id="parentHeaderTitle">👨‍👩‍👧 保護者ダッシュボード</div>
+        <div class="parent-subtitle" id="parentHeaderSubtitle">お子さまの学習状況を確認</div>
       </div>
 
       <!-- 子ども選択エリア -->
@@ -1555,6 +1563,95 @@
       </div>
       <button class="btn btn-primary" style="width:100%;margin-top:16px" onclick="verifyPassword()">確認</button>
       <button class="btn btn-secondary" style="width:100%;margin-top:8px" onclick="cancelPassword()">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<!-- 保護者ログインオプションモーダル -->
+<div class="modal-overlay" id="parentLoginOptionsModal" onclick="if(event.target===this)closeModals()">
+  <div class="modal-box" style="max-width:360px">
+    <div class="modal-header" style="background:linear-gradient(135deg,#3b82f6,#60a5fa)">
+      <div style="font-size:32px">👨‍👩‍👧</div>
+      <div style="font-weight:700;margin-top:4px">保護者ダッシュボード</div>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:13px;color:var(--rock);text-align:center;margin-bottom:20px">
+        お子さまの学習状況を確認できます
+      </div>
+
+      <!-- デモログインオプション -->
+      <div class="parent-login-option" onclick="parentLoginDemo()" style="background:linear-gradient(135deg,#fef3c7,#fde68a);border:2px solid #f59e0b;border-radius:16px;padding:16px;margin-bottom:12px;cursor:pointer;transition:transform 0.2s,box-shadow 0.2s" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(245,158,11,0.2)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="font-size:28px">🎮</div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-weight:700;color:#92400e;font-size:15px">デモモードで体験</span>
+              <span style="background:#f59e0b;color:#fff;font-size:9px;padding:2px 6px;border-radius:8px;font-weight:700">DEMO</span>
+            </div>
+            <div style="font-size:11px;color:#b45309;margin-top:2px">サンプルデータで機能をお試しください</div>
+          </div>
+          <div style="color:#f59e0b;font-size:18px">→</div>
+        </div>
+      </div>
+
+      <!-- 新規登録オプション -->
+      <div class="parent-login-option" onclick="parentLoginRegister()" style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:2px solid #22c55e;border-radius:16px;padding:16px;margin-bottom:12px;cursor:pointer;transition:transform 0.2s,box-shadow 0.2s" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(34,197,94,0.2)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="font-size:28px">✨</div>
+          <div style="flex:1">
+            <div style="font-weight:700;color:#166534;font-size:15px">新規登録</div>
+            <div style="font-size:11px;color:#22c55e;margin-top:2px">アカウントを作成して始める</div>
+          </div>
+          <div style="color:#22c55e;font-size:18px">→</div>
+        </div>
+      </div>
+
+      <!-- ログインオプション -->
+      <div class="parent-login-option" onclick="parentLoginWithPassword()" style="background:linear-gradient(135deg,#faf5ff,#f3e8ff);border:2px solid #a855f7;border-radius:16px;padding:16px;margin-bottom:16px;cursor:pointer;transition:transform 0.2s,box-shadow 0.2s" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(168,85,247,0.2)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="font-size:28px">🔐</div>
+          <div style="flex:1">
+            <div style="font-weight:700;color:#6b21a8;font-size:15px">ログイン</div>
+            <div style="font-size:11px;color:#a855f7;margin-top:2px">登録済みの方はこちら</div>
+          </div>
+          <div style="color:#a855f7;font-size:18px">→</div>
+        </div>
+      </div>
+
+      <button class="btn btn-secondary" style="width:100%" onclick="closeModals()">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<!-- 保護者新規登録モーダル -->
+<div class="modal-overlay" id="parentRegisterModal" onclick="if(event.target===this)closeModals()">
+  <div class="modal-box" style="max-width:360px">
+    <div class="modal-header" style="background:linear-gradient(135deg,#22c55e,#4ade80)">
+      <div style="font-size:32px">✨</div>
+      <div style="font-weight:700;margin-top:4px">保護者アカウント登録</div>
+    </div>
+    <div class="modal-body">
+      <form id="parentRegisterForm" onsubmit="event.preventDefault();submitParentRegister()">
+        <div class="form-group">
+          <label class="form-label">📛 ニックネーム</label>
+          <input type="text" class="form-input" id="parentRegisterName" placeholder="例: たろうのママ" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">📧 メールアドレス</label>
+          <input type="email" class="form-input" id="parentRegisterEmail" placeholder="example@email.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">🔑 パスワード</label>
+          <input type="password" class="form-input" id="parentRegisterPassword" placeholder="6文字以上" minlength="6" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">🔑 パスワード確認</label>
+          <input type="password" class="form-input" id="parentRegisterPasswordConfirm" placeholder="もう一度入力" required>
+        </div>
+        <div id="parentRegisterError" style="color:#ef4444;font-size:12px;text-align:center;margin-bottom:12px;display:none"></div>
+        <button type="submit" class="btn" style="width:100%;background:linear-gradient(135deg,#22c55e,#4ade80);color:#fff">登録する</button>
+        <button type="button" class="btn btn-secondary" style="width:100%;margin-top:8px" onclick="backToParentLoginOptions()">戻る</button>
+      </form>
     </div>
   </div>
 </div>
