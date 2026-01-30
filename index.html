@@ -235,29 +235,6 @@
         <div class="mybooks-empty-text">取り組んでいるドリルやテキストを<br>追加してみよう！</div>
       </div>
 
-      <!-- テーマコンテンツタブ（既存機能） -->
-      <div class="section-title" style="color:#fff;margin-top:24px">🎬 テーマコンテンツ<span class="free-tag">動画＆スライド</span></div>
-
-      <!-- 大カテゴリ本棚 -->
-      <div id="bookshelfMain"></div>
-
-      <!-- 中カテゴリ表示エリア -->
-      <div id="bookshelfMid" style="display:none">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-          <button onclick="closeBookshelfMid()" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:14px;cursor:pointer">←</button>
-          <div id="bookshelfMidTitle" style="font-size:16px;font-weight:700;color:#fff">カテゴリ名</div>
-        </div>
-        <div id="bookshelfMidContent"></div>
-      </div>
-
-      <!-- 小カテゴリ表示エリア -->
-      <div id="bookshelfSmall" style="display:none">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-          <button onclick="closeBookshelfSmall()" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:14px;cursor:pointer">←</button>
-          <div id="bookshelfSmallTitle" style="font-size:16px;font-weight:700;color:#fff">サブカテゴリ名</div>
-        </div>
-        <div id="bookshelfSmallContent"></div>
-      </div>
     </div>
 
     <!-- 登頂チャレンジ画面 -->
@@ -770,22 +747,6 @@
         </div>
       </div>
 
-      <div class="card" style="margin-bottom:12px">
-        <div class="card-header">📚 完了したスライド <span id="completedSlideCount" style="font-size:11px;color:var(--rock);font-weight:400">0件</span></div>
-        <div class="card-body">
-          <div id="completedSlideList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px"></div>
-          <div id="noCompletedSlide" style="text-align:center;color:var(--rock);font-size:12px;padding:20px">まだ完了したスライドがありません<br>スライドを学んで作品を作ろう！</div>
-        </div>
-      </div>
-
-      <div class="card" style="margin-bottom:12px">
-        <div class="card-header">🎓 学習スライド <span id="adminSlideCompletionCount" style="font-size:11px;color:var(--rock);font-weight:400">0件</span></div>
-        <div class="card-body">
-          <div id="adminSlideCompletionList" style="display:flex;flex-direction:column;gap:8px"></div>
-          <div id="noAdminSlideCompletion" style="text-align:center;color:var(--rock);font-size:12px;padding:20px">まだ学習スライドを完了していません<br>スライドを見てクイズに挑戦しよう！</div>
-        </div>
-      </div>
-
       <div class="card" style="margin-bottom:12px" id="schoolCard">
         <div class="card-header">🏫 スクール <span id="schoolStatus" style="font-size:11px;color:var(--rock);font-weight:400">未登録</span></div>
         <div class="card-body">
@@ -1064,26 +1025,6 @@
         <span>+50 ALT ゲット！</span>
       </div>
       <button class="btn btn-primary" style="margin-top:20px;width:100%" onclick="closeBookCelebrationModal()">🎊 やったー！</button>
-    </div>
-  </div>
-</div>
-
-<!-- テーマ動画一覧モーダル -->
-<div class="modal-overlay" id="themeVideoModal" onclick="if(event.target===this)closeModals()">
-  <div class="modal-box theme-video-modal">
-    <div class="modal-header" id="themeVideoHeader">
-      <div style="font-size:48px" id="themeVideoEmoji">📚</div>
-      <div style="font-weight:700;margin-top:8px;font-size:18px" id="themeVideoTitle">テーマ名</div>
-      <div style="font-size:12px;opacity:.8;margin-top:4px" id="themeVideoSub">コンテンツ一覧</div>
-    </div>
-    <div class="modal-body">
-      <div id="themeVideoList" class="theme-video-list"></div>
-      <div id="themeVideoEmpty" class="theme-video-empty" style="display:none">
-        <div style="font-size:48px;margin-bottom:8px">🚧</div>
-        <div style="font-size:14px;font-weight:600;color:var(--summit)">準備中</div>
-        <div style="font-size:12px;color:var(--rock);margin-top:4px">このテーマのコンテンツは近日公開予定です</div>
-      </div>
-      <button class="btn btn-secondary" style="margin-top:16px;width:100%" onclick="closeThemeVideoModal()">← 戻る</button>
     </div>
   </div>
 </div>
