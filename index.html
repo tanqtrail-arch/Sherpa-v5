@@ -458,6 +458,14 @@
 
     <!-- 保護者ダッシュボード画面 -->
     <div id="screen-parent" class="screen">
+      <!-- 保護者デモバナー -->
+      <div id="parent-demo-banner" class="demo-banner" style="display:none;background:linear-gradient(135deg,#3b82f6,#60a5fa)">
+        <div class="demo-banner-content">
+          <span class="demo-banner-text">🎮 保護者デモモードで体験中</span>
+          <button class="demo-banner-btn" onclick="openLinkChildModal()" style="background:#fff;color:#3b82f6">子どもと連携</button>
+        </div>
+      </div>
+
       <div class="parent-header">
         <div class="parent-title">👨‍👩‍👧 保護者ダッシュボード</div>
         <div class="parent-subtitle">お子さまの学習状況を確認</div>
@@ -583,6 +591,17 @@
                 <input type="checkbox" id="parentNotifyFamily" checked onchange="saveParentSettings()">
                 <span class="toggle-slider"></span>
               </label>
+            </div>
+          </div>
+        </div>
+        <div class="parent-card">
+          <div class="parent-card-header">🔗 お子さまと連携</div>
+          <div class="parent-card-body">
+            <div style="text-align:center;padding:12px">
+              <div style="font-size:12px;color:var(--rock);margin-bottom:12px">
+                お子さまの画面に表示される招待コードを入力して連携できます
+              </div>
+              <button class="btn" style="background:var(--parent);color:#fff" onclick="openLinkChildModal()">🔗 招待コードで連携</button>
             </div>
           </div>
         </div>
@@ -744,6 +763,18 @@
         <div class="card-header">📜 登頂証明書 <span id="profileCertCount" style="font-size:11px;color:var(--rock);font-weight:400">0枚</span></div>
         <div class="card-body">
           <div id="profileCertificatesList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px"></div>
+        </div>
+      </div>
+
+      <!-- 保護者連携カード -->
+      <div class="card" style="margin-bottom:12px" id="parentLinkCard">
+        <div class="card-header">👨‍👩‍👧 保護者と連携 <span id="parentLinkStatus" style="font-size:11px;color:var(--rock);font-weight:400">未連携</span></div>
+        <div class="card-body">
+          <div id="parentLinkInfo"></div>
+          <div id="noParentLink" style="text-align:center;color:var(--rock);font-size:12px;padding:20px">
+            保護者と連携すると、学習の様子を見てもらえます
+            <button class="btn" style="margin-top:12px;background:var(--parent);color:#fff;width:100%" onclick="showInviteCodeModal()">🔗 招待コードを表示</button>
+          </div>
         </div>
       </div>
 
@@ -1577,6 +1608,80 @@
 
         <button type="submit" class="btn btn-primary" style="width:100%">💾 保存</button>
         <button type="button" id="childDeleteBtn" class="btn" style="width:100%;margin-top:8px;background:#ef4444;color:#fff;display:none" onclick="deleteChild()">🗑️ 削除</button>
+        <button type="button" class="btn btn-secondary" style="width:100%;margin-top:8px" onclick="closeModals()">キャンセル</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 子ども用：招待コード表示モーダル -->
+<div class="modal-overlay" id="inviteCodeModal" onclick="if(event.target===this)closeModals()">
+  <div class="modal-box" style="max-width:360px">
+    <div class="modal-header" style="background:linear-gradient(135deg,#3b82f6,#60a5fa)">
+      <div style="font-size:32px">🔗</div>
+      <div style="font-weight:700;margin-top:4px">保護者への招待コード</div>
+    </div>
+    <div class="modal-body">
+      <div style="text-align:center;padding:16px 0">
+        <div style="font-size:11px;color:var(--rock);margin-bottom:12px">
+          この招待コードを保護者に伝えてください
+        </div>
+        <div id="inviteCodeDisplay" style="background:linear-gradient(135deg,#3b82f6,#60a5fa);color:#fff;font-size:24px;font-weight:700;letter-spacing:4px;padding:16px 24px;border-radius:12px;display:inline-block;margin-bottom:12px">
+          ----
+        </div>
+        <div style="margin-top:12px">
+          <button class="btn" style="background:#3b82f6;color:#fff" onclick="copyInviteCode()">📋 コードをコピー</button>
+        </div>
+      </div>
+
+      <div style="background:rgba(59,130,246,.1);border-radius:8px;padding:12px;margin:12px 0">
+        <div style="font-size:11px;color:var(--parent);font-weight:700">💡 連携の仕方</div>
+        <div style="font-size:11px;color:var(--rock);margin-top:4px">
+          1. 保護者がモード切替から「保護者モード」を選択<br>
+          2.「子どもと連携」ボタンをタップ<br>
+          3. この招待コードを入力
+        </div>
+      </div>
+
+      <button class="btn btn-secondary" style="width:100%;margin-top:8px" onclick="closeModals()">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<!-- 保護者用：招待コード入力モーダル -->
+<div class="modal-overlay" id="linkChildModal" onclick="if(event.target===this)closeModals()">
+  <div class="modal-box" style="max-width:360px">
+    <div class="modal-header" style="background:linear-gradient(135deg,#3b82f6,#60a5fa)">
+      <div style="font-size:32px">👶</div>
+      <div style="font-weight:700;margin-top:4px">お子さまと連携</div>
+    </div>
+    <div class="modal-body">
+      <div style="text-align:center;font-size:12px;color:var(--rock);margin-bottom:16px">
+        お子さまの画面に表示された招待コードを入力してください
+      </div>
+
+      <form id="linkChildForm" onsubmit="event.preventDefault();linkChildByCode()">
+        <div class="form-group">
+          <label class="form-label">🔑 招待コード</label>
+          <input type="text" class="form-input" id="linkChildCode" placeholder="例: ABC123" style="text-align:center;font-size:18px;letter-spacing:4px;text-transform:uppercase" required>
+        </div>
+
+        <div id="linkChildError" style="display:none;background:#fee2e2;color:#dc2626;padding:10px;border-radius:8px;font-size:12px;margin-bottom:12px;text-align:center">
+          招待コードが見つかりません
+        </div>
+
+        <div id="linkChildPreview" style="display:none;background:rgba(59,130,246,.1);border-radius:8px;padding:12px;margin-bottom:12px">
+          <div style="font-size:11px;color:var(--parent);font-weight:700;margin-bottom:8px">👶 連携するお子さま</div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div id="linkChildPreviewEmoji" style="font-size:32px">👦</div>
+            <div>
+              <div id="linkChildPreviewName" style="font-weight:700">お子さまの名前</div>
+              <div id="linkChildPreviewGrade" style="font-size:11px;color:var(--rock)">中学年</div>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width:100%">🔗 連携する</button>
         <button type="button" class="btn btn-secondary" style="width:100%;margin-top:8px" onclick="closeModals()">キャンセル</button>
       </form>
     </div>

@@ -2175,6 +2175,9 @@ function renderProfile() {
 
   // スクールセクションを表示
   renderSchoolSection();
+
+  // 保護者連携状態を更新
+  updateParentLinkStatus();
 }
 
 function renderProfileCertificates() {
@@ -4320,6 +4323,9 @@ let selectedChildEmoji = '👦';
 
 // 保護者ダッシュボードをレンダリング
 function renderParentDashboard() {
+  // デモ機能を初期化
+  initParentDemo();
+
   renderChildSelector();
   renderParentSummary();
   renderParentDiarySection();
@@ -4549,6 +4555,279 @@ function deleteChild() {
   toast('🗑️ お子さまを削除しました');
   closeModals();
   renderParentDashboard();
+}
+
+// ========================================
+// 保護者連携機能
+// ========================================
+
+// 招待コードを生成（子供のIDから）
+function generateInviteCode() {
+  if (!userProfile || !userProfile.id) {
+    return null;
+  }
+  // ユーザーIDから6文字の招待コードを生成
+  const hash = userProfile.id.split('').reduce((acc, char) => {
+    return ((acc << 5) - acc + char.charCodeAt(0)) | 0;
+  }, 0);
+  const code = Math.abs(hash).toString(36).toUpperCase().substring(0, 6);
+  return code.padEnd(6, 'X');
+}
+
+// 招待コードをlocalStorageに保存（他のユーザーが検索可能に）
+function saveInviteCode() {
+  if (!userProfile || !userProfile.id) return;
+
+  const code = generateInviteCode();
+  if (!code) return;
+
+  // 招待コードとプロフィールの紐付けを保存
+  const inviteData = {
+    code: code,
+    userId: userProfile.id,
+    userName: userProfile.name,
+    userGrade: userProfile.grade,
+    createdAt: new Date().toISOString()
+  };
+  localStorage.setItem('sherupa_invite_' + code, JSON.stringify(inviteData));
+  localStorage.setItem('sherupa_my_invite_code', code);
+
+  return code;
+}
+
+// 招待コードモーダルを表示（子供側）
+function showInviteCodeModal() {
+  const code = saveInviteCode();
+  if (!code) {
+    toast('❌ プロフィールを先に設定してください');
+    return;
+  }
+
+  document.getElementById('inviteCodeDisplay').textContent = code;
+  document.getElementById('inviteCodeModal').classList.add('active');
+}
+
+// 招待コードをコピー
+function copyInviteCode() {
+  const code = document.getElementById('inviteCodeDisplay').textContent;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(code).then(() => {
+      toast('📋 コードをコピーしました');
+    });
+  } else {
+    // フォールバック
+    const textarea = document.createElement('textarea');
+    textarea.value = code;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    toast('📋 コードをコピーしました');
+  }
+}
+
+// 招待コード入力モーダルを表示（保護者側）
+function openLinkChildModal() {
+  document.getElementById('linkChildCode').value = '';
+  document.getElementById('linkChildError').style.display = 'none';
+  document.getElementById('linkChildPreview').style.display = 'none';
+  document.getElementById('linkChildModal').classList.add('active');
+  document.getElementById('linkChildCode').focus();
+}
+
+// 招待コードで子供を検索
+function lookupInviteCode(code) {
+  const normalizedCode = code.toUpperCase().trim();
+  const inviteDataStr = localStorage.getItem('sherupa_invite_' + normalizedCode);
+  if (!inviteDataStr) return null;
+
+  try {
+    return JSON.parse(inviteDataStr);
+  } catch (e) {
+    return null;
+  }
+}
+
+// 招待コードで子供と連携
+function linkChildByCode() {
+  const codeInput = document.getElementById('linkChildCode');
+  const code = codeInput.value.toUpperCase().trim();
+
+  if (!code || code.length < 4) {
+    document.getElementById('linkChildError').textContent = '招待コードを入力してください';
+    document.getElementById('linkChildError').style.display = 'block';
+    return;
+  }
+
+  const inviteData = lookupInviteCode(code);
+
+  if (!inviteData) {
+    document.getElementById('linkChildError').textContent = '招待コードが見つかりません';
+    document.getElementById('linkChildError').style.display = 'block';
+    document.getElementById('linkChildPreview').style.display = 'none';
+    return;
+  }
+
+  // 既に連携済みかチェック
+  const existingChild = parentChildren.find(c => c.linkedUserId === inviteData.userId);
+  if (existingChild) {
+    document.getElementById('linkChildError').textContent = 'このお子さまは既に連携されています';
+    document.getElementById('linkChildError').style.display = 'block';
+    return;
+  }
+
+  // 子供を追加
+  const gradeLabels = { lower: '低学年', middle: '中学年', upper: '高学年' };
+  const childId = `child_linked_${Date.now()}`;
+  const childInfo = {
+    id: childId,
+    name: inviteData.userName || 'お子さま',
+    emoji: '👶',
+    grade: inviteData.userGrade || 'middle',
+    linkedUserId: inviteData.userId,
+    linkedAt: new Date().toISOString(),
+    createdAt: new Date().toISOString()
+  };
+
+  parentChildren.push(childInfo);
+  localStorage.setItem('sherupa_parent_children', JSON.stringify(parentChildren));
+
+  // 選択中に設定
+  selectedChildId = childId;
+  localStorage.setItem('sherupa_selected_child', childId);
+
+  // 子供側のデータをコピー（リアルタイム同期）
+  syncLinkedChildData(childId, inviteData.userId);
+
+  toast(`✅ ${inviteData.userName}さんと連携しました！`);
+  closeModals();
+  renderParentDashboard();
+}
+
+// 連携した子供のデータを同期
+function syncLinkedChildData(childId, linkedUserId) {
+  // 子供側の学習データを取得
+  const childProfile = JSON.parse(localStorage.getItem('sherupa_profile')) || {};
+  const completedSlides = JSON.parse(localStorage.getItem('sherupa_s')) || [];
+  const familyMissions = JSON.parse(localStorage.getItem('sherupa_family_missions')) || [];
+
+  // 保護者側のデータに反映
+  const childData = {
+    alt: childProfile.alt || 0,
+    streak: childProfile.streak || 0,
+    completedSlides: completedSlides,
+    completedFamilyMissions: familyMissions,
+    quizResults: [],
+    slideHistory: [],
+    lastSynced: new Date().toISOString()
+  };
+
+  saveChildData(childId, childData);
+}
+
+// 保護者デモ機能を初期化
+function initParentDemo() {
+  // デモモードでない場合はスキップ
+  if (!isDemoMode) {
+    document.getElementById('parent-demo-banner').style.display = 'none';
+    return;
+  }
+
+  // デモバナーを表示
+  document.getElementById('parent-demo-banner').style.display = 'block';
+
+  // デモ用の子供がいなければ作成
+  if (parentChildren.length === 0) {
+    const demoChildren = [
+      {
+        id: 'demo_child_1',
+        name: 'ゆうき',
+        emoji: '👦',
+        grade: 'middle',
+        isDemo: true,
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 'demo_child_2',
+        name: 'さくら',
+        emoji: '👧',
+        grade: 'lower',
+        isDemo: true,
+        createdAt: new Date().toISOString()
+      }
+    ];
+
+    parentChildren = demoChildren;
+    localStorage.setItem('sherupa_parent_children', JSON.stringify(parentChildren));
+
+    // デモ用学習データを作成
+    saveChildData('demo_child_1', {
+      alt: 850,
+      streak: 7,
+      completedSlides: ['s1', 's2', 's3', 's5', 's8', 's10'],
+      completedFamilyMissions: [
+        { missionId: 'fm1', completedAt: new Date(Date.now() - 86400000 * 2).toISOString() },
+        { missionId: 'fm3', completedAt: new Date(Date.now() - 86400000).toISOString() }
+      ],
+      quizResults: [
+        { score: 4, total: 5 },
+        { score: 5, total: 5 },
+        { score: 3, total: 5 }
+      ],
+      slideHistory: [
+        { date: new Date().toISOString().split('T')[0], slideId: 's10' },
+        { date: new Date(Date.now() - 86400000).toISOString().split('T')[0], slideId: 's8' }
+      ]
+    });
+
+    saveChildData('demo_child_2', {
+      alt: 320,
+      streak: 3,
+      completedSlides: ['s1', 's2', 's4'],
+      completedFamilyMissions: [
+        { missionId: 'fm2', completedAt: new Date().toISOString() }
+      ],
+      quizResults: [
+        { score: 4, total: 5 }
+      ],
+      slideHistory: [
+        { date: new Date().toISOString().split('T')[0], slideId: 's4' }
+      ]
+    });
+
+    selectedChildId = 'demo_child_1';
+    localStorage.setItem('sherupa_selected_child', selectedChildId);
+  }
+}
+
+// 子供のプロフィール画面での連携状態を更新
+function updateParentLinkStatus() {
+  const linkStatus = document.getElementById('parentLinkStatus');
+  const linkInfo = document.getElementById('parentLinkInfo');
+  const noLink = document.getElementById('noParentLink');
+
+  if (!linkStatus || !linkInfo || !noLink) return;
+
+  const myCode = localStorage.getItem('sherupa_my_invite_code');
+
+  if (myCode) {
+    // 招待コードが発行済み
+    linkStatus.textContent = '招待中';
+    linkStatus.style.color = '#3b82f6';
+    linkInfo.innerHTML = `
+      <div style="text-align:center;padding:12px">
+        <div style="font-size:11px;color:var(--rock);margin-bottom:8px">あなたの招待コード</div>
+        <div style="background:linear-gradient(135deg,#3b82f6,#60a5fa);color:#fff;font-size:18px;font-weight:700;letter-spacing:3px;padding:10px 20px;border-radius:8px;display:inline-block">${myCode}</div>
+        <div style="font-size:11px;color:var(--rock);margin-top:8px">保護者にこのコードを伝えてください</div>
+      </div>
+    `;
+    noLink.style.display = 'none';
+  } else {
+    linkStatus.textContent = '未連携';
+    linkStatus.style.color = 'var(--rock)';
+    linkInfo.innerHTML = '';
+    noLink.style.display = '';
+  }
 }
 
 // サマリーカードをレンダリング
