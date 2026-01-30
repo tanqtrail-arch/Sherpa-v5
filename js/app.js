@@ -3095,6 +3095,13 @@ function closeModals() {
 }
 
 function switchMode(newMode) {
+  // 保護者モードの場合はログインオプションモーダルを表示
+  if (newMode === 'parent') {
+    closeModals();
+    document.getElementById('parentLoginOptionsModal').classList.add('active');
+    return;
+  }
+
   // パスワード保護が必要なモードの場合
   if (protectedModes.includes(newMode)) {
     // ロックアウトチェック
@@ -3218,6 +3225,32 @@ async function verifyPassword() {
     return;
   }
 
+  // 保護者モードの場合は登録済みアカウントで認証
+  if (pendingMode === 'parent') {
+    const parentAccount = JSON.parse(localStorage.getItem('sherupa_parent_account') || 'null');
+
+    if (!parentAccount) {
+      errorElement.textContent = 'アカウントが登録されていません。新規登録してください。';
+      errorElement.style.display = 'block';
+      return;
+    }
+
+    if (input === parentAccount.password) {
+      errorElement.style.display = 'none';
+      // デモモードフラグをクリア
+      localStorage.removeItem('sherupa_parent_demo');
+      executeSwitchMode(pendingMode);
+      pendingMode = null;
+      toast(`👨‍👩‍👧 ${parentAccount.name}さん、おかえりなさい！`);
+    } else {
+      errorElement.textContent = 'パスワードが違います';
+      errorElement.style.display = 'block';
+      document.getElementById('passwordInput').value = '';
+      document.getElementById('passwordInput').focus();
+    }
+    return;
+  }
+
   // スクールモードの場合はスクール別認証
   if (pendingMode === 'teacher') {
     const dropdown = document.getElementById('schoolDropdown');
@@ -3289,6 +3322,95 @@ async function verifyPassword() {
 function cancelPassword() {
   pendingMode = null;
   document.getElementById('passwordModal').classList.remove('active');
+}
+
+// ========================================
+// 保護者ログインオプション
+// ========================================
+
+// デモ版でログイン
+function parentLoginDemo() {
+  closeModals();
+  // デモモードフラグを設定
+  localStorage.setItem('sherupa_parent_demo', 'true');
+  executeSwitchMode('parent');
+  toast('🎮 デモモードでログインしました');
+}
+
+// 新規登録モーダルを表示
+function parentLoginRegister() {
+  closeModals();
+  // フォームをリセット
+  document.getElementById('parentRegisterForm').reset();
+  document.getElementById('parentRegisterError').style.display = 'none';
+  document.getElementById('parentRegisterModal').classList.add('active');
+}
+
+// ログイン（パスワード認証）
+function parentLoginWithPassword() {
+  closeModals();
+  pendingMode = 'parent';
+  document.getElementById('passwordModalTitle').textContent = '👨‍👩‍👧 保護者モード';
+  document.getElementById('passwordModalEmoji').textContent = '👨‍👩‍👧';
+  document.getElementById('passwordModalHeader').style.background = 'linear-gradient(135deg,#3b82f6,#60a5fa)';
+  document.getElementById('passwordInput').value = '';
+  document.getElementById('passwordError').style.display = 'none';
+  document.getElementById('passwordError').textContent = 'パスワードが違います';
+  document.getElementById('schoolSelectForLogin').style.display = 'none';
+  document.getElementById('passwordModalDesc').textContent = '登録済みのパスワードを入力してください';
+  document.getElementById('passwordModal').classList.add('active');
+  document.getElementById('passwordInput').focus();
+}
+
+// 保護者ログインオプションに戻る
+function backToParentLoginOptions() {
+  closeModals();
+  document.getElementById('parentLoginOptionsModal').classList.add('active');
+}
+
+// 新規登録を送信
+function submitParentRegister() {
+  const name = document.getElementById('parentRegisterName').value.trim();
+  const email = document.getElementById('parentRegisterEmail').value.trim();
+  const password = document.getElementById('parentRegisterPassword').value;
+  const passwordConfirm = document.getElementById('parentRegisterPasswordConfirm').value;
+  const errorEl = document.getElementById('parentRegisterError');
+
+  // バリデーション
+  if (!name || !email || !password) {
+    errorEl.textContent = 'すべての項目を入力してください';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  if (password !== passwordConfirm) {
+    errorEl.textContent = 'パスワードが一致しません';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  if (password.length < 6) {
+    errorEl.textContent = 'パスワードは6文字以上で入力してください';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  // 保護者アカウント情報を保存
+  const parentAccount = {
+    id: 'parent_' + Date.now(),
+    name: name,
+    email: email,
+    password: password, // 本番環境ではハッシュ化が必要
+    createdAt: new Date().toISOString()
+  };
+  localStorage.setItem('sherupa_parent_account', JSON.stringify(parentAccount));
+
+  // デモモードフラグをクリア
+  localStorage.removeItem('sherupa_parent_demo');
+
+  closeModals();
+  executeSwitchMode('parent');
+  toast('✨ アカウントを登録しました！');
 }
 
 // ========================================
@@ -4727,8 +4849,11 @@ function syncLinkedChildData(childId, linkedUserId) {
 
 // 保護者デモ機能を初期化
 function initParentDemo() {
+  // 保護者専用デモモードまたはグローバルデモモードをチェック
+  const isParentDemo = localStorage.getItem('sherupa_parent_demo') === 'true';
+
   // デモモードでない場合はスキップ
-  if (!isDemoMode) {
+  if (!isDemoMode && !isParentDemo) {
     document.getElementById('parent-demo-banner').style.display = 'none';
     return;
   }
