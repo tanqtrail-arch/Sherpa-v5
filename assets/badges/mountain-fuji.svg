@@ -1,0 +1,59 @@
+<svg width="120" height="140" viewBox="0 0 120 140" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 朱色グラデーション（日本の象徴色） -->
+    <linearGradient id="fujiRed" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#DC2626"/>
+      <stop offset="100%" style="stop-color:#B91C1C"/>
+    </linearGradient>
+    <linearGradient id="fujiInner" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FEF2F2"/>
+      <stop offset="100%" style="stop-color:#FECACA"/>
+    </linearGradient>
+    <!-- 日の出グラデーション -->
+    <radialGradient id="sunrise" cx="50%" cy="100%" r="80%">
+      <stop offset="0%" style="stop-color:#FCD34D"/>
+      <stop offset="50%" style="stop-color:#FBBF24"/>
+      <stop offset="100%" style="stop-color:#F59E0B"/>
+    </radialGradient>
+    <!-- 金色 -->
+    <linearGradient id="fujiGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FCD34D"/>
+      <stop offset="50%" style="stop-color:#F59E0B"/>
+      <stop offset="100%" style="stop-color:#D97706"/>
+    </linearGradient>
+    <filter id="fujiShadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#B91C1C44"/>
+    </filter>
+  </defs>
+
+  <!-- リボン左 -->
+  <path d="M25,75 L15,130 L35,115 L45,130 L50,80 Z" fill="url(#fujiGold)"/>
+  <!-- リボン右 -->
+  <path d="M95,75 L105,130 L85,115 L75,130 L70,80 Z" fill="url(#fujiGold)"/>
+
+  <!-- メダル本体 -->
+  <circle cx="60" cy="55" r="48" fill="url(#fujiRed)" filter="url(#fujiShadow)"/>
+
+  <!-- 装飾リング -->
+  <circle cx="60" cy="55" r="42" fill="none" stroke="#F87171" stroke-width="3"/>
+
+  <!-- 内側の円 -->
+  <circle cx="60" cy="55" r="38" fill="url(#fujiInner)"/>
+
+  <!-- 日の出（背景） -->
+  <circle cx="60" cy="62" r="25" fill="url(#sunrise)" opacity="0.3"/>
+
+  <!-- 富士山のシルエット -->
+  <path d="M25,75 L45,50 L55,52 L60,35 L65,52 L75,50 L95,75 Z" fill="#DC2626" opacity="0.8"/>
+
+  <!-- 雪を被った山頂 -->
+  <path d="M50,48 L60,35 L70,48 L65,52 L55,52 Z" fill="white"/>
+
+  <!-- 日の出の太陽 -->
+  <circle cx="60" cy="68" r="8" fill="#FBBF24"/>
+  <circle cx="60" cy="68" r="6" fill="#FCD34D"/>
+
+  <!-- 山名 -->
+  <text x="60" y="95" text-anchor="middle" font-size="12" font-weight="900" fill="#B91C1C" font-family="sans-serif">富士山</text>
+  <text x="60" y="107" text-anchor="middle" font-size="8" fill="#DC2626" font-family="sans-serif">3,776m</text>
+</svg>

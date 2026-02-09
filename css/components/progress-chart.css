@@ -1,0 +1,444 @@
+/* =====================================================
+   進捗チャート - Progress Chart
+   ===================================================== */
+
+.chart-container {
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+.chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.chart-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1F2937;
+  margin: 0;
+}
+
+.chart-legend {
+  display: flex;
+  gap: 16px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: #6B7280;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+/* =====================================================
+   週間バーチャート
+   ===================================================== */
+.bar-chart {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  height: 150px;
+  padding: 0 10px;
+}
+
+.bar-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  max-width: 50px;
+}
+
+.bar-value {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #6B7280;
+  margin-bottom: 4px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s ease;
+}
+
+.bar-column:hover .bar-value {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.bar-wrapper {
+  width: 100%;
+  height: 120px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.bar {
+  width: 24px;
+  border-radius: 6px 6px 0 0;
+  transition: height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  min-height: 4px;
+}
+
+.bar-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.3), transparent);
+  border-radius: 6px 6px 0 0;
+}
+
+.bar-label {
+  margin-top: 8px;
+  font-size: 0.75rem;
+  color: #6B7280;
+  font-weight: 500;
+}
+
+.bar-column.today .bar-label {
+  color: #F59E0B;
+  font-weight: 700;
+}
+
+.bar-column.today .bar {
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+}
+
+.chart-footer {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #E5E7EB;
+  text-align: center;
+}
+
+.chart-summary {
+  font-size: 0.85rem;
+  color: #6B7280;
+}
+
+.chart-summary strong {
+  color: #4F46E5;
+}
+
+/* =====================================================
+   カレンダーチャート
+   ===================================================== */
+.calendar-chart .chart-header {
+  justify-content: center;
+  gap: 20px;
+}
+
+.calendar-nav {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #F3F4F6;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  color: #6B7280;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.calendar-nav:hover {
+  background: #E5E7EB;
+  color: #1F2937;
+}
+
+.calendar-body {
+  margin-top: 16px;
+}
+
+.calendar-header-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.calendar-day-name {
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #9CA3AF;
+  padding: 4px;
+}
+
+.calendar-day-name.sunday {
+  color: #EF4444;
+}
+
+.calendar-day-name.saturday {
+  color: #3B82F6;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.calendar-day.empty {
+  cursor: default;
+}
+
+.calendar-day:not(.empty):hover {
+  transform: scale(1.1);
+}
+
+.day-number {
+  font-weight: 500;
+  color: #374151;
+}
+
+.day-dot {
+  position: absolute;
+  bottom: 4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* 学習レベル別の色 */
+.calendar-day.level-0 {
+  background: #F3F4F6;
+}
+
+.calendar-day.level-1 {
+  background: #DCFCE7;
+  color: #166534;
+}
+
+.calendar-day.level-2 {
+  background: #BBF7D0;
+  color: #166534;
+}
+
+.calendar-day.level-3 {
+  background: #4ADE80;
+  color: white;
+}
+
+.calendar-day.level-3 .day-number {
+  color: white;
+}
+
+.calendar-day.level-4 {
+  background: #16A34A;
+  color: white;
+}
+
+.calendar-day.level-4 .day-number {
+  color: white;
+}
+
+.calendar-day.today {
+  box-shadow: 0 0 0 2px #4F46E5;
+}
+
+.calendar-day.today .day-number {
+  font-weight: 700;
+}
+
+/* カレンダー凡例 */
+.calendar-legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #E5E7EB;
+}
+
+.legend-label {
+  font-size: 0.7rem;
+  color: #9CA3AF;
+}
+
+.legend-scale {
+  display: flex;
+  gap: 3px;
+}
+
+.scale-item {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+}
+
+.scale-item.level-0 { background: #F3F4F6; }
+.scale-item.level-1 { background: #DCFCE7; }
+.scale-item.level-2 { background: #BBF7D0; }
+.scale-item.level-3 { background: #4ADE80; }
+.scale-item.level-4 { background: #16A34A; }
+
+.legend-max {
+  font-size: 0.7rem;
+  color: #9CA3AF;
+}
+
+/* =====================================================
+   円グラフ
+   ===================================================== */
+.pie-body {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.pie-svg {
+  width: 160px;
+  height: 160px;
+  flex-shrink: 0;
+}
+
+.pie-slice {
+  transform-origin: 100px 100px;
+  transition: transform 0.2s ease;
+}
+
+.pie-slice:hover {
+  transform: scale(1.05);
+}
+
+.pie-center-text {
+  font-size: 16px;
+  font-weight: 700;
+  fill: #1F2937;
+}
+
+.pie-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pie-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pie-legend-item .legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.pie-legend-item .legend-label {
+  font-size: 0.8rem;
+  color: #374151;
+  flex: 1;
+}
+
+.pie-legend-item .legend-value {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #1F2937;
+}
+
+/* =====================================================
+   レスポンシブ
+   ===================================================== */
+@media (max-width: 480px) {
+  .pie-body {
+    flex-direction: column;
+  }
+
+  .bar {
+    width: 18px;
+  }
+
+  .calendar-day {
+    font-size: 0.65rem;
+  }
+}
+
+/* =====================================================
+   ダークモード
+   ===================================================== */
+@media (prefers-color-scheme: dark) {
+  .chart-container {
+    background: #1F2937;
+  }
+
+  .chart-title {
+    color: white;
+  }
+
+  .legend-item,
+  .chart-summary,
+  .bar-label,
+  .bar-value {
+    color: #9CA3AF;
+  }
+
+  .chart-summary strong {
+    color: #818CF8;
+  }
+
+  .chart-footer,
+  .calendar-legend {
+    border-color: #374151;
+  }
+
+  .calendar-nav {
+    background: #374151;
+    color: #9CA3AF;
+  }
+
+  .calendar-nav:hover {
+    background: #4B5563;
+    color: white;
+  }
+
+  .day-number {
+    color: #E5E7EB;
+  }
+
+  .calendar-day.level-0 {
+    background: #374151;
+  }
+
+  .pie-center-text {
+    fill: white;
+  }
+
+  .pie-legend-item .legend-label {
+    color: #D1D5DB;
+  }
+
+  .pie-legend-item .legend-value {
+    color: white;
+  }
+}

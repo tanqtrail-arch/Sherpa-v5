@@ -1,0 +1,45 @@
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- アフリカンサンセット -->
+    <linearGradient id="kiliSunset" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#F97316"/>
+      <stop offset="50%" style="stop-color:#EA580C"/>
+      <stop offset="100%" style="stop-color:#C2410C"/>
+    </linearGradient>
+    <linearGradient id="kiliInner" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFF7ED"/>
+      <stop offset="50%" style="stop-color:#FFEDD5"/>
+      <stop offset="100%" style="stop-color:#FED7AA"/>
+    </linearGradient>
+    <filter id="kiliShadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#C2410C44"/>
+    </filter>
+  </defs>
+
+  <!-- 円形ベース -->
+  <circle cx="60" cy="60" r="52" fill="url(#kiliSunset)" filter="url(#kiliShadow)"/>
+
+  <!-- 装飾リング -->
+  <circle cx="60" cy="60" r="46" fill="none" stroke="#FB923C" stroke-width="2"/>
+
+  <!-- 内側の円 -->
+  <circle cx="60" cy="60" r="42" fill="url(#kiliInner)"/>
+
+  <!-- 夕日 -->
+  <circle cx="60" cy="55" r="15" fill="#F97316" opacity="0.4"/>
+  <circle cx="60" cy="55" r="10" fill="#FDBA74" opacity="0.6"/>
+
+  <!-- キリマンジャロのなだらかな山容 -->
+  <path d="M15,80 L35,55 L50,58 L60,45 L70,58 L85,55 L105,80 Z" fill="#C2410C" opacity="0.7"/>
+
+  <!-- 雪を被った山頂（キリマンジャロの特徴） -->
+  <path d="M50,52 L60,45 L70,52 L65,58 L55,58 Z" fill="white" opacity="0.9"/>
+
+  <!-- サバンナのアカシアの木シルエット -->
+  <path d="M25,80 L27,72 L23,72 L27,68 L23,68 L27,65 L25,65 L27,62 L29,65 L27,65 L31,68 L27,68 L31,72 L27,72 L29,80 Z" fill="#92400E" opacity="0.6"/>
+  <path d="M90,80 L92,74 L88,74 L92,70 L88,70 L92,68 L94,70 L90,70 L94,74 L90,74 L92,80 Z" fill="#92400E" opacity="0.6"/>
+
+  <!-- 山名 -->
+  <text x="60" y="92" text-anchor="middle" font-size="9" font-weight="bold" fill="#C2410C" font-family="sans-serif">キリマンジャロ</text>
+  <text x="60" y="103" text-anchor="middle" font-size="8" fill="#EA580C" font-family="sans-serif">5,895m</text>
+</svg>

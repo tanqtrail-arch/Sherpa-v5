@@ -1,0 +1,37 @@
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 岩壁グレーグラデーション -->
+    <linearGradient id="tanigawaGray" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6B7280"/>
+      <stop offset="50%" style="stop-color:#4B5563"/>
+      <stop offset="100%" style="stop-color:#374151"/>
+    </linearGradient>
+    <linearGradient id="tanigawaInner" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#F9FAFB"/>
+      <stop offset="100%" style="stop-color:#E5E7EB"/>
+    </linearGradient>
+    <filter id="tanigawaShadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#37415144"/>
+    </filter>
+  </defs>
+
+  <!-- 六角形ベース（険しさを表現） -->
+  <polygon points="60,8 107,34 107,86 60,112 13,86 13,34" fill="url(#tanigawaGray)" filter="url(#tanigawaShadow)"/>
+
+  <!-- 装飾ライン -->
+  <polygon points="60,16 99,38 99,82 60,104 21,82 21,38" fill="none" stroke="#9CA3AF" stroke-width="2"/>
+
+  <!-- 内側 -->
+  <polygon points="60,22 93,42 93,78 60,98 27,78 27,42" fill="url(#tanigawaInner)"/>
+
+  <!-- 険しい岩壁のシルエット -->
+  <path d="M30,75 L42,50 L48,60 L55,40 L60,55 L65,35 L72,55 L78,45 L90,75 Z" fill="#4B5563" opacity="0.8"/>
+  <path d="M35,75 L50,52 L60,48 L70,52 L85,75 Z" fill="#6B7280" opacity="0.5"/>
+
+  <!-- 雪の表現 -->
+  <path d="M55,40 L60,38 L65,40 L62,45 L58,45 Z" fill="white" opacity="0.9"/>
+
+  <!-- 山名 -->
+  <text x="60" y="88" text-anchor="middle" font-size="11" font-weight="bold" fill="#374151" font-family="sans-serif">谷川岳</text>
+  <text x="60" y="99" text-anchor="middle" font-size="8" fill="#6B7280" font-family="sans-serif">1,977m</text>
+</svg>

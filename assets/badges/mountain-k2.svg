@@ -1,0 +1,60 @@
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 極寒のアイスブルー＆ブラック -->
+    <linearGradient id="k2Ice" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1E293B"/>
+      <stop offset="50%" style="stop-color:#0F172A"/>
+      <stop offset="100%" style="stop-color:#020617"/>
+    </linearGradient>
+    <linearGradient id="k2Inner" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#0EA5E9"/>
+      <stop offset="100%" style="stop-color:#0284C7"/>
+    </linearGradient>
+    <!-- 氷のグラデーション -->
+    <linearGradient id="k2Frost" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFFFF"/>
+      <stop offset="50%" style="stop-color:#BAE6FD"/>
+      <stop offset="100%" style="stop-color:#7DD3FC"/>
+    </linearGradient>
+    <filter id="k2Shadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#02061744"/>
+    </filter>
+    <filter id="k2Glow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- 六角形ベース（危険を象徴） -->
+  <polygon points="60,8 107,34 107,86 60,112 13,86 13,34" fill="url(#k2Ice)" filter="url(#k2Shadow)"/>
+
+  <!-- 装飾ライン（警告色） -->
+  <polygon points="60,16 99,38 99,82 60,104 21,82 21,38" fill="none" stroke="#38BDF8" stroke-width="2"/>
+
+  <!-- 内側 -->
+  <polygon points="60,22 93,42 93,78 60,98 27,78 27,42" fill="url(#k2Inner)"/>
+
+  <!-- K2のピラミッド型シルエット（世界で最も困難な山） -->
+  <path d="M30,78 L45,55 L52,60 L60,35 L68,60 L75,55 L90,78 Z" fill="#0F172A" opacity="0.8"/>
+
+  <!-- 氷の山頂 -->
+  <path d="M52,52 L60,35 L68,52 L64,58 L56,58 Z" fill="url(#k2Frost)"/>
+
+  <!-- 吹雪のパーティクル -->
+  <circle cx="35" cy="45" r="1" fill="white" opacity="0.6"/>
+  <circle cx="42" cy="50" r="0.8" fill="white" opacity="0.5"/>
+  <circle cx="78" cy="48" r="1" fill="white" opacity="0.6"/>
+  <circle cx="85" cy="52" r="0.8" fill="white" opacity="0.5"/>
+  <circle cx="50" cy="42" r="0.8" fill="white" opacity="0.4"/>
+  <circle cx="70" cy="44" r="0.8" fill="white" opacity="0.4"/>
+
+  <!-- K2ロゴ -->
+  <text x="60" y="72" text-anchor="middle" font-size="16" font-weight="900" fill="white" font-family="sans-serif" filter="url(#k2Glow)">K2</text>
+
+  <!-- 山名 -->
+  <text x="60" y="90" text-anchor="middle" font-size="8" font-weight="bold" fill="#BAE6FD" font-family="sans-serif">世界第2位</text>
+  <text x="60" y="100" text-anchor="middle" font-size="8" fill="#7DD3FC" font-family="sans-serif">8,611m</text>
+</svg>
