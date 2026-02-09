@@ -1,0 +1,19 @@
+/**
+ * Sherpa v5 - Main CSS Entry Point
+ *
+ * CSS Architecture:
+ * - variables.css: Design tokens (colors, fonts, spacing)
+ * - layout.css: Grid, flexbox, containers
+ * - cards.css: Card components
+ * - buttons.css: Button components
+ * - animations.css: Keyframes and effects
+ *
+ * Note: styles.css contains legacy styles that are gradually being migrated
+ */
+
+/* Import component styles */
+@import url('./components/variables.css');
+@import url('./components/layout.css');
+@import url('./components/cards.css');
+@import url('./components/buttons.css');
+@import url('./components/animations.css');

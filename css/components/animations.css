@@ -1,0 +1,424 @@
+/**
+ * Animations & Effects
+ * 達成感を演出するアニメーション
+ */
+
+/* === Keyframe Animations === */
+
+/* Fade In */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fade In Up */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fade In Scale */
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Bounce */
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Pulse */
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* Pulse Glow */
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(240, 160, 80, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 15px rgba(240, 160, 80, 0);
+  }
+}
+
+/* Shake */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* Spin */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Float */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Sparkle */
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Confetti Fall */
+@keyframes confettiFall {
+  0% {
+    transform: translateY(-100vh) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+/* Star Burst */
+@keyframes starBurst {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2) rotate(180deg);
+    opacity: 0;
+  }
+}
+
+/* Celebration Pop */
+@keyframes celebrationPop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Slide In Right */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Slide In Left */
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Rainbow Glow */
+@keyframes rainbowGlow {
+  0% { box-shadow: 0 0 20px #ff0000; }
+  16% { box-shadow: 0 0 20px #ff8800; }
+  33% { box-shadow: 0 0 20px #ffff00; }
+  50% { box-shadow: 0 0 20px #00ff00; }
+  66% { box-shadow: 0 0 20px #0088ff; }
+  83% { box-shadow: 0 0 20px #8800ff; }
+  100% { box-shadow: 0 0 20px #ff0000; }
+}
+
+/* === Animation Classes === */
+
+.animate-fadeIn {
+  animation: fadeIn var(--transition-slow) ease-out;
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.animate-fadeInScale {
+  animation: fadeInScale 0.4s ease-out;
+}
+
+.animate-bounce {
+  animation: bounce 2s ease-in-out infinite;
+}
+
+.animate-pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.animate-pulseGlow {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* === Celebration Effects === */
+
+/* Confetti Container */
+.confetti-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: var(--z-toast);
+  overflow: hidden;
+}
+
+.confetti {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  animation: confettiFall 3s linear forwards;
+}
+
+.confetti:nth-child(1) { left: 10%; animation-delay: 0s; background: #ff6b6b; }
+.confetti:nth-child(2) { left: 20%; animation-delay: 0.2s; background: #ffd93d; }
+.confetti:nth-child(3) { left: 30%; animation-delay: 0.4s; background: #6bcb77; }
+.confetti:nth-child(4) { left: 40%; animation-delay: 0.1s; background: #4d96ff; }
+.confetti:nth-child(5) { left: 50%; animation-delay: 0.3s; background: #ff6b6b; }
+.confetti:nth-child(6) { left: 60%; animation-delay: 0.5s; background: #ffd93d; }
+.confetti:nth-child(7) { left: 70%; animation-delay: 0.2s; background: #6bcb77; }
+.confetti:nth-child(8) { left: 80%; animation-delay: 0.4s; background: #4d96ff; }
+.confetti:nth-child(9) { left: 90%; animation-delay: 0.1s; background: #ff6b6b; }
+.confetti:nth-child(10) { left: 15%; animation-delay: 0.3s; background: #ffd93d; }
+
+/* Star Burst Effect */
+.star-burst {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: var(--z-toast);
+}
+
+.star-burst::before,
+.star-burst::after {
+  content: '⭐';
+  position: absolute;
+  font-size: 24px;
+  animation: starBurst 1s ease-out forwards;
+}
+
+.star-burst::before {
+  top: -20px;
+  left: -20px;
+}
+
+.star-burst::after {
+  top: 20px;
+  left: 20px;
+  animation-delay: 0.1s;
+}
+
+/* Achievement Unlock Animation */
+.achievement-unlock {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: var(--z-modal);
+  text-align: center;
+  animation: celebrationPop 0.6s ease-out;
+}
+
+.achievement-unlock-icon {
+  font-size: 80px;
+  animation: bounce 1s ease-in-out infinite;
+}
+
+.achievement-unlock-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-black);
+  color: var(--shadow);
+  margin-top: var(--space-4);
+}
+
+.achievement-unlock-subtitle {
+  font-size: var(--font-size-base);
+  color: var(--rock);
+  margin-top: var(--space-2);
+}
+
+/* Success Checkmark */
+.success-checkmark {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--success);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  animation: celebrationPop 0.5s ease-out;
+}
+
+.success-checkmark::after {
+  content: '✓';
+  color: white;
+  font-size: 40px;
+  font-weight: bold;
+}
+
+/* Level Up Effect */
+.level-up {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: var(--z-modal);
+  text-align: center;
+}
+
+.level-up-number {
+  font-size: 120px;
+  font-weight: var(--font-weight-black);
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: celebrationPop 0.8s ease-out, pulseGlow 2s ease-in-out infinite;
+}
+
+.level-up-text {
+  font-size: var(--font-size-xl);
+  color: var(--shadow);
+  margin-top: var(--space-2);
+}
+
+/* Progress Fill Animation */
+.progress-animated {
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-animated::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  animation: progressShine 2s ease-in-out infinite;
+}
+
+@keyframes progressShine {
+  to {
+    left: 200%;
+  }
+}
+
+/* Hover Effects */
+.hover-lift {
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.hover-scale {
+  transition: transform var(--transition-base);
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+.hover-glow {
+  transition: box-shadow var(--transition-base);
+}
+
+.hover-glow:hover {
+  box-shadow: var(--shadow-glow);
+}
+
+/* Stagger Animation for Lists */
+.stagger-item {
+  opacity: 0;
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+.stagger-item:nth-child(1) { animation-delay: 0s; }
+.stagger-item:nth-child(2) { animation-delay: 0.1s; }
+.stagger-item:nth-child(3) { animation-delay: 0.2s; }
+.stagger-item:nth-child(4) { animation-delay: 0.3s; }
+.stagger-item:nth-child(5) { animation-delay: 0.4s; }
+.stagger-item:nth-child(6) { animation-delay: 0.5s; }

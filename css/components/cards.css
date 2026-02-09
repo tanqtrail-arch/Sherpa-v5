@@ -1,0 +1,374 @@
+/**
+ * Card Components
+ * モダンなグラスモーフィズムカード
+ */
+
+/* === Base Card === */
+.card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-lg);
+  border: var(--glass-border);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-4);
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+/* === Card Header === */
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.card-header-icon {
+  font-size: 24px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gradient-primary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.card-header-title {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  color: var(--shadow);
+}
+
+.card-header-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--rock);
+  margin-top: 2px;
+}
+
+/* === Slide Card === */
+.slide-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  transition: all var(--transition-base);
+  cursor: pointer;
+  position: relative;
+}
+
+.slide-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--gradient-primary);
+  opacity: 0;
+  transition: opacity var(--transition-base);
+}
+
+.slide-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: var(--shadow-lg);
+}
+
+.slide-card:hover::before {
+  opacity: 1;
+}
+
+.slide-card-image {
+  width: 100%;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  background: linear-gradient(135deg, var(--cloud), #f1f5f9);
+}
+
+.slide-card-content {
+  padding: var(--space-3);
+}
+
+.slide-card-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--shadow);
+  margin-bottom: var(--space-1);
+  line-height: 1.4;
+}
+
+.slide-card-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--rock);
+}
+
+.slide-card.completed {
+  position: relative;
+}
+
+.slide-card.completed::after {
+  content: '✓';
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  width: 24px;
+  height: 24px;
+  background: var(--success);
+  color: white;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  box-shadow: var(--shadow-md);
+}
+
+/* === Stats Card === */
+.stats-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  text-align: center;
+  box-shadow: var(--shadow-card);
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.stats-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--gradient-primary);
+  opacity: 0;
+  transition: opacity var(--transition-slow);
+  z-index: 0;
+}
+
+.stats-card:hover::before {
+  opacity: 0.05;
+}
+
+.stats-card-icon {
+  font-size: 32px;
+  margin-bottom: var(--space-2);
+  position: relative;
+  z-index: 1;
+}
+
+.stats-card-value {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-black);
+  color: var(--shadow);
+  position: relative;
+  z-index: 1;
+}
+
+.stats-card-label {
+  font-size: var(--font-size-xs);
+  color: var(--rock);
+  margin-top: var(--space-1);
+  position: relative;
+  z-index: 1;
+}
+
+/* === Mission Card === */
+.mission-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-card);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  transition: all var(--transition-base);
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.mission-card:hover {
+  border-color: var(--family);
+  transform: translateX(4px);
+}
+
+.mission-card-icon {
+  font-size: 36px;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #fce7f3, #fbcfe8);
+  border-radius: var(--radius-md);
+}
+
+.mission-card-content {
+  flex: 1;
+}
+
+.mission-card-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--shadow);
+}
+
+.mission-card-reward {
+  font-size: var(--font-size-sm);
+  color: var(--family);
+  margin-top: var(--space-1);
+}
+
+.mission-card.completed {
+  opacity: 0.6;
+  background: #f9fafb;
+}
+
+.mission-card.completed .mission-card-icon {
+  background: #e5e7eb;
+}
+
+/* === Achievement Card === */
+.achievement-card {
+  background: linear-gradient(135deg, #fefce8, #fef9c3);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  text-align: center;
+  box-shadow: var(--shadow-card);
+  border: 2px solid #fde047;
+  position: relative;
+  overflow: hidden;
+}
+
+.achievement-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(
+    transparent,
+    rgba(253, 224, 71, 0.3),
+    transparent 30%
+  );
+  animation: achievement-shine 3s linear infinite;
+}
+
+@keyframes achievement-shine {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.achievement-card-icon {
+  font-size: 48px;
+  position: relative;
+  z-index: 1;
+  animation: achievement-bounce 2s ease-in-out infinite;
+}
+
+@keyframes achievement-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.achievement-card-title {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  color: #854d0e;
+  margin-top: var(--space-2);
+  position: relative;
+  z-index: 1;
+}
+
+/* === Mountain Card === */
+.mountain-card {
+  background: var(--white);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  transition: all var(--transition-slow);
+  position: relative;
+}
+
+.mountain-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-xl);
+}
+
+.mountain-card-image {
+  width: 100%;
+  height: 120px;
+  background: var(--gradient-sky);
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: var(--space-3);
+}
+
+.mountain-card-emoji {
+  font-size: 64px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+
+.mountain-card-content {
+  padding: var(--space-4);
+  text-align: center;
+}
+
+.mountain-card-name {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--shadow);
+}
+
+.mountain-card-alt {
+  font-size: var(--font-size-sm);
+  color: var(--rock);
+  margin-top: var(--space-1);
+}
+
+.mountain-card-progress {
+  margin-top: var(--space-3);
+  height: 8px;
+  background: var(--cloud);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.mountain-card-progress-bar {
+  height: 100%;
+  background: var(--gradient-primary);
+  border-radius: var(--radius-full);
+  transition: width var(--transition-slow);
+}
+
+.mountain-card.locked {
+  opacity: 0.5;
+  filter: grayscale(0.5);
+}
+
+.mountain-card.locked::after {
+  content: '🔒';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 32px;
+}
