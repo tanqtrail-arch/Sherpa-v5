@@ -18,3 +18,11 @@
 @import url('./components/buttons.css');
 @import url('./components/badges.css');
 @import url('./components/animations.css');
+
+/* New UI Components */
+@import url('./components/climbing-visual.css');
+@import url('./components/skeleton.css');
+@import url('./components/level-system.css');
+@import url('./components/daily-mission.css');
+@import url('./components/progress-chart.css');
+@import url('./components/mountain-card-3d.css');

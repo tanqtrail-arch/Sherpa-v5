@@ -1,0 +1,388 @@
+/* =====================================================
+   レベルシステム - Level System
+   ===================================================== */
+
+/* XPバーコンテナ */
+.xp-bar-container {
+  background: linear-gradient(135deg, #1E1B4B 0%, #312E81 100%);
+  border-radius: 16px;
+  padding: 16px 20px;
+  box-shadow: 0 8px 32px rgba(49, 46, 129, 0.3);
+}
+
+/* ヘッダー */
+.xp-bar-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+/* レベルバッジ */
+.xp-level-badge {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4);
+}
+
+.xp-level-badge .level-number {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #1E1B4B;
+  line-height: 1;
+}
+
+.xp-level-badge .level-label {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: #1E1B4B;
+  opacity: 0.8;
+}
+
+/* XP情報 */
+.xp-info {
+  flex: 1;
+}
+
+.xp-current {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: white;
+}
+
+.xp-next {
+  font-size: 0.85rem;
+  color: #A5B4FC;
+  margin-left: 4px;
+}
+
+/* XPバートラック */
+.xp-bar-track {
+  position: relative;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.xp-bar-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #FCD34D, #F59E0B, #EF4444);
+  border-radius: 6px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.xp-bar-glow {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 30px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6));
+  animation: xpGlow 1.5s ease-in-out infinite;
+}
+
+@keyframes xpGlow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* マーカー */
+.xp-bar-markers {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.xp-marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* フッター */
+.xp-bar-footer {
+  margin-top: 8px;
+  text-align: center;
+}
+
+.xp-remaining {
+  font-size: 0.75rem;
+  color: #A5B4FC;
+}
+
+/* =====================================================
+   レベルアップオーバーレイ
+   ===================================================== */
+.level-up-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.level-up-overlay.show {
+  opacity: 1;
+}
+
+.level-up-content {
+  text-align: center;
+  transform: scale(0.5);
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.level-up-overlay.show .level-up-content {
+  transform: scale(1);
+}
+
+/* バースト効果 */
+.level-up-burst {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 300px;
+  height: 300px;
+  margin: -150px;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.4) 0%, transparent 70%);
+  animation: levelUpBurst 1s ease-out forwards;
+}
+
+@keyframes levelUpBurst {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+/* アイコン */
+.level-up-icon {
+  position: relative;
+  animation: levelUpBounce 0.6s ease-out;
+  animation-delay: 0.2s;
+  animation-fill-mode: both;
+}
+
+.level-up-icon svg {
+  filter: drop-shadow(0 0 20px rgba(251, 191, 36, 0.6));
+}
+
+@keyframes levelUpBounce {
+  0% {
+    transform: scale(0) rotate(-20deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2) rotate(10deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+/* テキスト */
+.level-up-text {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.level-up-label {
+  font-size: 2.5rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #FCD34D, #F59E0B, #EF4444);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: levelUpTextPulse 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes levelUpTextPulse {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.05); }
+}
+
+.level-up-number {
+  font-size: 1.25rem;
+  color: white;
+  font-weight: 600;
+}
+
+/* 報酬 */
+.level-up-rewards {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reward-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 10px 20px;
+  border-radius: 30px;
+  animation: rewardSlideIn 0.4s ease-out;
+  animation-delay: 0.5s;
+  animation-fill-mode: both;
+}
+
+@keyframes rewardSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reward-icon {
+  font-size: 1.5rem;
+}
+
+.reward-text {
+  color: #FCD34D;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+/* 閉じるボタン */
+.level-up-close {
+  margin-top: 32px;
+  padding: 14px 48px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1E1B4B;
+  background: linear-gradient(135deg, #FCD34D, #F59E0B);
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  animation: buttonAppear 0.4s ease-out;
+  animation-delay: 0.7s;
+  animation-fill-mode: both;
+}
+
+@keyframes buttonAppear {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.level-up-close:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 25px rgba(251, 191, 36, 0.4);
+}
+
+.level-up-close:active {
+  transform: scale(0.98);
+}
+
+/* =====================================================
+   XP獲得ポップアップ
+   ===================================================== */
+.xp-gain-popup {
+  position: fixed;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #FCD34D;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(0) scale(0.5);
+}
+
+.xp-gain-popup.animate {
+  animation: xpPopup 1.5s ease-out forwards;
+}
+
+@keyframes xpPopup {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.5);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(-20px) scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-80px) scale(1);
+  }
+}
+
+/* =====================================================
+   ミニXPバー（ヘッダー用）
+   ===================================================== */
+.xp-bar-mini {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: rgba(30, 27, 75, 0.9);
+  border-radius: 20px;
+}
+
+.xp-bar-mini .level-badge {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #FCD34D, #F59E0B);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #1E1B4B;
+}
+
+.xp-bar-mini .xp-track {
+  width: 80px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.xp-bar-mini .xp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #FCD34D, #F59E0B);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
