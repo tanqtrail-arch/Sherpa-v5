@@ -1,0 +1,65 @@
+<svg width="120" height="140" viewBox="0 0 120 140" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- ゴールド＆プラチナグラデーション -->
+    <linearGradient id="everestGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FCD34D"/>
+      <stop offset="30%" style="stop-color:#F59E0B"/>
+      <stop offset="70%" style="stop-color:#D97706"/>
+      <stop offset="100%" style="stop-color:#B45309"/>
+    </linearGradient>
+    <linearGradient id="everestInner" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFBEB"/>
+      <stop offset="100%" style="stop-color:#FEF3C7"/>
+    </linearGradient>
+    <!-- プラチナシルバー -->
+    <linearGradient id="platinum" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#E2E8F0"/>
+      <stop offset="50%" style="stop-color:#CBD5E1"/>
+      <stop offset="100%" style="stop-color:#94A3B8"/>
+    </linearGradient>
+    <filter id="everestShadow">
+      <feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#B4530944"/>
+    </filter>
+    <filter id="crownGlow">
+      <feGaussianBlur stdDeviation="1.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- リボン左（プラチナ） -->
+  <path d="M20,80 L8,135 L30,118 L42,135 L48,85 Z" fill="url(#platinum)"/>
+  <!-- リボン右（プラチナ） -->
+  <path d="M100,80 L112,135 L90,118 L78,135 L72,85 Z" fill="url(#platinum)"/>
+
+  <!-- メダル本体 -->
+  <circle cx="60" cy="58" r="50" fill="url(#everestGold)" filter="url(#everestShadow)"/>
+
+  <!-- 装飾リング -->
+  <circle cx="60" cy="58" r="44" fill="none" stroke="#FBBF24" stroke-width="3"/>
+  <circle cx="60" cy="58" r="40" fill="none" stroke="#FCD34D" stroke-width="1"/>
+
+  <!-- 内側の円 -->
+  <circle cx="60" cy="58" r="36" fill="url(#everestInner)"/>
+
+  <!-- 王冠 -->
+  <g transform="translate(60, 38)" filter="url(#crownGlow)">
+    <path d="M-18,8 L-18,-2 L-12,5 L-6,-8 L0,2 L6,-8 L12,5 L18,-2 L18,8 Z" fill="#F59E0B"/>
+    <circle cx="-12" cy="-2" r="2" fill="#FCD34D"/>
+    <circle cx="0" cy="-8" r="3" fill="#EF4444"/>
+    <circle cx="12" cy="-2" r="2" fill="#FCD34D"/>
+  </g>
+
+  <!-- エベレストの山 -->
+  <path d="M25,80 L40,60 L50,65 L60,48 L70,65 L80,60 L95,80 Z" fill="#D97706" opacity="0.7"/>
+  <path d="M50,58 L60,48 L70,58 L65,65 L55,65 Z" fill="white"/>
+
+  <!-- 世界最高峰の文字 -->
+  <text x="60" y="90" text-anchor="middle" font-size="7" font-weight="bold" fill="#B45309" font-family="sans-serif">WORLD HIGHEST</text>
+
+  <!-- 山名 -->
+  <text x="60" y="105" text-anchor="middle" font-size="12" font-weight="900" fill="#B45309" font-family="sans-serif">エベレスト</text>
+  <text x="60" y="118" text-anchor="middle" font-size="9" fill="#D97706" font-family="sans-serif">8,849m</text>
+</svg>

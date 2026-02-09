@@ -1,0 +1,39 @@
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 紫グラデーション -->
+    <linearGradient id="tsukubaPurple" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#A855F7"/>
+      <stop offset="100%" style="stop-color:#7C3AED"/>
+    </linearGradient>
+    <linearGradient id="tsukubaInner" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FAF5FF"/>
+      <stop offset="100%" style="stop-color:#F3E8FF"/>
+    </linearGradient>
+    <filter id="tsukubaShadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#7C3AED44"/>
+    </filter>
+  </defs>
+
+  <!-- 円形ベース -->
+  <circle cx="60" cy="60" r="52" fill="url(#tsukubaPurple)" filter="url(#tsukubaShadow)"/>
+
+  <!-- 装飾リング -->
+  <circle cx="60" cy="60" r="46" fill="none" stroke="#C084FC" stroke-width="2"/>
+
+  <!-- 内側の円 -->
+  <circle cx="60" cy="60" r="42" fill="url(#tsukubaInner)"/>
+
+  <!-- 双峰のシルエット（筑波山の特徴） -->
+  <path d="M20,78 L40,48 L50,55 L60,70 L70,55 L80,48 L100,78 Z" fill="#A855F7" opacity="0.7"/>
+  <!-- 男体山と女体山 -->
+  <circle cx="42" cy="52" r="8" fill="#7C3AED" opacity="0.3"/>
+  <circle cx="78" cy="52" r="8" fill="#7C3AED" opacity="0.3"/>
+
+  <!-- 双峰アイコン -->
+  <text x="42" y="38" text-anchor="middle" font-size="12" fill="#7C3AED" font-family="sans-serif">♂</text>
+  <text x="78" y="38" text-anchor="middle" font-size="12" fill="#7C3AED" font-family="sans-serif">♀</text>
+
+  <!-- 山名 -->
+  <text x="60" y="88" text-anchor="middle" font-size="12" font-weight="bold" fill="#7C3AED" font-family="sans-serif">筑波山</text>
+  <text x="60" y="100" text-anchor="middle" font-size="8" fill="#A855F7" font-family="sans-serif">877m</text>
+</svg>

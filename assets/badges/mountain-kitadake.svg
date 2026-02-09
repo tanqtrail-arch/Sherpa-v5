@@ -1,0 +1,45 @@
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- シルバー＆スカイブルーグラデーション -->
+    <linearGradient id="kitadakeSilver" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#94A3B8"/>
+      <stop offset="50%" style="stop-color:#64748B"/>
+      <stop offset="100%" style="stop-color:#475569"/>
+    </linearGradient>
+    <linearGradient id="kitadakeInner" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#F0F9FF"/>
+      <stop offset="100%" style="stop-color:#E0F2FE"/>
+    </linearGradient>
+    <linearGradient id="cloudGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#FFFFFF" stop-opacity="0"/>
+      <stop offset="50%" style="stop-color:#FFFFFF"/>
+      <stop offset="100%" style="stop-color:#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="kitadakeShadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#47556944"/>
+    </filter>
+  </defs>
+
+  <!-- 盾形ベース -->
+  <path d="M60,8 L105,25 L105,65 Q105,100 60,115 Q15,100 15,65 L15,25 Z" fill="url(#kitadakeSilver)" filter="url(#kitadakeShadow)"/>
+
+  <!-- 内側の盾 -->
+  <path d="M60,18 L95,32 L95,62 Q95,90 60,103 Q25,90 25,62 L25,32 Z" fill="url(#kitadakeInner)"/>
+
+  <!-- 2位のメダル -->
+  <circle cx="60" cy="28" r="10" fill="#CBD5E1" stroke="#94A3B8" stroke-width="2"/>
+  <text x="60" y="32" text-anchor="middle" font-size="10" font-weight="bold" fill="#475569" font-family="sans-serif">2</text>
+
+  <!-- 雲海 -->
+  <ellipse cx="60" cy="72" rx="30" ry="6" fill="url(#cloudGrad)" opacity="0.7"/>
+  <ellipse cx="45" cy="75" rx="20" ry="4" fill="url(#cloudGrad)" opacity="0.5"/>
+  <ellipse cx="75" cy="75" rx="20" ry="4" fill="url(#cloudGrad)" opacity="0.5"/>
+
+  <!-- 山のシルエット（雲海の上） -->
+  <path d="M35,68 L50,50 L60,55 L70,48 L85,68 Z" fill="#0EA5E9" opacity="0.8"/>
+  <path d="M45,55 L60,45 L75,55 L65,60 L55,60 Z" fill="white"/>
+
+  <!-- 山名 -->
+  <text x="60" y="90" text-anchor="middle" font-size="11" font-weight="bold" fill="#475569" font-family="sans-serif">北岳</text>
+  <text x="60" y="100" text-anchor="middle" font-size="8" fill="#64748B" font-family="sans-serif">3,193m</text>
+</svg>

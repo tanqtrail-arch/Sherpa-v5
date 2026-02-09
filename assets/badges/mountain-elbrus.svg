@@ -1,0 +1,49 @@
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- アイスブルーグラデーション -->
+    <linearGradient id="elbrusIce" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#06B6D4"/>
+      <stop offset="100%" style="stop-color:#0891B2"/>
+    </linearGradient>
+    <linearGradient id="elbrusInner" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ECFEFF"/>
+      <stop offset="100%" style="stop-color:#CFFAFE"/>
+    </linearGradient>
+    <!-- 雪のグラデーション -->
+    <linearGradient id="elbrusSnow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFFFF"/>
+      <stop offset="100%" style="stop-color:#E0F2FE"/>
+    </linearGradient>
+    <filter id="elbrusShadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#0891B244"/>
+    </filter>
+  </defs>
+
+  <!-- 円形ベース -->
+  <circle cx="60" cy="60" r="52" fill="url(#elbrusIce)" filter="url(#elbrusShadow)"/>
+
+  <!-- 装飾リング -->
+  <circle cx="60" cy="60" r="46" fill="none" stroke="#22D3EE" stroke-width="2"/>
+
+  <!-- 内側の円 -->
+  <circle cx="60" cy="60" r="42" fill="url(#elbrusInner)"/>
+
+  <!-- エルブルスの双峰（ドーム型） -->
+  <ellipse cx="42" cy="62" rx="20" ry="22" fill="url(#elbrusSnow)"/>
+  <ellipse cx="78" cy="62" rx="20" ry="22" fill="url(#elbrusSnow)"/>
+
+  <!-- 峰の頂上部分 -->
+  <ellipse cx="42" cy="48" rx="12" ry="8" fill="white"/>
+  <ellipse cx="78" cy="48" rx="12" ry="8" fill="white"/>
+
+  <!-- 氷河の線 -->
+  <path d="M32,55 Q42,70 52,55" fill="none" stroke="#06B6D4" stroke-width="1" opacity="0.5"/>
+  <path d="M68,55 Q78,70 88,55" fill="none" stroke="#06B6D4" stroke-width="1" opacity="0.5"/>
+
+  <!-- ヨーロッパ最高峰マーク -->
+  <text x="60" y="38" text-anchor="middle" font-size="8" font-weight="bold" fill="#0891B2" font-family="sans-serif">EUROPE</text>
+
+  <!-- 山名 -->
+  <text x="60" y="92" text-anchor="middle" font-size="9" font-weight="bold" fill="#0891B2" font-family="sans-serif">エルブルス</text>
+  <text x="60" y="103" text-anchor="middle" font-size="8" fill="#06B6D4" font-family="sans-serif">5,642m</text>
+</svg>
